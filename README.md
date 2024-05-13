@@ -6,6 +6,7 @@ I will continue to maintain and update OriginPalia for as long as I can, permitt
 **Note**: I believe this only will work with the standalone client for Palia. I have not tested it on Steam or other platforms. If you'd like to test for that, be my guest! It may or may not work. I will look into compatibility down the line.
 
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
+I want to give a big thanks to @klukule for their Palia ESP DX11 / DX12 source on GitHub. Without that, I wouldn't have taken the time to build something unique of my own.
 
 [![OriginPalia ESP Example](https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg)](https://gyazo.com/c8ae73a455e9047cf11b14996c345249)
 [![OriginPalia Menu Example](https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif)](https://gyazo.com/6ee8348d80d3d3260de686bef860e4f7)
