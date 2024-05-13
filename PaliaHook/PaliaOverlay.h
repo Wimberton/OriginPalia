@@ -956,6 +956,8 @@ public:
 
 	// ============ ESP DISPLAY MAPPINGS ================
 
+	bool CacheActorsFast = true;
+
 	float FOV;
 	int screenWidth;
 	int screenHeight;
@@ -994,6 +996,7 @@ public:
 	// Movement Booleans
 	bool bAutoUpdateTickRegistration = false;
 	bool bEnableWaypointTeleport = true;
+	bool bBypassSpeedCheat = false;
 
 	bool bEnableGameSpeed = false;
 	bool bEnableNoclip = false;
@@ -1049,6 +1052,8 @@ public:
 	bool bOverrideFishingSpot = false;
 
 	// Item Booleans
+	bool bEasyModeActive = false;
+	bool bSkipGiftingTimers = false;
 	bool bEnableMagicArrow = false;
 	bool bModifyArrowGravity = false;
 	bool bEnableAutoGathering = false;

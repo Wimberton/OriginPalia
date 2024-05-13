@@ -239,108 +239,109 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 	FRotator NewRotation;
 
 	for (FEntry& Entry : Overlay->CachedActors) {
-		if (Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
-			bool bShouldConsider = false;
+		if (!Entry.Actor) continue;
+		if (!Entry.Actor->IsValidLowLevel() || Entry.Actor->IsDefaultObject()) continue;
 
-			switch (Entry.ActorType) {
-			case EType::Animal:
-				bShouldConsider = Overlay->Animals[Entry.Type][Entry.Variant]; // Toggle for different types of animals
-				break;
-			case EType::Ore:
-				bShouldConsider = Overlay->Ores[Entry.Type][Entry.Variant]; // Toggle for different types of ores
-				break;
-			case EType::Bug:
-				bShouldConsider = Overlay->Bugs[Entry.Type][Entry.Variant][Entry.Quality]; // Toggle for different types of bugs
-				break;
-			case EType::Forage:
-				bShouldConsider = Overlay->Forageables[Entry.Type][Entry.Quality]; // Toggle for forageable items
-				break;
-			case EType::Players:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::Player]; // Toggle for player visibility
-				break;
-			case EType::NPCs:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::NPC]; // Toggle for NPCs
-				break;
-			case EType::Quest:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::Quest]; // Toggle for quest items
-				break;
-			case EType::Loot:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::Loot]; // Toggle for loot
-				break;
-			case EType::RummagePiles:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::RummagePiles]; // Toggle for RummagePiles
-				break;
-			case EType::Stables:
-				bShouldConsider = Overlay->Singles[(int)EOneOffs::Stables]; // Toggle for Stables
-				break;
-			case EType::Tree:
-				bShouldConsider = Overlay->Trees[Entry.Type][Entry.Variant]; // Toggle for trees
-				break;
-			case EType::Fish:
-				bShouldConsider = Overlay->Fish[Entry.Type]; // Toggle for fish types
-				break;
-			}
+		bool bShouldConsider = false;
 
-			if (!bShouldConsider) continue;
+		switch (Entry.ActorType) {
+		case EType::Animal:
+			bShouldConsider = Overlay->Animals[Entry.Type][Entry.Variant]; // Toggle for different types of animals
+			break;
+		case EType::Ore:
+			bShouldConsider = Overlay->Ores[Entry.Type][Entry.Variant]; // Toggle for different types of ores
+			break;
+		case EType::Bug:
+			bShouldConsider = Overlay->Bugs[Entry.Type][Entry.Variant][Entry.Quality]; // Toggle for different types of bugs
+			break;
+		case EType::Forage:
+			bShouldConsider = Overlay->Forageables[Entry.Type][Entry.Quality]; // Toggle for forageable items
+			break;
+		case EType::Players:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::Player]; // Toggle for player visibility
+			break;
+		case EType::NPCs:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::NPC]; // Toggle for NPCs
+			break;
+		case EType::Quest:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::Quest]; // Toggle for quest items
+			break;
+		case EType::Loot:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::Loot]; // Toggle for loot
+			break;
+		case EType::RummagePiles:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::RummagePiles]; // Toggle for RummagePiles
+			break;
+		case EType::Stables:
+			bShouldConsider = Overlay->Singles[(int)EOneOffs::Stables]; // Toggle for Stables
+			break;
+		case EType::Tree:
+			bShouldConsider = Overlay->Trees[Entry.Type][Entry.Variant]; // Toggle for trees
+			break;
+		case EType::Fish:
+			bShouldConsider = Overlay->Fish[Entry.Type]; // Toggle for fish types
+			break;
+		}
 
+		if (!bShouldConsider) continue;
 
-			FVector ActorLocation = Entry.Actor->K2_GetActorLocation();
-			FVector DirectionToActor = (ActorLocation - PawnLocation).GetNormalized();
-			FVector TargetVelocity = Entry.Actor->GetVelocity();
-			FVector RelativeVelocity = TargetVelocity - PlayerGetPawn->GetVelocity();
-			FVector RelativeDirection = RelativeVelocity.GetNormalized();
+		FVector ActorLocation = Entry.Actor->K2_GetActorLocation();
+		FVector DirectionToActor = (ActorLocation - PawnLocation).GetNormalized();
+		FVector TargetVelocity = Entry.Actor->GetVelocity();
+		FVector RelativeVelocity = TargetVelocity - PlayerGetPawn->GetVelocity();
+		FVector RelativeDirection = RelativeVelocity.GetNormalized();
 			
-			double Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
-			double Angle = CustomMath::RadiansToDegrees(acosf(ForwardVector.Dot(DirectionToActor)));
-			double TimeToTarget = Distance / 343.0;
-			
-			FVector PredictedLocation = ActorLocation + TargetVelocity * TimeToTarget; // Predictive aiming
+		double Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
+		double Angle = CustomMath::RadiansToDegrees(acosf(ForwardVector.Dot(DirectionToActor)));
+		double TimeToTarget = Distance / 343.0;
+		FVector PredictedLocation = ActorLocation + TargetVelocity * TimeToTarget; // Predictive aiming
 
-			// Weighting factors for different factors
-			double AngleWeight = 0.5, DistanceWeight = 0.3, MovementWeight = 0.0;
-			
-			// Adjust weighting factors based on EType
-			switch (Entry.ActorType) {
-			case EType::Animal:
-				// Higher priority for animals
-				AngleWeight = 0.10;
-				DistanceWeight = 0.0;
-				MovementWeight = 0.0;
-				break;
-			case EType::Ore:
-				// Weighting factors for ores
-				AngleWeight = 0.10;
-				DistanceWeight = 0.0;
-				MovementWeight = 0.0;
-				break;
-			case EType::Bug:
-				// Weighting factors for bugs
-				AngleWeight = 0.10;
-				DistanceWeight = 0.0;
-				MovementWeight = 0.0;
-				break;
-			default:
-				// Default weighting factors
-				AngleWeight = 0.10;
-				DistanceWeight = 0.0;
-				MovementWeight = 0.0;
-				break;
-			}
-			
-			// Calculate score based on weighted sum of factors
-			// double Score = (AngleWeight * Angle) + (DistanceWeight * Distance / 100.0) + (MovementWeight * RelativeDirection.Magnitude());
-			double Score = (AngleWeight * Angle) + (DistanceWeight * Distance) + (MovementWeight * RelativeDirection.Magnitude());
+		if (ActorLocation.X == 0 && ActorLocation.Y == 0 && ActorLocation.Z == 0) continue;
+		// double Distance = sqrt(pow(PawnLocation.X - ActorLocation.X, 2) + pow(PawnLocation.Y - ActorLocation.Y, 2) + pow(PawnLocation.Z - ActorLocation.Z, 2)) * 0.01;
 
-			if (Angle <= FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
-				if (Score < BestScore) {
-					BestScore = Score;
-					FRotator CurrentRotation = Controller->GetControlRotation();
-					FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
-					FRotator NewRotation = CustomMath::RInterpTo(CurrentRotation, TargetRotation, UGameplayStatics::GetWorldDeltaSeconds(World), Overlay->SmoothingFactor);
-					Overlay->BestTargetActor = Entry.Actor;
-					Overlay->BestTargetLocation = ActorLocation;
-					Overlay->BestTargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
-				}
+		if (Distance < 2.0) continue;
+		if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance) continue;
+
+		// Weighting factors for different factors
+		double AngleWeight = 0.5, DistanceWeight = 0.3, MovementWeight = 0.0;
+			
+		// Adjust weighting factors based on EType
+		switch (Entry.ActorType) {
+		case EType::Animal:
+			AngleWeight = 0.10;
+			DistanceWeight = 0.0;
+			MovementWeight = 0.0;
+			break;
+		case EType::Ore:
+			AngleWeight = 0.10;
+			DistanceWeight = 0.0;
+			MovementWeight = 0.0;
+			break;
+		case EType::Bug:
+			AngleWeight = 0.10;
+			DistanceWeight = 0.0;
+			MovementWeight = 0.0;
+			break;
+		default:
+			AngleWeight = 0.10;
+			DistanceWeight = 0.0;
+			MovementWeight = 0.0;
+			break;
+		}
+			
+		// Calculate score based on weighted sum of factors
+		// double Score = (AngleWeight * Angle) + (DistanceWeight * Distance / 100.0) + (MovementWeight * RelativeDirection.Magnitude());
+		double Score = (AngleWeight * Angle) + (DistanceWeight * Distance) + (MovementWeight * RelativeDirection.Magnitude());
+
+		if (Angle <= FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
+			if (Score < BestScore) {
+				BestScore = Score;
+				FRotator CurrentRotation = Controller->GetControlRotation();
+				FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
+				FRotator NewRotation = CustomMath::RInterpTo(CurrentRotation, TargetRotation, UGameplayStatics::GetWorldDeltaSeconds(World), Overlay->SmoothingFactor);
+				Overlay->BestTargetActor = Entry.Actor;
+				Overlay->BestTargetLocation = ActorLocation;
+				Overlay->BestTargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
 			}
 		}
 	}
@@ -348,64 +349,18 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 	if (Overlay->bTeleportToTargeted) {
 		auto now = std::chrono::steady_clock::now();
 		if (IsKeyHeld(VK_XBUTTON2) && BestScore != FLT_MAX) {
-			if (std::chrono::duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 1.5) {
+			if (std::chrono::duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 2) {
 				FVector TargetLocation = Overlay->BestTargetLocation;
-				float HeightOffset = 100.0f;
-				FVector NewLocation = FVector(TargetLocation.X, TargetLocation.Y, TargetLocation.Z + HeightOffset);
+				FVector ActorLocation = PlayerPawn->K2_GetActorLocation();
 
+				// Calculate offset based on distance between actor and target
+				FVector Offset = (TargetLocation - ActorLocation).GetNormalized() * 100.0f;
+
+				FVector NewLocation = TargetLocation + Offset;
 				FHitResult HitResult;
-				bool bTeleportSuccessful = PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
-
-				// Optionally, handle the case where teleportation might fail due to collision
-				if (!bTeleportSuccessful && HitResult.bBlockingHit) {
-					// Attempt to adjust the height further if there was a collision
-					NewLocation.Z += HeightOffset;
-					PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
-				}
-
+				HitResult.bBlockingHit = false;
+				PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
 				Overlay->LastTeleportToTargetTime = now;
-			}
-		}
-	}
-
-	if (Overlay->bAddAnimalToOrbit) {
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		FVector PlayerLocation = PlayerPawn->K2_GetActorLocation();
-		float OrbitRadius = 200.0f; // 2 meters radius around player
-		float OrbitHeight = 120.0f; // 1 meter off the ground
-		float RotationSpeed = 2.0f; // Speed of rotation
-
-		int index = 0;
-		for (FEntry& Entry : Overlay->CachedActors) {
-			if (Entry.shouldAdd && Entry.ActorType == EType::Animal && Entry.Actor && Entry.Actor->IsValidLowLevel()) {
-				// AAIController* AIController = static_cast<AAIController*>(Overlay->BestTargetActor->GetInstigatorController());
-				// if (AIController) {
-					// AIController->StopMovement();  // Stop AI Movement
-				// }
-
-				float baseAngle = 2.0f * CustomMath::PI / Overlay->CachedActors.size(); // evenly distribute animals around player
-				float Angle = CustomMath::Fmod(WorldTime * RotationSpeed + baseAngle * index, 2.0f * CustomMath::PI);
-
-				FVector NewLocation(
-					PlayerLocation.X + OrbitRadius * UKismetMathLibrary::Cos(Angle),
-					PlayerLocation.Y + OrbitRadius * UKismetMathLibrary::Sin(Angle),
-					PlayerLocation.Z + OrbitHeight
-				);
-
-				FHitResult HitResult;
-				Entry.Actor->K2_SetActorLocation(NewLocation, false, &HitResult, true);
-
-				// handle collision to adjust the height further
-				if (HitResult.bBlockingHit) {
-					NewLocation.Z += 100.0f; // additional meter
-					Entry.Actor->K2_SetActorLocation(NewLocation, false, &HitResult, true);
-				}
-
-				index++;
 			}
 		}
 	}
@@ -430,7 +385,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 				TargetRotation.Yaw += Overlay->AimOffset.Y;
 
 				// Smooth rotation adjustment
-				FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);  // Adjust interpolation speed as necessary
+				FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);  // Adjust interpolation speed
 				Controller->SetControlRotation(NewRotation);
 			}
 		}
@@ -452,8 +407,22 @@ void DrawCircle(UCanvas* Canvas, FVector2D Center, float Radius, int32 NumSegmen
 	}
 }
 
+// Function to manage cache based on the game state
+static void ManageCache(UWorld* World, PaliaOverlay* Overlay) {
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
+
+	// Clear cache on level change
+	if (Overlay->CurrentLevel != World->PersistentLevel) {
+		Overlay->CachedActors.clear();
+		Overlay->CurrentLevel = World->PersistentLevel;
+		Overlay->CurrentMap = GameplayStatics->GetCurrentLevelName(World, false).ToString();
+	}
+}
+
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
+	ManageCache(GetWorld(), Overlay);
 
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
@@ -462,15 +431,6 @@ static void DrawHUD(const AHUD* HUD) {
 
 		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
 		if (!GameplayStatics) return;
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		// clear out cache on level change
-		if (Overlay->CurrentLevel != World->PersistentLevel) {
-			Overlay->CachedActors.clear();
-			Overlay->CurrentLevel = World->PersistentLevel;
-			Overlay->CurrentMap = GameplayStatics->GetCurrentLevelName(World, false).ToString();
-		}
 
 		auto GameInstance = World->OwningGameInstance;
 		if (!GameInstance) return;
@@ -487,17 +447,16 @@ static void DrawHUD(const AHUD* HUD) {
 		if (!PlayerGetPawn) return;
 
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
+		double WorldTime = GameplayStatics->GetTimeSeconds(World);
 
-		if (abs(WorldTime - Overlay->LastCachedTime) > 0.1)
-		{
-			// TODO: Split to separate frames to avoid hitches
-
+		if (abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
 			Overlay->LastCachedTime = WorldTime;
+			Overlay->ProcessActors(Overlay->ActorStep);
+
 			Overlay->ActorStep++;
 			if (Overlay->ActorStep >= (int)EType::MAX) {
 				Overlay->ActorStep = 0;
 			}
-			Overlay->ProcessActors(Overlay->ActorStep);
 		}
 
 		// Draw ESP Names Entities
@@ -667,17 +626,10 @@ static void DrawHUD(const AHUD* HUD) {
 
 				// Draw main text
 				HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0,0,0,1 }, FVector2D(1.0f, 1.0f), true, true, true, { 0,0,0,1 });
-
-				/*StrPrinter*/
-				//std::string text = std::format("{} [{:.2f}m]", Entry.DisplayName, Distance);
-				//std::wstring wideText(text.begin(), text.end()); // Will not work for non-ascii characters
-				//ImColor IMC(Color);
-				//FLinearColor UnrealColor = { IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w };
-				//HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ScreenLocation, { 1.0,1.0 }, UnrealColor, 0, { 0,0,0,1 }, { 1,1 }, true, true, true, { 0,0,0,1 });
 			}
 		}
 
-		// Draw Inteli Lines and FOV Circle
+		// Logic for FOV and Targeting Drawing
 		if (Overlay->bDrawFOVCircle) {
 			FVector2D PlayerScreenPosition;
 			FVector2D TargetScreenPosition;
@@ -725,8 +677,6 @@ static void DrawHUD(const AHUD* HUD) {
 
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
 		if (!PlayerGetPawn) return;
-		
-		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
 
 		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
 	}
@@ -782,7 +732,7 @@ static void DrawHUD(const AHUD* HUD) {
 					FBagSlotLocation FishBagSlot = {};
 					FishBagSlot.BagIndex = 0;
 
-					StoreComponent->RpcServer_SellItem(FishBagSlot, 2);  // Selling 5 fish
+					StoreComponent->RpcServer_SellItem(FishBagSlot, 2);  // Selling 2 fish
 				}
 			}
 		}
@@ -1394,11 +1344,17 @@ void PaliaOverlay::DrawOverlay()
 			if (ImGui::CollapsingHeader("Visual Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Checkbox("Enable ESP", &bEnableESP);
-				// ImGui::Checkbox("Enable Boxes", &bEnableBoxESP);
+
 				ImGui::Checkbox("Limit Distance", &bEnableESPCulling);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
 				ImGui::InputInt("Distance", &CullDistance);
-				ImGui::Spacing();
+
+				ImGui::Checkbox("Enable InteliAim Circle", &bDrawFOVCircle);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Enable the smart targeting system. Teleport to actors, enable aimbots, and more.");
+				if (bDrawFOVCircle) {
+					ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
+				}
+
 				ImGui::Checkbox("Show Others", &bVisualizeDefault);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
 			}
@@ -2667,11 +2623,6 @@ void PaliaOverlay::DrawOverlay()
 										AimOffset = FVector(cursor_pos.x * scaling_factor, cursor_pos.y * scaling_factor, 0.0f);
 										ImGui::Text("Current Offset: Pitch: %.2f, Yaw: %.2f", AimOffset.X, AimOffset.Y);
 									}
-									ImGui::Checkbox("Enable InteliAim Circle", &bDrawFOVCircle);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Enable the smart targeting system. Teleport to actors, aimbots, and more.");
-									if (bDrawFOVCircle) {
-										ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
-									}
 									ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
 									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
 									ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
@@ -2794,12 +2745,6 @@ void PaliaOverlay::DrawOverlay()
 										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GlobalGameSpeed);
 									}
 
-									// Movement velocity with slider
-									// ImGui::Text("Movement Velocity:");
-									// if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Sprint faster pressing SHIFT, using velocity math. May bypass movement restriction issues.");
-									// Slider to adjust the speed multiplier
-									// if (ImGui::SliderFloat("##velocitySpeedMultiplier", &velocitySpeedMultiplier, 0.5f, 4.0f, "%.1f")) {}
-
 									// Walk Speed with slider
 									ImGui::Text("Walk Speed:");
 									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Walk faster and further when this is higher.");
@@ -2853,17 +2798,6 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::SliderInt("##MaxStepHeight", &maxStepHeightIndex, 0, 6, stepHeightItems[maxStepHeightIndex])) {
 										MovementComponent->MaxStepHeight = stepHeightValues[maxStepHeightIndex];
 									}
-									// ImGui::Spacing();
-									
-									// ImGui::AlignTextToFramePadding();
-									// ImGui::Text("Sprint Speed Multiplier: ");
-									// ImGui::SameLine();
-									// ImGui::SetNextItemWidth(175.0f);
-									// ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &MovementComponent->SprintSpeedMultiplier, &f5);
-									// ImGui::SameLine();
-									// if (ImGui::Button("Reset")) {
-										// MovementComponent->SprintSpeedMultiplier = 1.65f;
-									// }
 								}
 
 								ImGui::NextColumn();
@@ -2878,6 +2812,9 @@ void PaliaOverlay::DrawOverlay()
 										if (CurrentMap == Entry.MapName || Entry.MapName == "UserDefined") {
 											if (ImGui::Selectable(Entry.Name.c_str())) {
 												ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
+												
+												PlayerController->ClientForceGarbageCollection();
+												PlayerController->ClientFlushLevelStreaming();
 											}
 										}
 									}
@@ -2925,60 +2862,15 @@ void PaliaOverlay::DrawOverlay()
 									ImGui::SameLine();
 									if (ImGui::Button("Teleport To Coordinates")) {
 										ValeriaCharacter->K2_TeleportTo(TeleportLocation, TeleportRotate);
+
+										PlayerController->ClientForceGarbageCollection();
+										PlayerController->ClientFlushLevelStreaming();
 									}
 									ImGui::SameLine();
 									if (ImGui::Button("Teleport To Home Base")) {
 										ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
 									}
 								}
-
-								// if (ImGui::CollapsingHeader("Network Movement Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-									// Checkbox to enable or disable Network Smoothing
-									
-									// static bool enableSmoothing = false;
-									// ImGui::Checkbox("Enable Network Smoothing", &enableSmoothing);
-
-									// Dropdown to select the Network Smoothing mode
-									
-									// static const char* smoothingModes[] = { "Disabled", "Linear", "Exponential" };
-									// static int currentSmoothingMode = 0; // Default to 'Disabled'
-									// if (enableSmoothing) {
-										// ImGui::Combo("Smoothing Mode", &currentSmoothingMode, smoothingModes, IM_ARRAYSIZE(smoothingModes));
-										// PriMovementComponent->NetworkSmoothingMode = static_cast<ENetworkSmoothingMode>(currentSmoothingMode);
-									// }
-									
-									// if (ImGui::Checkbox("Zero Since Last Teleport", &ZeroTimeSinceLastTeleport)) {
-										// if (ZeroTimeSinceLastTeleport) {
-											PriMovementComponent->TimeSinceLastTeleport = 0.0f;
-											// }
-									// }
-
-									// if (ImGui::Checkbox("Always Skip Network Prediction", &bNetworkSkipProxyPredictionAlways)) {
-										// if (bNetworkSkipProxyPredictionAlways) {
-											PriMovementComponent->bNetworkSkipProxyPredictionAlways = true;
-											// }
-									// }
-
-									// if (ImGui::Checkbox("Skip Network Prediction on Update", &bNetworkSkipProxyPredictionOnNetUpdate)) {
-										// if (bNetworkSkipProxyPredictionOnNetUpdate) {
-											PriMovementComponent->bNetworkSkipProxyPredictionOnNetUpdate = true;
-											// }
-									// }
-
-									// if (ImGui::Checkbox("Disable Server Throttle Counter", &disableThrottleCounter)) {
-										// if (disableThrottleCounter) {
-											PriMovementComponent->SendServerRpcThrottleCounter = 0.0f;
-											// }
-									// }
-									// ImGui::Spacing();
-									// static float throttleLimit = 60.0f;
-									// ImGui::InputFloat("Throttle Limit", &throttleLimit);
-									// if (ImGui::Checkbox("Set Server Throttle Limit", &setServerThrottleLimit)) {
-										// if (setServerThrottleLimit) {
-											// PriMovementComponent->SendServerRpcThrottleLimit = throttleLimit;
-											// }
-									// }
-								// }
 							}
 						}
 					}
@@ -3066,7 +2958,29 @@ void PaliaOverlay::DrawOverlay()
 
 								ImGui::NextColumn();
 
-								if (ImGui::CollapsingHeader("Selling Hotkeys - Quickselling", ImGuiTreeNodeFlags_DefaultOpen))
+								if (ImGui::CollapsingHeader("Player Features", ImGuiTreeNodeFlags_DefaultOpen))
+								{
+									ImGui::Checkbox("Skip Gifting Timers", &bSkipGiftingTimers);
+									if (bSkipGiftingTimers) {
+										ValeriaPlayerController->RpcServer_SetIgnoreGiftTimer(true);
+									}
+									else {
+										ValeriaPlayerController->RpcServer_SetIgnoreGiftTimer(false);
+									}
+
+									if (ImGui::Button("Toggle Challenge Easy Mode")) {
+										ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
+										bEasyModeActive = !bEasyModeActive;
+									}
+									if (bEasyModeActive) {
+										ImGui::Text("CHALLENGE EASY MODE ON");
+									}
+									else {
+										ImGui::Text("CHALLENGE EASY MODE OFF");
+									}
+								}
+
+								if (ImGui::CollapsingHeader("Selling Hotkeys - Quickselling"))
 								{
 									ImGui::Text("Quicksell All - Bag 1 Slots");
 									ImGui::Text("Visit a storefront then use the hotkeys to sell your inventory quickly");
@@ -3127,7 +3041,11 @@ void PaliaOverlay::DrawOverlay()
 			if (!ValeriaCharacter) return;
 
 			UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
+			if (!GardenComponent) return;
+
 			UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
+			if (!FishingComponent) return;
+
 			FValeriaItem Equipped = ValeriaCharacter->GetEquippedItem();
 			ETools EquippedTool = ETools::None;
 			std::string EquippedName = Equipped.ItemType->Name.ToString();
@@ -3168,28 +3086,23 @@ void PaliaOverlay::DrawOverlay()
 			{
 				if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					if (ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing)) {}
+					ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
-					// ImGui::Checkbox("Enable Auto Fishing", &bEnableAutoFishing);
-					// if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically recast your line when fishing. Pairs well with auto-sell slot 1.");
+					ImGui::Spacing();
+					ImGui::Text("Instant Fishing Parameters:");
+					ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
+					ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
+					ImGui::SameLine();
+					ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
 
-					if (bEnableInstantFishing) {
-						ImGui::Spacing();
-						ImGui::Text("Instant Fishing Parameters:");
-						ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
-						ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
-						ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
-						ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
-						ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
-						ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
-						ImGui::SameLine();
-						ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
-
-						ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
-						ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
-						if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-					}
+					ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
+					ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 				}
 			}
 		}
