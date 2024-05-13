@@ -240,6 +240,8 @@ struct FLocation
 
 class PaliaOverlay : public OverlayBase
 {
+private:
+	std::vector<UObject*> HookedComponents;
 protected:
 	virtual void DrawHUD();
 	virtual void DrawOverlay();
@@ -249,7 +251,6 @@ public:
 	void ProcessActors(int);
 
 public:
-
 	static std::map<int, std::string> CreatureQualityNames;
 	static std::map<int, std::string> BugQualityNames;
 	static std::map<int, std::string> GatherableSizeNames;

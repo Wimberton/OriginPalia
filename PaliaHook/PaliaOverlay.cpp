@@ -1265,42 +1265,6 @@ void PaliaOverlay::DrawHUD()
 	APlayerController* PlayerController = LocalPlayer->PlayerController;
 	if (!PlayerController) return; // Ensure there's a valid player controller.
 
-	// HOOKING PLACEMENTCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UPlacementComponent* PlacementComponent = static_cast<UPlacementComponent*>(UPlacementComponent::StaticClass()->DefaultObject);
-			void* Instance = PlacementComponent;
-			const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-			DWORD OldProtection;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-			int32 Idx = Offsets::ProcessEventIdx;
-			OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-			const void* NewProcEvt = ProcessEventDetour;
-			Vtable[Idx] = NewProcEvt;
-			HookedClient = PlacementComponent;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-		}
-	}
-	 
-	// HOOKING PLACEMENTREGIONCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UPlacementRegionComponent* PlacementRegionComponent = static_cast<UPlacementRegionComponent*>(UPlacementRegionComponent::StaticClass()->DefaultObject);
-			void* Instance = PlacementRegionComponent;
-			const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-			DWORD OldProtection;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-			int32 Idx = Offsets::ProcessEventIdx;
-			OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-			const void* NewProcEvt = ProcessEventDetour;
-			Vtable[Idx] = NewProcEvt;
-			HookedClient = PlacementRegionComponent;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-		}
-	}
-
 	// HOOKING FISHINGCOMPONENT
 	if (PlayerController->Pawn) {
 		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
@@ -1323,64 +1287,29 @@ void PaliaOverlay::DrawHUD()
 		}
 	}
 
-	// HOOKING TRACKINGCOMPONENT
-	if (PlayerController->Pawn) {
-		UTrackingComponent* TrackingComponent = (static_cast<AValeriaPlayerController*>(PlayerController))->GetTrackingComponent();
-		if (TrackingComponent) {
-			void* Instance = TrackingComponent;
-			const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-			DWORD OldProtection;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-			int32 Idx = Offsets::ProcessEventIdx;
-			OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-			const void* NewProcEvt = ProcessEventDetour;
-			Vtable[Idx] = NewProcEvt;
-			HookedClient = TrackingComponent;
-			VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-		}
-	}
-
 	// HOOKING FIRINGCOMPONENT
 	if (PlayerController->Pawn) {
 		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
 		if (ValeriaCharacter) {
-			UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent();
-			if (FiringComponent) {
-				void* Instance = FiringComponent;
-				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-				DWORD OldProtection;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-				int32 Idx = Offsets::ProcessEventIdx;
-				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-				const void* NewProcEvt = ProcessEventDetour;
-				Vtable[Idx] = NewProcEvt;
-				HookedClient = FiringComponent;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
+			if (bEnableSilentAimbot) {
+				UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent();
+				if (FiringComponent) {
+					void* Instance = FiringComponent;
+					const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
+					DWORD OldProtection;
+					VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
+					int32 Idx = Offsets::ProcessEventIdx;
+					OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
+					const void* NewProcEvt = ProcessEventDetour;
+					Vtable[Idx] = NewProcEvt;
+					HookedClient = FiringComponent;
+					VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
+				}
 			}
 		}
 	}
 
-	// HOOKING AIMINGCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UAimingComponent* AimingComponent = ValeriaCharacter->GetAimingComponent();
-			if (AimingComponent) {
-				void* Instance = AimingComponent;
-				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-				DWORD OldProtection;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-				int32 Idx = Offsets::ProcessEventIdx;
-				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-				const void* NewProcEvt = ProcessEventDetour;
-				Vtable[Idx] = NewProcEvt;
-				HookedClient = AimingComponent;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-			}
-		}
-	}
-
-	// HOOKING PROCESSEVENT GENERAL
+	// HOOKING PROCESSEVENT IN AHUD
 	if (HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
 		void* Instance = PlayerController->MyHUD;
 		const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
@@ -2690,9 +2619,6 @@ void PaliaOverlay::DrawOverlay()
 						if (PlayerController && PlayerController->Pawn) {
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
-								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-								UCharacterMovementComponent* CharMovementComponent = static_cast<UCharacterMovementComponent*>(ValeriaCharacter->GetMovementComponent());
-								UAimingComponent* AimingComponent = static_cast<UAimingComponent*>(ValeriaCharacter->GetComponentByClass(UAimingComponent::StaticClass()));
 
 								ImGui::Columns(2, nullptr, false);
 
@@ -2779,9 +2705,16 @@ void PaliaOverlay::DrawOverlay()
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
 								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+								if (!MovementComponent) return;
+
 								UCharacterMovementComponent* CharMovementComponent = static_cast<UCharacterMovementComponent*>(ValeriaCharacter->GetMovementComponent());
+								if (!CharMovementComponent) return;
+
 								UValeriaClientPriMovementComponent* PriMovementComponent = static_cast<UValeriaClientPriMovementComponent*>(ValeriaCharacter->MovementComponent);
+								if (!PriMovementComponent) return;
+
 								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
+								if (!CameraManager) return;
 
 								FVector MyLocation = ValeriaCharacter->K2_GetActorLocation();
 								FRotator MyRotation = ValeriaCharacter->K2_GetActorRotation();
@@ -3061,9 +2994,16 @@ void PaliaOverlay::DrawOverlay()
 					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
 					if (LocalPlayer) {
 						APlayerController* BasePlayerController = LocalPlayer->PlayerController;
+						if (!BasePlayerController) return;
+
 						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(BasePlayerController);
+						if (!ValeriaPlayerController) return;
+
 						if (ValeriaPlayerController && ValeriaPlayerController->Pawn) {
+							
 							AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
+							if (!ValeriaCharacter) return;
+
 							if (ValeriaCharacter && ValeriaCharacter->GetValeriaCharacterMovementComponent()) {
 								const double d20 = 20., d5 = 5., d1 = 1., dhalf = 0.5, dzero = 0.;
 								const float f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5, fzero = 0.0;
@@ -3169,86 +3109,86 @@ void PaliaOverlay::DrawOverlay()
 		// ==================================== 4 Skills & Tools TAB
 		else if (OpenTab == 4) {
 			auto World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						if (PlayerController && PlayerController->Pawn) {
-							ABP_ValeriaPlayerController_C* ValeriaPlayerController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
-							if (ValeriaPlayerController) {
-								AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
-								if (ValeriaCharacter) {
-									UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
-									UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
-									FValeriaItem Equipped = ValeriaCharacter->GetEquippedItem();
-									ETools EquippedTool = ETools::None;
-									std::string EquippedName = Equipped.ItemType->Name.ToString();
+			if (!World) return;
 
-									if (EquippedName.find("Tool_Axe_") != std::string::npos) {
-										EquippedTool = ETools::Axe;
-									}
-									else if (EquippedName.find("Tool_InsectBallLauncher_") != std::string::npos) {
-										EquippedTool = ETools::Belt;
-									}
-									else if (EquippedName.find("Tool_Bow_") != std::string::npos) {
-										EquippedTool = ETools::Bow;
-									}
-									else if (EquippedName.find("Tool_Rod_") != std::string::npos) {
-										EquippedTool = ETools::FishingRod;
-									}
-									else if (EquippedName.find("Tool_Hoe_") != std::string::npos) {
-										EquippedTool = ETools::Hoe;
-									}
-									else if (EquippedName.find("Tool_Pick") != std::string::npos) {
-										EquippedTool = ETools::Pick;
-									}
-									else if (EquippedName.find("Tool_WateringCan_") != std::string::npos) {
-										EquippedTool = ETools::WateringCan;
-									}
+			auto GameInstance = World->OwningGameInstance;
+			if (!GameInstance || GameInstance->LocalPlayers.Num() == 0) return;
 
-									ImGui::Columns(2, nullptr, false);
-									if (ValeriaCharacter) {
-										if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
-										{
-											ImGui::Text("Equipped Tool : %s", STools[(int)EquippedTool]);
-										}
-									}
-									
-									ImGui::NextColumn();
+			ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+			if (!LocalPlayer) return;
 
-									if (FishingComponent)
-									{
-										if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
-										{
-											if (ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing)) {}
-											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
-											
-											// ImGui::Checkbox("Enable Auto Fishing", &bEnableAutoFishing);
-											// if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically recast your line when fishing. Pairs well with auto-sell slot 1.");
-											
-											if (bEnableInstantFishing) {
-												ImGui::Spacing();
-												ImGui::Text("Instant Fishing Parameters:");
-												ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
-												ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
-												ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
-												ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
-												ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
-												ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
-												ImGui::SameLine();
-												ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
+			APlayerController* PlayerController = LocalPlayer->PlayerController;
+			if (!PlayerController || !PlayerController->Pawn) return;
 
-												ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
-												ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
-												if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-											}
-										}
-									}
-								}
-							}
-						}
+			ABP_ValeriaPlayerController_C* ValeriaPlayerController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
+			if (!ValeriaPlayerController) return;
+
+			AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
+			if (!ValeriaCharacter) return;
+
+			UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
+			UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
+			FValeriaItem Equipped = ValeriaCharacter->GetEquippedItem();
+			ETools EquippedTool = ETools::None;
+			std::string EquippedName = Equipped.ItemType->Name.ToString();
+
+			if (EquippedName.find("Tool_Axe_") != std::string::npos) {
+				EquippedTool = ETools::Axe;
+			}
+			else if (EquippedName.find("Tool_InsectBallLauncher_") != std::string::npos) {
+				EquippedTool = ETools::Belt;
+			}
+			else if (EquippedName.find("Tool_Bow_") != std::string::npos) {
+				EquippedTool = ETools::Bow;
+			}
+			else if (EquippedName.find("Tool_Rod_") != std::string::npos) {
+				EquippedTool = ETools::FishingRod;
+			}
+			else if (EquippedName.find("Tool_Hoe_") != std::string::npos) {
+				EquippedTool = ETools::Hoe;
+			}
+			else if (EquippedName.find("Tool_Pick") != std::string::npos) {
+				EquippedTool = ETools::Pick;
+			}
+			else if (EquippedName.find("Tool_WateringCan_") != std::string::npos) {
+				EquippedTool = ETools::WateringCan;
+			}
+
+			ImGui::Columns(2, nullptr, false);
+			if (ValeriaCharacter) {
+				if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ImGui::Text("Equipped Tool : %s", STools[(int)EquippedTool]);
+				}
+			}
+
+			ImGui::NextColumn();
+
+			if (FishingComponent)
+			{
+				if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					if (ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing)) {}
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
+
+					// ImGui::Checkbox("Enable Auto Fishing", &bEnableAutoFishing);
+					// if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically recast your line when fishing. Pairs well with auto-sell slot 1.");
+
+					if (bEnableInstantFishing) {
+						ImGui::Spacing();
+						ImGui::Text("Instant Fishing Parameters:");
+						ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
+						ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
+						ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
+						ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
+						ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
+						ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
+						ImGui::SameLine();
+						ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
+
+						ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
+						ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
+						if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 					}
 				}
 			}
