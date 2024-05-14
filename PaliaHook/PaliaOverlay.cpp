@@ -426,13 +426,14 @@ static void ManageCache(UWorld* World, PaliaOverlay* Overlay) {
 
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
-	ManageCache(GetWorld(), Overlay);
 
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
-		UWorld* World = GetWorld();
+		auto World = GetWorld();
 		if (!World) return;
-
+		
+		ManageCache(GetWorld(), Overlay);
+		
 		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
 		if (!GameplayStatics) return;
 
@@ -448,7 +449,6 @@ static void DrawHUD(const AHUD* HUD) {
 		if (!PlayerController) return;
 
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
-		if (!PlayerGetPawn) return;
 
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
 		double WorldTime = GameplayStatics->GetTimeSeconds(World);
@@ -1341,1337 +1341,1293 @@ void PaliaOverlay::DrawOverlay()
 
 		// ==================================== 0 Visuals & ESPs TAB
 		if (OpenTab == 0) {
-			UWorld* World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* BasePlayerController = LocalPlayer->PlayerController;
-						if (!BasePlayerController) return;
+			ImGui::Columns(3, nullptr, false);
 
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(BasePlayerController);
-						if (!ValeriaPlayerController) return;
+			// Base ESP controls
+			if (ImGui::CollapsingHeader("Visual Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Checkbox("Enable ESP", &bEnableESP);
 
-						if (ValeriaPlayerController && ValeriaPlayerController->Pawn) {
+				ImGui::Checkbox("Limit Distance", &bEnableESPCulling);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
+				ImGui::InputInt("Distance", &CullDistance);
 
-							AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
-							if (!ValeriaCharacter) return;
+				ImGui::Checkbox("Enable InteliAim Circle", &bDrawFOVCircle);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Enable the smart FOV targeting system. Teleport to actors, enable aimbots, and more.");
+				if (bDrawFOVCircle) {
+					ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
+				}
 
-							if (ValeriaCharacter) {
+				ImGui::Checkbox("Show Others", &bVisualizeDefault);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
+			}
 
-								ImGui::Columns(3, nullptr, false);
+			if (ImGui::CollapsingHeader("Player & Entities", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::BeginTable("Odds", 3);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Players")) {
+						Singles[(int)EOneOffs::Player] =
+							!Singles[(int)EOneOffs::Player];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Players", &Singles[(int)EOneOffs::Player]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Players", &SingleColors[(int)EOneOffs::Player]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("NPCs")) {
+						Singles[(int)EOneOffs::NPC] =
+							!Singles[(int)EOneOffs::NPC];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##NPC", &Singles[(int)EOneOffs::NPC]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##NPC", &SingleColors[(int)EOneOffs::NPC]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Fish")) {
+						Fish[(int)EFishType::Hook] =
+							!Fish[(int)EFishType::Hook];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Fish", &Fish[(int)EFishType::Hook]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Fish", &FishColors[(int)EFishType::Hook]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Fish Pools")) {
+						Fish[(int)EFishType::Node] =
+							!Fish[(int)EFishType::Node];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Pools", &Fish[(int)EFishType::Node]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Pools", &FishColors[(int)EFishType::Node]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Loot")) {
+						Singles[(int)EOneOffs::Loot] =
+							!Singles[(int)EOneOffs::Loot];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Loot", &Singles[(int)EOneOffs::Loot]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Loot", &SingleColors[(int)EOneOffs::Loot]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Quests")) {
+						Singles[(int)EOneOffs::Quest] =
+							!Singles[(int)EOneOffs::Quest];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Quest", &Singles[(int)EOneOffs::Quest]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Quest", &SingleColors[(int)EOneOffs::Quest]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Rummage Piles")) {
+						Singles[(int)EOneOffs::RummagePiles] =
+							!Singles[(int)EOneOffs::RummagePiles];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##RummagePiles", &Singles[(int)EOneOffs::RummagePiles]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##RummagePiles", &SingleColors[(int)EOneOffs::RummagePiles]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Stables")) {
+						Singles[(int)EOneOffs::Stables] =
+							!Singles[(int)EOneOffs::Stables];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Stables", &Singles[(int)EOneOffs::Stables]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Stables", &SingleColors[(int)EOneOffs::Stables]);
+				}
+				ImGui::EndTable();
+			}
 
-								// Base ESP controls
-								if (ImGui::CollapsingHeader("Visual Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									ImGui::Checkbox("Enable ESP", &bEnableESP);
+			ImGui::NextColumn();
 
-									ImGui::Checkbox("Limit Distance", &bEnableESPCulling);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
-									ImGui::InputInt("Distance", &CullDistance);
+			if (ImGui::CollapsingHeader("Ores"))
+			{
+				ImGui::BeginTable("Ores", 5);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Sm");
+					ImGui::TableNextColumn();
+					ImGui::Text("Med");
+					ImGui::TableNextColumn();
+					ImGui::Text("Lg");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Clay")) {
+						Ores[(int)EOreType::Clay][(int)EGatherableSize::Large] =
+							!Ores[(int)EOreType::Clay][(int)EGatherableSize::Large];
+					}
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ClayLg", &Ores[(int)EOreType::Clay][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Clay", &OreColors[(int)EOreType::Clay]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Stone")) {
+						Ores[(int)EOreType::Stone][(int)EGatherableSize::Large] =
+							Ores[(int)EOreType::Stone][(int)EGatherableSize::Medium] =
+							Ores[(int)EOreType::Stone][(int)EGatherableSize::Small] =
+							!Ores[(int)EOreType::Stone][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##StoneSm", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##StoneMed", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##StoneLg", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Stone", &OreColors[(int)EOreType::Stone]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Copper")) {
+						Ores[(int)EOreType::Copper][(int)EGatherableSize::Large] =
+							Ores[(int)EOreType::Copper][(int)EGatherableSize::Medium] =
+							Ores[(int)EOreType::Copper][(int)EGatherableSize::Small] =
+							!Ores[(int)EOreType::Copper][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CopperSm", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CopperMed", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CopperLg", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Copper", &OreColors[(int)EOreType::Copper]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Iron")) {
+						Ores[(int)EOreType::Iron][(int)EGatherableSize::Large] =
+							Ores[(int)EOreType::Iron][(int)EGatherableSize::Medium] =
+							Ores[(int)EOreType::Iron][(int)EGatherableSize::Small] =
+							!Ores[(int)EOreType::Iron][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##IronSm", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##IronMed", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##IronLg", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Iron", &OreColors[(int)EOreType::Iron]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Palium")) {
+						Ores[(int)EOreType::Palium][(int)EGatherableSize::Large] =
+							Ores[(int)EOreType::Palium][(int)EGatherableSize::Medium] =
+							Ores[(int)EOreType::Palium][(int)EGatherableSize::Small] =
+							!Ores[(int)EOreType::Palium][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PaliumSm", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PaliumMed", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PaliumLg", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Palium", &OreColors[(int)EOreType::Palium]);
+				}
+				ImGui::EndTable();
+			}
+			if (ImGui::CollapsingHeader("Forageables"))
+			{
+				ImGui::Text("Enable all:");
+				ImGui::SameLine();
 
-									ImGui::Checkbox("Enable InteliAim Circle", &bDrawFOVCircle);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Enable the smart FOV targeting system. Teleport to actors, enable aimbots, and more.");
-									if (bDrawFOVCircle) {
-										ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
-									}
+				if (ImGui::Button("Common##Forage")) {
+					for (int pos : ForageableCommon) {
+						Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Uncommon##Forage")) {
+					for (int pos : ForageableUncommon) {
+						Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Rare##Forage")) {
+					for (int pos : ForageableRare) {
+						Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Epic##Forage")) {
+					for (int pos : ForageableEpic) {
+						Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Star##Forage")) {
+					for (int pos = 0; pos < (int)EForageableType::MAX; pos++) {
+						Forageables[pos][1] = !Forageables[pos][1];
+					}
+				}
+				ImGui::BeginTable("Forageables", 4);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Star", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Beach");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Coral");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Coral", &Forageables[(int)EForageableType::Coral][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CoralP", &Forageables[(int)EForageableType::Coral][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Coral", &ForageableColors[(int)EForageableType::Coral]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Oyster");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Oyster", &Forageables[(int)EForageableType::Oyster][0]);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Oyster", &ForageableColors[(int)EForageableType::Oyster]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Shell");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Shell", &Forageables[(int)EForageableType::Shell][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ShellP", &Forageables[(int)EForageableType::Shell][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Shell", &ForageableColors[(int)EForageableType::Shell]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Flower");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Briar Daisy");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PoisonFlower", &Forageables[(int)EForageableType::PoisonFlower][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PoisonFlowerP", &Forageables[(int)EForageableType::PoisonFlower][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##PoisonFlower", &ForageableColors[(int)EForageableType::PoisonFlower]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Crystal Lake Lotus");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##WaterFlower", &Forageables[(int)EForageableType::WaterFlower][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##WaterFlowerP", &Forageables[(int)EForageableType::WaterFlower][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##WaterFlower", &ForageableColors[(int)EForageableType::WaterFlower]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Heartdrop Lily");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Heartdrop", &Forageables[(int)EForageableType::Heartdrop][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartdropP", &Forageables[(int)EForageableType::Heartdrop][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Heartdrop", &ForageableColors[(int)EForageableType::Heartdrop]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Sundrop Lily");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Sundrop", &Forageables[(int)EForageableType::Sundrop][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SundropP", &Forageables[(int)EForageableType::Sundrop][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Sundrop", &ForageableColors[(int)EForageableType::Sundrop]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Moss");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Dragon's Beard Peat");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonsBeard", &Forageables[(int)EForageableType::DragonsBeard][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonsBeardP", &Forageables[(int)EForageableType::DragonsBeard][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DragonsBeard", &ForageableColors[(int)EForageableType::DragonsBeard]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Emerald Carpet Moss");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##EmeraldCarpet", &Forageables[(int)EForageableType::EmeraldCarpet][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##EmeraldCarpetP", &Forageables[(int)EForageableType::EmeraldCarpet][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##EmeraldCarpet", &ForageableColors[(int)EForageableType::EmeraldCarpet]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Mushroom");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Brightshroom");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MushroomBlue", &Forageables[(int)EForageableType::MushroomBlue][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MushroomBlueP", &Forageables[(int)EForageableType::MushroomBlue][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MushroomBlue", &ForageableColors[(int)EForageableType::MushroomBlue]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Mountain Morel");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MushroomRed", &Forageables[(int)EForageableType::MushroomRed][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MushroomRedP", &Forageables[(int)EForageableType::MushroomRed][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MushroomRed", &ForageableColors[(int)EForageableType::MushroomRed]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Spice");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Dari Cloves");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DariCloves", &Forageables[(int)EForageableType::DariCloves][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DariClovesP", &Forageables[(int)EForageableType::DariCloves][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DariCloves", &ForageableColors[(int)EForageableType::DariCloves]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Heat Root");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeatRoot", &Forageables[(int)EForageableType::HeatRoot][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeatRootP", &Forageables[(int)EForageableType::HeatRoot][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##HeatRoot", &ForageableColors[(int)EForageableType::HeatRoot]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Spice Sprouts");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SpicedSprouts", &Forageables[(int)EForageableType::SpicedSprouts][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SpicedSproutsP", &Forageables[(int)EForageableType::SpicedSprouts][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##SpicedSprouts", &ForageableColors[(int)EForageableType::SpicedSprouts]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Sweet Leaf");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SweetLeaves", &Forageables[(int)EForageableType::SweetLeaves][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SweetLeavesP", &Forageables[(int)EForageableType::SweetLeaves][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##SweetLeaves", &ForageableColors[(int)EForageableType::SweetLeaves]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Vegetable");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Wild Garlic");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Garlic", &Forageables[(int)EForageableType::Garlic][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GarlicP", &Forageables[(int)EForageableType::Garlic][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Garlic", &ForageableColors[(int)EForageableType::Garlic]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Wild Ginger");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Ginger", &Forageables[(int)EForageableType::Ginger][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GingerP", &Forageables[(int)EForageableType::Ginger][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Ginger", &ForageableColors[(int)EForageableType::Ginger]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Wild Green Onion");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GreenOnion", &Forageables[(int)EForageableType::GreenOnion][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GreenOnionP", &Forageables[(int)EForageableType::GreenOnion][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##GreenOnion", &ForageableColors[(int)EForageableType::GreenOnion]);
+				}
+				ImGui::EndTable();
+			}
+			if (ImGui::CollapsingHeader("Trees"))
+			{
+				ImGui::BeginTable("Trees", 5);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Sm");
+					ImGui::TableNextColumn();
+					ImGui::Text("Med");
+					ImGui::TableNextColumn();
+					ImGui::Text("Lg");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Bush")) {
+						Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush] =
+							!Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BushSm", &Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush]);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Bush", &TreeColors[(int)ETreeType::Bush]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Sapwood")) {
+						Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodSm", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodMed", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodLg", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Sapwood", &TreeColors[(int)ETreeType::Sapwood]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Heartwood")) {
+						Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodSm", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodMed", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodLg", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Heartwood", &TreeColors[(int)ETreeType::Heartwood]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Flow-Infused")) {
+						Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowSm", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowMed", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowLg", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Flow", &TreeColors[(int)ETreeType::Flow]);
+				}
+				ImGui::EndTable();
+			}
 
-									ImGui::Checkbox("Show Others", &bVisualizeDefault);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
-								}
+			ImGui::NextColumn();
 
-								if (ImGui::CollapsingHeader("Player & Entities", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									ImGui::BeginTable("Odds", 3);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Show");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Players")) {
-											Singles[(int)EOneOffs::Player] =
-												!Singles[(int)EOneOffs::Player];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Players", &Singles[(int)EOneOffs::Player]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Players", &SingleColors[(int)EOneOffs::Player]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("NPCs")) {
-											Singles[(int)EOneOffs::NPC] =
-												!Singles[(int)EOneOffs::NPC];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##NPC", &Singles[(int)EOneOffs::NPC]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##NPC", &SingleColors[(int)EOneOffs::NPC]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Fish")) {
-											Fish[(int)EFishType::Hook] =
-												!Fish[(int)EFishType::Hook];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Fish", &Fish[(int)EFishType::Hook]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Fish", &FishColors[(int)EFishType::Hook]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Fish Pools")) {
-											Fish[(int)EFishType::Node] =
-												!Fish[(int)EFishType::Node];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Pools", &Fish[(int)EFishType::Node]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Pools", &FishColors[(int)EFishType::Node]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Loot")) {
-											Singles[(int)EOneOffs::Loot] =
-												!Singles[(int)EOneOffs::Loot];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Loot", &Singles[(int)EOneOffs::Loot]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Loot", &SingleColors[(int)EOneOffs::Loot]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Quests")) {
-											Singles[(int)EOneOffs::Quest] =
-												!Singles[(int)EOneOffs::Quest];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Quest", &Singles[(int)EOneOffs::Quest]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Quest", &SingleColors[(int)EOneOffs::Quest]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Rummage Piles")) {
-											Singles[(int)EOneOffs::RummagePiles] =
-												!Singles[(int)EOneOffs::RummagePiles];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##RummagePiles", &Singles[(int)EOneOffs::RummagePiles]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##RummagePiles", &SingleColors[(int)EOneOffs::RummagePiles]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Stables")) {
-											Singles[(int)EOneOffs::Stables] =
-												!Singles[(int)EOneOffs::Stables];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Stables", &Singles[(int)EOneOffs::Stables]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Stables", &SingleColors[(int)EOneOffs::Stables]);
-									}
-									ImGui::EndTable();
-								}
+			if (ImGui::CollapsingHeader("Animals"))
+			{
+				ImGui::BeginTable("Animals", 3);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Sernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Sernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Elder Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ElderSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ElderSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Proudhorn Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ProudhornSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ProudhornSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Chapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Chapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Striped Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##StripedChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##StripedChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Azure Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##AzureChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##AzureChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Minigame Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MinigameChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MinigameChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Muujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Muujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Banded Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BandedMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BandedMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Bluebristle Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BluebristleMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BluebristleMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
+				}
+				ImGui::EndTable();
+			}
+			if (ImGui::CollapsingHeader("Bugs"))
+			{
+				ImGui::Text("Enable all:");
+				ImGui::SameLine();
 
-								ImGui::NextColumn();
-
-								if (ImGui::CollapsingHeader("Ores"))
-								{
-									ImGui::BeginTable("Ores", 5);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Sm");
-										ImGui::TableNextColumn();
-										ImGui::Text("Med");
-										ImGui::TableNextColumn();
-										ImGui::Text("Lg");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Clay")) {
-											Ores[(int)EOreType::Clay][(int)EGatherableSize::Large] =
-												!Ores[(int)EOreType::Clay][(int)EGatherableSize::Large];
-										}
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ClayLg", &Ores[(int)EOreType::Clay][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Clay", &OreColors[(int)EOreType::Clay]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Stone")) {
-											Ores[(int)EOreType::Stone][(int)EGatherableSize::Large] =
-												Ores[(int)EOreType::Stone][(int)EGatherableSize::Medium] =
-												Ores[(int)EOreType::Stone][(int)EGatherableSize::Small] =
-												!Ores[(int)EOreType::Stone][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##StoneSm", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##StoneMed", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##StoneLg", &Ores[(int)EOreType::Stone][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Stone", &OreColors[(int)EOreType::Stone]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Copper")) {
-											Ores[(int)EOreType::Copper][(int)EGatherableSize::Large] =
-												Ores[(int)EOreType::Copper][(int)EGatherableSize::Medium] =
-												Ores[(int)EOreType::Copper][(int)EGatherableSize::Small] =
-												!Ores[(int)EOreType::Copper][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CopperSm", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CopperMed", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CopperLg", &Ores[(int)EOreType::Copper][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Copper", &OreColors[(int)EOreType::Copper]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Iron")) {
-											Ores[(int)EOreType::Iron][(int)EGatherableSize::Large] =
-												Ores[(int)EOreType::Iron][(int)EGatherableSize::Medium] =
-												Ores[(int)EOreType::Iron][(int)EGatherableSize::Small] =
-												!Ores[(int)EOreType::Iron][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##IronSm", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##IronMed", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##IronLg", &Ores[(int)EOreType::Iron][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Iron", &OreColors[(int)EOreType::Iron]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Palium")) {
-											Ores[(int)EOreType::Palium][(int)EGatherableSize::Large] =
-												Ores[(int)EOreType::Palium][(int)EGatherableSize::Medium] =
-												Ores[(int)EOreType::Palium][(int)EGatherableSize::Small] =
-												!Ores[(int)EOreType::Palium][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PaliumSm", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PaliumMed", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PaliumLg", &Ores[(int)EOreType::Palium][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Palium", &OreColors[(int)EOreType::Palium]);
-									}
-									ImGui::EndTable();
-								}
-
-								if (ImGui::CollapsingHeader("Forageables"))
-								{
-									ImGui::Text("Enable all:");
-									ImGui::SameLine();
-
-									if (ImGui::Button("Common##Forage")) {
-										for (int pos : ForageableCommon) {
-											Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Uncommon##Forage")) {
-										for (int pos : ForageableUncommon) {
-											Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Rare##Forage")) {
-										for (int pos : ForageableRare) {
-											Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Epic##Forage")) {
-										for (int pos : ForageableEpic) {
-											Forageables[pos][1] = Forageables[pos][0] = !Forageables[pos][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Star##Forage")) {
-										for (int pos = 0; pos < (int)EForageableType::MAX; pos++) {
-											Forageables[pos][1] = !Forageables[pos][1];
-										}
-									}
-									ImGui::BeginTable("Forageables", 4);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Star", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Beach");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Coral");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Coral", &Forageables[(int)EForageableType::Coral][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CoralP", &Forageables[(int)EForageableType::Coral][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Coral", &ForageableColors[(int)EForageableType::Coral]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Oyster");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Oyster", &Forageables[(int)EForageableType::Oyster][0]);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Oyster", &ForageableColors[(int)EForageableType::Oyster]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Shell");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Shell", &Forageables[(int)EForageableType::Shell][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ShellP", &Forageables[(int)EForageableType::Shell][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Shell", &ForageableColors[(int)EForageableType::Shell]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Flower");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Briar Daisy");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PoisonFlower", &Forageables[(int)EForageableType::PoisonFlower][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PoisonFlowerP", &Forageables[(int)EForageableType::PoisonFlower][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##PoisonFlower", &ForageableColors[(int)EForageableType::PoisonFlower]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Crystal Lake Lotus");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##WaterFlower", &Forageables[(int)EForageableType::WaterFlower][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##WaterFlowerP", &Forageables[(int)EForageableType::WaterFlower][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##WaterFlower", &ForageableColors[(int)EForageableType::WaterFlower]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Heartdrop Lily");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Heartdrop", &Forageables[(int)EForageableType::Heartdrop][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeartdropP", &Forageables[(int)EForageableType::Heartdrop][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Heartdrop", &ForageableColors[(int)EForageableType::Heartdrop]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Sundrop Lily");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Sundrop", &Forageables[(int)EForageableType::Sundrop][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SundropP", &Forageables[(int)EForageableType::Sundrop][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Sundrop", &ForageableColors[(int)EForageableType::Sundrop]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Moss");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Dragon's Beard Peat");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonsBeard", &Forageables[(int)EForageableType::DragonsBeard][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonsBeardP", &Forageables[(int)EForageableType::DragonsBeard][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DragonsBeard", &ForageableColors[(int)EForageableType::DragonsBeard]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Emerald Carpet Moss");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##EmeraldCarpet", &Forageables[(int)EForageableType::EmeraldCarpet][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##EmeraldCarpetP", &Forageables[(int)EForageableType::EmeraldCarpet][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##EmeraldCarpet", &ForageableColors[(int)EForageableType::EmeraldCarpet]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Mushroom");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Brightshroom");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MushroomBlue", &Forageables[(int)EForageableType::MushroomBlue][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MushroomBlueP", &Forageables[(int)EForageableType::MushroomBlue][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MushroomBlue", &ForageableColors[(int)EForageableType::MushroomBlue]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Mountain Morel");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MushroomRed", &Forageables[(int)EForageableType::MushroomRed][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MushroomRedP", &Forageables[(int)EForageableType::MushroomRed][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MushroomRed", &ForageableColors[(int)EForageableType::MushroomRed]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Spice");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Dari Cloves");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DariCloves", &Forageables[(int)EForageableType::DariCloves][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DariClovesP", &Forageables[(int)EForageableType::DariCloves][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DariCloves", &ForageableColors[(int)EForageableType::DariCloves]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Heat Root");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeatRoot", &Forageables[(int)EForageableType::HeatRoot][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeatRootP", &Forageables[(int)EForageableType::HeatRoot][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##HeatRoot", &ForageableColors[(int)EForageableType::HeatRoot]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Spice Sprouts");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SpicedSprouts", &Forageables[(int)EForageableType::SpicedSprouts][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SpicedSproutsP", &Forageables[(int)EForageableType::SpicedSprouts][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##SpicedSprouts", &ForageableColors[(int)EForageableType::SpicedSprouts]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Sweet Leaf");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SweetLeaves", &Forageables[(int)EForageableType::SweetLeaves][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SweetLeavesP", &Forageables[(int)EForageableType::SweetLeaves][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##SweetLeaves", &ForageableColors[(int)EForageableType::SweetLeaves]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Vegetable");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Wild Garlic");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Garlic", &Forageables[(int)EForageableType::Garlic][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GarlicP", &Forageables[(int)EForageableType::Garlic][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Garlic", &ForageableColors[(int)EForageableType::Garlic]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Wild Ginger");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Ginger", &Forageables[(int)EForageableType::Ginger][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GingerP", &Forageables[(int)EForageableType::Ginger][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Ginger", &ForageableColors[(int)EForageableType::Ginger]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Wild Green Onion");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GreenOnion", &Forageables[(int)EForageableType::GreenOnion][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GreenOnionP", &Forageables[(int)EForageableType::GreenOnion][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##GreenOnion", &ForageableColors[(int)EForageableType::GreenOnion]);
-									}
-									ImGui::EndTable();
-								}
-
-								if (ImGui::CollapsingHeader("Trees"))
-								{
-									ImGui::BeginTable("Trees", 5);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Sm");
-										ImGui::TableNextColumn();
-										ImGui::Text("Med");
-										ImGui::TableNextColumn();
-										ImGui::Text("Lg");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Bush")) {
-											Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush] =
-												!Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BushSm", &Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush]);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Bush", &TreeColors[(int)ETreeType::Bush]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Sapwood")) {
-											Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large] =
-												Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium] =
-												Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small] =
-												!Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SapwoodSm", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SapwoodMed", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SapwoodLg", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Sapwood", &TreeColors[(int)ETreeType::Sapwood]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Heartwood")) {
-											Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large] =
-												Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium] =
-												Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small] =
-												!Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeartwoodSm", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeartwoodMed", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##HeartwoodLg", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Heartwood", &TreeColors[(int)ETreeType::Heartwood]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Flow-Infused")) {
-											Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large] =
-												Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium] =
-												Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small] =
-												!Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##FlowSm", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##FlowMed", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##FlowLg", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Flow", &TreeColors[(int)ETreeType::Flow]);
-									}
-									ImGui::EndTable();
-								}
-
-								ImGui::NextColumn();
-
-								if (ImGui::CollapsingHeader("Animals"))
-								{
-									ImGui::BeginTable("Animals", 3);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Show");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Sernuk")) {
-											Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1] =
-												!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Sernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Sernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Elder Sernuk")) {
-											Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2] =
-												!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ElderSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ElderSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Proudhorn Sernuk")) {
-											Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3] =
-												!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ProudhornSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ProudhornSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Show");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Chapaa")) {
-											Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1] =
-												!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Chapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Chapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Striped Chapaa")) {
-											Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2] =
-												!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##StripedChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##StripedChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Azure Chapaa")) {
-											Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3] =
-												!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##AzureChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##AzureChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Minigame Chapaa")) {
-											Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase] =
-												!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MinigameChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MinigameChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::TableNextColumn();
-										ImGui::Text("Show");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Muujin")) {
-											Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1] =
-												!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##Muujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Muujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Banded Muujin")) {
-											Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2] =
-												!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BandedMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BandedMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										if (ImGui::Button("Bluebristle Muujin")) {
-											Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3] =
-												!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3];
-										}
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BluebristleMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BluebristleMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
-									}
-									ImGui::EndTable();
-								}
-
-								if (ImGui::CollapsingHeader("Bugs"))
-								{
-									ImGui::Text("Enable all:");
-									ImGui::SameLine();
-
-									if (ImGui::Button("Common##Bugs")) {
-										for (int i = 0; i < (int)EBugKind::MAX; i++) {
-											Bugs[i][(int)EBugQuality::Common][1] = Bugs[i][(int)EBugQuality::Common][0] = !Bugs[i][(int)EBugQuality::Common][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Uncommon##Bugs")) {
-										for (int i = 0; i < (int)EBugKind::MAX; i++) {
-											Bugs[i][(int)EBugQuality::Uncommon][1] = Bugs[i][(int)EBugQuality::Uncommon][0] = !Bugs[i][(int)EBugQuality::Uncommon][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Rare##Bugs")) {
-										for (int i = 0; i < (int)EBugKind::MAX; i++) {
-											Bugs[i][(int)EBugQuality::Rare][1] = Bugs[i][(int)EBugQuality::Rare][0] = !Bugs[i][(int)EBugQuality::Rare][0];
-											Bugs[i][(int)EBugQuality::Rare2][1] = Bugs[i][(int)EBugQuality::Rare2][0] = !Bugs[i][(int)EBugQuality::Rare2][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Epic##Bugs")) {
-										for (int i = 0; i < (int)EBugKind::MAX; i++) {
-											Bugs[i][(int)EBugQuality::Epic][1] = Bugs[i][(int)EBugQuality::Epic][0] = !Bugs[i][(int)EBugQuality::Epic][0];
-										}
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Star##Bugs")) {
-										for (int i = 0; i < (int)EBugKind::MAX; i++) {
-											for (int j = 0; j < (int)EBugQuality::MAX; j++) {
-												Bugs[i][j][1] = !Bugs[i][j][1];
-											}
-										}
-									}
-									ImGui::BeginTable("Bugs", 4);
-									{
-										ImGui::TableSetupColumn("Name");
-										ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Star", ImGuiTableColumnFlags_WidthFixed, 40);
-										ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Bee");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Bahari Bee");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeeU", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeeUP", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BeeU", &BugColors[(int)EBugKind::Bee][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Golden Glory Bee");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeeR", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeeRP", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##Bee", &BugColors[(int)EBugKind::Bee][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Beetle");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Spotted Stink Bug");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleC", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleCP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BeetleC", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Common]);
-
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Proudhorned Stag Beetle");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleU", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleUP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BeetleU", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon]);
-
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Raspberry Beetle");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleR", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleRP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BeetleR", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Ancient Amber Beetle");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleE", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Epic][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##BeetleEP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Epic][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##BeetleE", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Epic]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Butterfly");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Common Blue Butterfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyC", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyCP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ButterflyC", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Duskwing Butterfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyU", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyUP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ButterflyU", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Brighteye Butterfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyR", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyRP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ButterflyR", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Rare]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Rainbow-Tipped Butterfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyE", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Epic][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##ButterflyEP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Epic][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##ButterflyE", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Epic]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Cicada");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Common Bark Cicada");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaC", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaCP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CicadaC", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Cerulean Cicada");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaU", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaUP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CicadaU", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Spitfire Cicada");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaR", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CicadaRP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CicadaR", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Crab");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Bahari Crab");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabC", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabCP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CrabC", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Spineshell Crab");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabU", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabUP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CrabU", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Vampire Crab");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabR", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CrabRP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CrabR", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Cricket");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Common Field Cricket");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketC", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketCP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CricketC", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Garden Leafhopper");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketU", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketUP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CricketU", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Azure Stonehopper");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketR", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##CricketRP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##CricketR", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Dragonfly");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Brushtail Dragonfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyC", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyCP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DragonflyC", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Inky Dragonfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyU", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyUP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DragonflyU", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Firebreathing Dragonfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyR", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyRP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DragonflyR", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Jewelwing Dragonfly");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyE", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##DragonflyEP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##DragonflyE", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Glowbug");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Paper Lantern Bug");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GlowbugC", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GlowbugCP", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##GlowbugC", &BugColors[(int)EBugKind::Glowbug][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Bahari Glowbug");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GlowbugU", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##GlowbugUP", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##GlowbugU", &BugColors[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Ladybug");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Garden Ladybug");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##LadybugC", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##LadybugCP", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##LadybugC", &BugColors[(int)EBugKind::Ladybug][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Princess Ladybug");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##LadybugU", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##LadybugUP", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##LadybugU", &BugColors[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Mantis");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Garden Mantis");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisU", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisUP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MantisU", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Spotted Mantis");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisR", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisRP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MantisR", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Rare]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Leafstalker Mantis");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisR2", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare2][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisR2P", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare2][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MantisR2", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Rare2]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Fairy Mantis");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisE", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Epic][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MantisEP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Epic][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MantisE", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Epic]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Moth");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Kilima Night Moth");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothC", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Common][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothCP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Common][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MothC", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Common]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Lunar Fairy Moth");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothU", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothUP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MothU", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Gossamer Veil Moth");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothR", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##MothRP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##MothR", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Rare]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Pede");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Garden Millipede");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeU", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeUP", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##PedeU", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Hairy Millipede");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeR", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeRP", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##PedeR", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Rare]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Scintillating Centipede");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeR2", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare2][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##PedeR2P", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare2][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##PedeR2", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Rare2]);
-
-										ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-										ImGui::TableNextColumn();
-										ImGui::Text("Snail");
-										ImGui::TableNextColumn();
-										ImGui::Text("Normal");
-										ImGui::TableNextColumn();
-										ImGui::Text("Star");
-										ImGui::TableNextColumn();
-										ImGui::Text("Color");
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Garden Snail");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SnailU", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Uncommon][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SnailUP", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Uncommon][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##SnailU", &BugColors[(int)EBugKind::Snail][(int)EBugQuality::Uncommon]);
-										ImGui::TableNextRow();
-										ImGui::TableNextColumn();
-										ImGui::Text("Stripeshell Snail");
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SnailR", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Rare][0]);
-										ImGui::TableNextColumn();
-										ImGui::Checkbox("##SnailRP", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Rare][1]);
-										ImGui::TableNextColumn();
-										ImGui::ColorPicker("##SnailR", &BugColors[(int)EBugKind::Snail][(int)EBugQuality::Rare]);
-									}
-									ImGui::EndTable();
-								}
-							}
+				if (ImGui::Button("Common##Bugs")) {
+					for (int i = 0; i < (int)EBugKind::MAX; i++) {
+						Bugs[i][(int)EBugQuality::Common][1] = Bugs[i][(int)EBugQuality::Common][0] = !Bugs[i][(int)EBugQuality::Common][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Uncommon##Bugs")) {
+					for (int i = 0; i < (int)EBugKind::MAX; i++) {
+						Bugs[i][(int)EBugQuality::Uncommon][1] = Bugs[i][(int)EBugQuality::Uncommon][0] = !Bugs[i][(int)EBugQuality::Uncommon][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Rare##Bugs")) {
+					for (int i = 0; i < (int)EBugKind::MAX; i++) {
+						Bugs[i][(int)EBugQuality::Rare][1] = Bugs[i][(int)EBugQuality::Rare][0] = !Bugs[i][(int)EBugQuality::Rare][0];
+						Bugs[i][(int)EBugQuality::Rare2][1] = Bugs[i][(int)EBugQuality::Rare2][0] = !Bugs[i][(int)EBugQuality::Rare2][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Epic##Bugs")) {
+					for (int i = 0; i < (int)EBugKind::MAX; i++) {
+						Bugs[i][(int)EBugQuality::Epic][1] = Bugs[i][(int)EBugQuality::Epic][0] = !Bugs[i][(int)EBugQuality::Epic][0];
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Star##Bugs")) {
+					for (int i = 0; i < (int)EBugKind::MAX; i++) {
+						for (int j = 0; j < (int)EBugQuality::MAX; j++) {
+							Bugs[i][j][1] = !Bugs[i][j][1];
 						}
 					}
 				}
+				ImGui::BeginTable("Bugs", 4);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Normal", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Star", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Bee");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Bahari Bee");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeeU", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeeUP", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BeeU", &BugColors[(int)EBugKind::Bee][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Golden Glory Bee");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeeR", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeeRP", &Bugs[(int)EBugKind::Bee][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Bee", &BugColors[(int)EBugKind::Bee][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Beetle");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Spotted Stink Bug");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleC", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleCP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BeetleC", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Common]);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Proudhorned Stag Beetle");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleU", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleUP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BeetleU", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Uncommon]);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Raspberry Beetle");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleR", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleRP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BeetleR", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Ancient Amber Beetle");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleE", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Epic][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BeetleEP", &Bugs[(int)EBugKind::Beetle][(int)EBugQuality::Epic][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BeetleE", &BugColors[(int)EBugKind::Beetle][(int)EBugQuality::Epic]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Butterfly");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Common Blue Butterfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyC", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyCP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ButterflyC", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Duskwing Butterfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyU", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyUP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ButterflyU", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Brighteye Butterfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyR", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyRP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ButterflyR", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Rare]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Rainbow-Tipped Butterfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyE", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Epic][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##ButterflyEP", &Bugs[(int)EBugKind::Butterfly][(int)EBugQuality::Epic][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##ButterflyE", &BugColors[(int)EBugKind::Butterfly][(int)EBugQuality::Epic]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Cicada");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Common Bark Cicada");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaC", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaCP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CicadaC", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Cerulean Cicada");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaU", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaUP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CicadaU", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Spitfire Cicada");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaR", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CicadaRP", &Bugs[(int)EBugKind::Cicada][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CicadaR", &BugColors[(int)EBugKind::Cicada][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Crab");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Bahari Crab");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabC", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabCP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CrabC", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Spineshell Crab");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabU", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabUP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CrabU", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Vampire Crab");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabR", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CrabRP", &Bugs[(int)EBugKind::Crab][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CrabR", &BugColors[(int)EBugKind::Crab][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Cricket");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Common Field Cricket");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketC", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketCP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CricketC", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Garden Leafhopper");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketU", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketUP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CricketU", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Azure Stonehopper");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketR", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##CricketRP", &Bugs[(int)EBugKind::Cricket][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##CricketR", &BugColors[(int)EBugKind::Cricket][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Dragonfly");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Brushtail Dragonfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyC", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyCP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DragonflyC", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Inky Dragonfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyU", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyUP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DragonflyU", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Firebreathing Dragonfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyR", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyRP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DragonflyR", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Rare]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Jewelwing Dragonfly");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyE", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##DragonflyEP", &Bugs[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##DragonflyE", &BugColors[(int)EBugKind::Dragonfly][(int)EBugQuality::Epic]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Glowbug");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Paper Lantern Bug");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GlowbugC", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GlowbugCP", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##GlowbugC", &BugColors[(int)EBugKind::Glowbug][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Bahari Glowbug");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GlowbugU", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##GlowbugUP", &Bugs[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##GlowbugU", &BugColors[(int)EBugKind::Glowbug][(int)EBugQuality::Uncommon]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Ladybug");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Garden Ladybug");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##LadybugC", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##LadybugCP", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##LadybugC", &BugColors[(int)EBugKind::Ladybug][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Princess Ladybug");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##LadybugU", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##LadybugUP", &Bugs[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##LadybugU", &BugColors[(int)EBugKind::Ladybug][(int)EBugQuality::Uncommon]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Mantis");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Garden Mantis");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisU", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisUP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MantisU", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Spotted Mantis");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisR", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisRP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MantisR", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Rare]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Leafstalker Mantis");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisR2", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare2][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisR2P", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Rare2][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MantisR2", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Rare2]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Fairy Mantis");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisE", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Epic][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MantisEP", &Bugs[(int)EBugKind::Mantis][(int)EBugQuality::Epic][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MantisE", &BugColors[(int)EBugKind::Mantis][(int)EBugQuality::Epic]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Moth");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Kilima Night Moth");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothC", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Common][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothCP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Common][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MothC", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Common]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Lunar Fairy Moth");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothU", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothUP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MothU", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Gossamer Veil Moth");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothR", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##MothRP", &Bugs[(int)EBugKind::Moth][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##MothR", &BugColors[(int)EBugKind::Moth][(int)EBugQuality::Rare]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Pede");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Garden Millipede");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeU", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeUP", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##PedeU", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Hairy Millipede");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeR", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeRP", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##PedeR", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Rare]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Scintillating Centipede");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeR2", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare2][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##PedeR2P", &Bugs[(int)EBugKind::Pede][(int)EBugQuality::Rare2][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##PedeR2", &BugColors[(int)EBugKind::Pede][(int)EBugQuality::Rare2]);
+
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::Text("Snail");
+					ImGui::TableNextColumn();
+					ImGui::Text("Normal");
+					ImGui::TableNextColumn();
+					ImGui::Text("Star");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Garden Snail");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SnailU", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Uncommon][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SnailUP", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Uncommon][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##SnailU", &BugColors[(int)EBugKind::Snail][(int)EBugQuality::Uncommon]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Stripeshell Snail");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SnailR", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Rare][0]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SnailRP", &Bugs[(int)EBugKind::Snail][(int)EBugQuality::Rare][1]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##SnailR", &BugColors[(int)EBugKind::Snail][(int)EBugQuality::Rare]);
+				}
+				ImGui::EndTable();
 			}
 		}
 		// ==================================== 1 Aimbots & Fun TAB
 		else if (OpenTab == 1) {
-			UWorld* World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-						if (PlayerController && PlayerController->Pawn) {
-							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-							if (ValeriaCharacter) {
+			ImGui::Columns(2, nullptr, false);
 
-								ImGui::Columns(2, nullptr, false);
+			// InteliTarget Controls
+			if (ImGui::CollapsingHeader("InteliTarget Settings", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				if (ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot)) {};
+				ImGui::Checkbox("Enable Legacy Aimbot", &bEnableAimbot);
+				if (bEnableAimbot) {
+					ImGui::Text("Aim Smoothing:");
+					ImGui::SliderFloat("Smoothing Factor", &SmoothingFactor, 5.0f, 100.0f, "%1.0f");
+					ImGui::Text("Aim Offset Adjustment (Drag Point):");
+					const ImVec2 canvas_size = ImVec2(200, 200); // Canvas size
+					static ImVec2 cursor_pos = ImVec2(0, 0); // Start at the center (0, 0 relative to center)
+					const float scaling_factor = 0.5f; // Reduced scaling factor for finer control
 
-								// InteliTarget Controls
-								if (ImGui::CollapsingHeader("InteliTarget Settings", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									if (ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot)) {};
-									ImGui::Checkbox("Enable Legacy Aimbot", &bEnableAimbot);
-									if (bEnableAimbot) {
-										ImGui::Text("Aim Smoothing:");
-										ImGui::SliderFloat("Smoothing Factor", &SmoothingFactor, 5.0f, 100.0f, "%1.0f");
-										ImGui::Text("Aim Offset Adjustment (Drag Point):");
-										const ImVec2 canvas_size = ImVec2(200, 200); // Canvas size
-										static ImVec2 cursor_pos = ImVec2(0, 0); // Start at the center (0, 0 relative to center)
-										const float scaling_factor = 0.5f; // Reduced scaling factor for finer control
+					ImU32 gridColor = IM_COL32(50, 45, 139, 255); // Grid lines color
+					ImU32 gridBackgroundColor = IM_COL32(26, 28, 33, 255); // Background color
+					ImU32 cursorColor = IM_COL32(69, 39, 160, 255); // Cursor color
 
-										ImU32 gridColor = IM_COL32(50, 45, 139, 255); // Grid lines color
-										ImU32 gridBackgroundColor = IM_COL32(26, 28, 33, 255); // Background color
-										ImU32 cursorColor = IM_COL32(69, 39, 160, 255); // Cursor color
+					if (ImGui::BeginChild("GridArea", ImVec2(200, 200), true, ImGuiWindowFlags_NoScrollbar)) {
+						ImDrawList* draw_list = ImGui::GetWindowDrawList();
+						ImVec2 canvas_p0 = ImGui::GetCursorScreenPos(); // Top-left corner of the canvas
+						ImVec2 grid_center = ImVec2(canvas_p0.x + canvas_size.x * 0.5f, canvas_p0.y + canvas_size.y * 0.5f);
 
-										if (ImGui::BeginChild("GridArea", ImVec2(200, 200), true, ImGuiWindowFlags_NoScrollbar)) {
-											ImDrawList* draw_list = ImGui::GetWindowDrawList();
-											ImVec2 canvas_p0 = ImGui::GetCursorScreenPos(); // Top-left corner of the canvas
-											ImVec2 grid_center = ImVec2(canvas_p0.x + canvas_size.x * 0.5f, canvas_p0.y + canvas_size.y * 0.5f);
+						draw_list->AddRectFilled(canvas_p0, ImVec2(canvas_p0.x + canvas_size.x, canvas_p0.y + canvas_size.y), gridBackgroundColor);
+						draw_list->AddLine(ImVec2(grid_center.x, canvas_p0.y), ImVec2(grid_center.x, canvas_p0.y + canvas_size.y), gridColor);
+						draw_list->AddLine(ImVec2(canvas_p0.x, grid_center.y), ImVec2(canvas_p0.x + canvas_size.x, grid_center.y), gridColor);
 
-											draw_list->AddRectFilled(canvas_p0, ImVec2(canvas_p0.x + canvas_size.x, canvas_p0.y + canvas_size.y), gridBackgroundColor);
-											draw_list->AddLine(ImVec2(grid_center.x, canvas_p0.y), ImVec2(grid_center.x, canvas_p0.y + canvas_size.y), gridColor);
-											draw_list->AddLine(ImVec2(canvas_p0.x, grid_center.y), ImVec2(canvas_p0.x + canvas_size.x, grid_center.y), gridColor);
-
-											ImGui::SetCursorScreenPos(ImVec2(grid_center.x + cursor_pos.x - 5, grid_center.y + cursor_pos.y - 5));
-											ImGui::InvisibleButton("cursor", ImVec2(10, 10));
-											if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
-												cursor_pos.x = ImClamp(cursor_pos.x - ImGui::GetIO().MouseDelta.x * scaling_factor, -canvas_size.x * 0.5f, canvas_size.x * 0.5f);
-												cursor_pos.y = ImClamp(cursor_pos.y - ImGui::GetIO().MouseDelta.y * scaling_factor, -canvas_size.y * 0.5f, canvas_size.y * 0.5f);
-											}
-
-											draw_list->AddCircleFilled(ImVec2(grid_center.x + cursor_pos.x, grid_center.y + cursor_pos.y), 5, cursorColor, 12);
-
-											// Sliders for fine-tuned control
-											ImGui::SetCursorPosY(canvas_p0.y + canvas_size.y + 5);
-											ImGui::SliderFloat2("Horizontal & Vertical", (float*)&cursor_pos, -canvas_size.x * 0.5f, canvas_size.x * 0.5f, "H: %.1f, V: %.1f");
-										}
-										ImGui::EndChild();
-
-										// Convert cursor_pos to AimOffset affecting Pitch and Yaw
-										AimOffset = FVector(cursor_pos.x * scaling_factor, cursor_pos.y * scaling_factor, 0.0f);
-										ImGui::Text("Current Offset: Pitch: %.2f, Yaw: %.2f", AimOffset.X, AimOffset.Y);
-									}
-									ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
-									ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
-								}
-
-								ImGui::NextColumn();
-
-								if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									ImGui::Checkbox("Target Animals to Orbit", &bAddAnimalToOrbit);
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport the targeted animals into orbit around you!");
-								}
-							}
+						ImGui::SetCursorScreenPos(ImVec2(grid_center.x + cursor_pos.x - 5, grid_center.y + cursor_pos.y - 5));
+						ImGui::InvisibleButton("cursor", ImVec2(10, 10));
+						if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+							cursor_pos.x = ImClamp(cursor_pos.x - ImGui::GetIO().MouseDelta.x * scaling_factor, -canvas_size.x * 0.5f, canvas_size.x * 0.5f);
+							cursor_pos.y = ImClamp(cursor_pos.y - ImGui::GetIO().MouseDelta.y * scaling_factor, -canvas_size.y * 0.5f, canvas_size.y * 0.5f);
 						}
+
+						draw_list->AddCircleFilled(ImVec2(grid_center.x + cursor_pos.x, grid_center.y + cursor_pos.y), 5, cursorColor, 12);
+
+						// Sliders for fine-tuned control
+						ImGui::SetCursorPosY(canvas_p0.y + canvas_size.y + 5);
+						ImGui::SliderFloat2("Horizontal & Vertical", (float*)&cursor_pos, -canvas_size.x * 0.5f, canvas_size.x * 0.5f, "H: %.1f, V: %.1f");
 					}
+					ImGui::EndChild();
+
+					// Convert cursor_pos to AimOffset affecting Pitch and Yaw
+					AimOffset = FVector(cursor_pos.x * scaling_factor, cursor_pos.y * scaling_factor, 0.0f);
+					ImGui::Text("Current Offset: Pitch: %.2f, Yaw: %.2f", AimOffset.X, AimOffset.Y);
 				}
+				ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
+				ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
+			}
+
+			ImGui::NextColumn();
+
+			if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Checkbox("Target Animals to Orbit", &bAddAnimalToOrbit);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport the targeted animals into orbit around you!");
 			}
 		}
 		// ==================================== 2 Movement & Teleport TAB
 		else if (OpenTab == 2) {
-			UWorld* World = GetWorld();
+			auto World = GetWorld();
 			if (World) {
 				auto GameInstance = World->OwningGameInstance;
 				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
@@ -2686,13 +2642,7 @@ void PaliaOverlay::DrawOverlay()
 								if (!MovementComponent) return;
 
 								UCharacterMovementComponent* CharMovementComponent = static_cast<UCharacterMovementComponent*>(ValeriaCharacter->GetMovementComponent());
-								if (!CharMovementComponent) return;
-
-								UValeriaClientPriMovementComponent* PriMovementComponent = static_cast<UValeriaClientPriMovementComponent*>(ValeriaCharacter->MovementComponent);
-								if (!PriMovementComponent) return;
-
 								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
-								if (!CameraManager) return;
 
 								FVector MyLocation = ValeriaCharacter->K2_GetActorLocation();
 								FRotator MyRotation = ValeriaCharacter->K2_GetActorRotation();
@@ -2718,9 +2668,6 @@ void PaliaOverlay::DrawOverlay()
 									if (bEnableNoclip) {
 										ImGui::SliderFloat("##NoClipFlySpeed", &NoClipFlySpeed, 200.0f, 1500.0f, "%2.0f");
 									}
-
-									// ImGui::Checkbox("Enable Teleport to Map Marker", &bEnableMapTeleportToMarker);
-									// if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport to the map waypoint if you set one.");
 
 									// Create a combo box for selecting the movement mode
 									ImGui::Text("Movement Mode");
@@ -2906,24 +2853,17 @@ void PaliaOverlay::DrawOverlay()
 		}
 		// ==================================== 3 Selling & Items TAB
 		else if (OpenTab == 3) {
-			UWorld* World = GetWorld();
+			auto World = GetWorld();
 			if (World) {
 				auto GameInstance = World->OwningGameInstance;
 				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
 					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
 					if (LocalPlayer) {
-						APlayerController* BasePlayerController = LocalPlayer->PlayerController;
-						if (!BasePlayerController) return;
-
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(BasePlayerController);
-						if (!ValeriaPlayerController) return;
-
-						if (ValeriaPlayerController && ValeriaPlayerController->Pawn) {
-							
-							AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
-							if (!ValeriaCharacter) return;
-
-							if (ValeriaCharacter && ValeriaCharacter->GetValeriaCharacterMovementComponent()) {
+						APlayerController* PlayerController = LocalPlayer->PlayerController;
+						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
+						if (PlayerController && PlayerController->Pawn) {
+							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
+							if (ValeriaCharacter) {
 								const double d20 = 20., d5 = 5., d1 = 1., dhalf = 0.5, dzero = 0.;
 								const float f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5, fzero = 0.0;
 
@@ -3049,27 +2989,19 @@ void PaliaOverlay::DrawOverlay()
 		}
 		// ==================================== 4 Skills & Tools TAB
 		else if (OpenTab == 4) {
-			UWorld* World = GetWorld();
+			auto World = GetWorld();
 			if (World) {
 				auto GameInstance = World->OwningGameInstance;
 				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
 					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
 					if (LocalPlayer) {
-						APlayerController* BasePlayerController = LocalPlayer->PlayerController;
-						if (!BasePlayerController) return;
-
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(BasePlayerController);
-						if (!ValeriaPlayerController) return;
-
-						if (ValeriaPlayerController && ValeriaPlayerController->Pawn) {
-
-							AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
-							if (!ValeriaCharacter) return;
-
+						APlayerController* PlayerController = LocalPlayer->PlayerController;
+						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
+						if (PlayerController && PlayerController->Pawn) {
+							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
 								UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
 								if (!GardenComponent) return;
-
 								UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
 								if (!FishingComponent) return;
 
@@ -3146,25 +3078,19 @@ void PaliaOverlay::DrawOverlay()
 		}
 		// ==================================== 5 Housing & Decorating TAB
 		else if (OpenTab == 5) {
-			UWorld* World = GetWorld();
+			auto World = GetWorld();
 			if (World) {
 				auto GameInstance = World->OwningGameInstance;
 				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
 					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
 					if (LocalPlayer) {
-						APlayerController* BasePlayerController = LocalPlayer->PlayerController;
-						if (!BasePlayerController) return;
-
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(BasePlayerController);
-						if (!ValeriaPlayerController) return;
-
-						if (ValeriaPlayerController && ValeriaPlayerController->Pawn) {
-
-							AValeriaCharacter* ValeriaCharacter = ValeriaPlayerController->GetValeriaCharacter();
-							if (!ValeriaCharacter) return;
-
+						APlayerController* PlayerController = LocalPlayer->PlayerController;
+						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
+						if (PlayerController && PlayerController->Pawn) {
+							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
 								UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+								if (!PlacementComponent) return;
 
 								ImGui::Columns(1, nullptr, false);
 								if (ImGui::CollapsingHeader("Housing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
