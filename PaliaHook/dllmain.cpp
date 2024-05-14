@@ -22,6 +22,28 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 DWORD WINAPI MainThread(LPVOID lpReserved)
 {
+    // Added code for steamAPI recognition (thanks VoidPollo)
+    bool IsSteamVersion = false;
+    if ((uintptr_t)GetModuleHandle("steam_api64.dll")) {
+        IsSteamVersion = true;
+    }
+    else if ((uintptr_t)GetModuleHandle("steamclient64.dll")) {
+        IsSteamVersion = true;
+    }
+    else {
+        char fileName[MAX_PATH];
+        GetModuleFileName(NULL, fileName, MAX_PATH);
+        if (strstr(fileName, "PaliaClientSteam-Win64-Shipping.exe")) {
+            IsSteamVersion = true;
+        }
+    }
+    if (IsSteamVersion) {
+        SDK::Offsets::GObjects = 0x089C9C00;
+        SDK::Offsets::AppendString = 0x00CF9A50;
+        SDK::Offsets::GWorld = 0x08B3A638;
+        SDK::Offsets::ProcessEvent = 0x00ED35D0;
+    }
+
     // Initialize SDK and create overlay
     SDK::InitGObjects();
     auto Overlay = new PaliaOverlay();

@@ -1297,7 +1297,6 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	BaseHook* hook = RendererDetector::Instance().GetRenderer();
 	std::string WindowTitle = std::string("OriginPalia Menu By Wimberton @ UnknownCheats");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
@@ -2587,17 +2586,6 @@ void PaliaOverlay::DrawOverlay()
 							}
 						}
 					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Visual Settings - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Visual settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
-						}
-					}
 				}
 			}
 		}
@@ -2676,17 +2664,6 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport the targeted animals into orbit around you!");
 								}
 							}
-						}
-					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Aimbots & Fun - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Aimbots & Fun settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
 						}
 					}
 				}
@@ -2924,17 +2901,6 @@ void PaliaOverlay::DrawOverlay()
 							}
 						}
 					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Movement & Teleport - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Movement & Teleportation settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
-						}
-					}
 				}
 			}
 		}
@@ -3078,17 +3044,6 @@ void PaliaOverlay::DrawOverlay()
 							}
 						}
 					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Selling & Items - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Selling & Item settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
-						}
-					}
 				}
 			}
 		}
@@ -3186,17 +3141,6 @@ void PaliaOverlay::DrawOverlay()
 							}
 						}
 					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Skills & Tools - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Skills & Tool settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
-						}
-					}
 				}
 			}
 		}
@@ -3232,17 +3176,6 @@ void PaliaOverlay::DrawOverlay()
 									}
 								}
 							}
-						}
-					}
-					else {
-						ImGui::Columns(1, nullptr, false);
-
-						// Base ESP controls
-						if (ImGui::CollapsingHeader("Housing & Decoration - Unavailable", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							ImGui::Spacing();
-							ImGui::Text("Housing & Decoration settings will become available once you login or refresh your world.");
-							ImGui::Spacing();
 						}
 					}
 				}
