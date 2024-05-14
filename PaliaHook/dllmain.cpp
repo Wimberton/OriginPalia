@@ -37,15 +37,17 @@ DWORD WINAPI MainThread(LPVOID lpReserved)
             IsSteamVersion = true;
         }
     }
+
     if (IsSteamVersion) {
-        SDK::Offsets::GObjects = 0x089C9C00;
-        SDK::Offsets::AppendString = 0x00CF9A50;
-        SDK::Offsets::GWorld = 0x08B3A638;
-        SDK::Offsets::ProcessEvent = 0x00ED35D0;
+        Offsets::GObjects = 0x089C9C00;
+        Offsets::AppendString = 0x00CF9A50;
+        Offsets::GWorld = 0x08B3A638;
+        Offsets::ProcessEvent = 0x00ED35D0;
     }
 
     // Initialize SDK and create overlay
-    SDK::InitGObjects();
+    InitGObjects();
+
     auto Overlay = new PaliaOverlay();
     OverlayBase::Instance = Overlay;
     Overlay->SetupColors();
