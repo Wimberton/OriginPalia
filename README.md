@@ -7,7 +7,7 @@ I will continue to maintain and update OriginPalia for as long as I can, permitt
 - Standalone Client Support
 - Steam Palia Support
 
-## OriginPalia Usage
+## Usage
 - Toggle the menu using INSERT
 
 [![OriginPalia ESP Example](https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg)](https://gyazo.com/c8ae73a455e9047cf11b14996c345249)
