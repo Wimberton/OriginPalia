@@ -1,8 +1,13 @@
 # OriginPalia <img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="64" height="auto">
 A multi-purpose tool for Palia, written in C++ and C#. Open source for non-commercial usage, looking for contributors.
 
-I will continue to maintain and update OriginPalia for as long as I can, permitted I have the time. OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs. I believe this only will work with the standalone client for Palia. I have not tested it on Steam or other platforms.
+I will continue to maintain and update OriginPalia for as long as I can, permitted I have the time. OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs.
 
+## Compatibility
+- Standalone Client Support
+- Steam Palia Support
+
+## Building
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
 I want to give a big thanks to @klukule for their Palia ESP DX11 / DX12 source on GitHub. Without that, I wouldn't have taken the time to build something from it.
 
