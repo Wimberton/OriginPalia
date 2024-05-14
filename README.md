@@ -10,8 +10,10 @@ I will continue to maintain and update OriginPalia for as long as I can, permitt
 ## Usage
 - Toggle the menu using INSERT
 
-[![OriginPalia ESP Example](https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg)](https://gyazo.com/c8ae73a455e9047cf11b14996c345249)
-[![OriginPalia Menu Example](https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif)](https://gyazo.com/6ee8348d80d3d3260de686bef860e4f7)
+<p align="center">
+  <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
+  <img src="https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif" width="350" alt="OriginPalia Menu Example">
+</p>
 
 ## Features
 ### ESP & Visuals:
