@@ -1,4 +1,9 @@
 # OriginPalia <img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="64" height="auto">
+<p align="left">
+  <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
+  <img src="https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif" width="350" alt="OriginPalia Menu Example">
+</p>
+
 A multi-purpose tool for Palia, written in C++ and C#. Open source for non-commercial usage, looking for contributors.
 
 I will continue to maintain and update OriginPalia for as long as I can, permitted I have the time. OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs. I want to give a big thanks to @klukule for their Palia ESP DX11 / DX12 source on GitHub. Without that, I wouldn't have taken the time to build something from it.
@@ -9,11 +14,6 @@ I will continue to maintain and update OriginPalia for as long as I can, permitt
 
 ## Usage
 - Toggle the menu using INSERT
-
-<p align="center">
-  <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
-  <img src="https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif" width="350" alt="OriginPalia Menu Example">
-</p>
 
 ## Features
 ### ESP & Visuals:
