@@ -25,6 +25,8 @@ If you do not agree to these terms, you are not permitted to use this software.
 
 ## Features
 
+- Toggle the menu using INSERT
+
 ### ESP & Visuals:
 - Enable ESP *(enable or disable drawing ESPs in-game)*
 - Limit ESP Distance *(change the distance in which ESPs will show)*
