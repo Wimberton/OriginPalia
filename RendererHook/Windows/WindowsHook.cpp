@@ -122,10 +122,10 @@ LRESULT CALLBACK WindowsHook::HookWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
     // Is the event is a key press
     if (uMsg == WM_KEYDOWN)
     {
-        // F12 is pressed and was not pressed before
+        // INSERT is pressed and was not pressed before
         if (wParam == VK_INSERT && !(lParam & (1 << 30)))
         {
-            show = !overlay->ShowOverlay();
+            show = !show;
             overlay->ShowOverlay(show);
         }
     }
