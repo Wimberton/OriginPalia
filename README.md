@@ -22,22 +22,22 @@ I want to give a big thanks to @klukule for their Palia ESP DX11 / DX12 source o
 - Limit ESP Distance *(change the distance in which ESPs will show)*
 - Show unclassified entities *(shows potentially unnamed or unmapped entities. Good for getting more from updates etc)*
 
-#### Player & Entities ESP
+Player & Entities ESP
 Players, NPCs, Fish, Fish Pools, Loot, Quests, Rummage Piles, and Stables.
 
-#### Ores ESP
+**Ores ESP**
 Options to toggle visibility and color customization for various sizes *(Small, Medium, Large)* of ores like Clay, Stone, Copper, Iron, and Palium.
 
-#### Forageables ESP
+**Forageables ESP**
 Toggle settings for various types of forageables, each with normal and starred versions. Coral, Oyster, Shells, various flowers, moss types, mushrooms, spices, and vegetables.
 
-#### Trees ESP
+**Trees ESP**
 Control visibility and customize color settings for various types and sizes of trees, including Bush, Sapwood, Heartwood, and Flow-Infused types.
 
-#### Animals ESP
+**Animals ESP**
 Quality tiers such as Sernuk, Chapaa, and Muujin, including special categories like minigame-specific animals.
 
-#### Bugs ESP
+**Bugs ESP**
 Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, Beetles, Butterflies, Cicadas, Crabs, Crickets, Dragonflies, Glowbugs, Ladybugs, Mantises, Moths, Pedes, and Snails.
 
 ## Aimbots & Fun:
