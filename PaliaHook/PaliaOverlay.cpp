@@ -364,28 +364,33 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 		}
 	}
 
-	if (Overlay->bEnableAimbot) {
+	// Don't aimbot while the overlay is showing
+	if (Overlay->bEnableAimbot && !Overlay->ShowOverlay()) {
 		if (IsKeyHeld(VK_LBUTTON) && BestScore != FLT_MAX) {
-			bool IsAnimal = false;
-			for (FEntry& Entry : Overlay->CachedActors) {
-				if (Entry.shouldAdd && Entry.ActorType == EType::Animal && Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
-					FVector ActorLocation = Entry.Actor->K2_GetActorLocation();
-					if (ActorLocation == Overlay->BestTargetLocation) {
-						IsAnimal = true;
-						break;
+			// Only aimbot when a bow is equipped
+			bool bowEquipped = ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos;
+			if (bowEquipped) {
+				bool IsAnimal = false;
+				for (FEntry& Entry : Overlay->CachedActors) {
+					if (Entry.shouldAdd && Entry.ActorType == EType::Animal && Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
+						FVector ActorLocation = Entry.Actor->K2_GetActorLocation();
+						if (ActorLocation == Overlay->BestTargetLocation) {
+							IsAnimal = true;
+							break;
+						}
 					}
 				}
-			}
-			// Adjust the aim rotation only if the selected best target is an animal
-			if (IsAnimal) {
-				// Apply offset to pitch and yaw directly
-				FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, Overlay->BestTargetLocation);
-				TargetRotation.Pitch += Overlay->AimOffset.X;
-				TargetRotation.Yaw += Overlay->AimOffset.Y;
+				// Adjust the aim rotation only if the selected best target is an animal
+				if (IsAnimal) {
+					// Apply offset to pitch and yaw directly
+					FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, Overlay->BestTargetLocation);
+					TargetRotation.Pitch += Overlay->AimOffset.X;
+					TargetRotation.Yaw += Overlay->AimOffset.Y;
 
-				// Smooth rotation adjustment
-				FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);  // Adjust interpolation speed
-				Controller->SetControlRotation(NewRotation);
+					// Smooth rotation adjustment
+					FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);  // Adjust interpolation speed
+					Controller->SetControlRotation(NewRotation);
+				}
 			}
 		}
 	}
