@@ -1194,11 +1194,7 @@ void PaliaOverlay::DrawHUD()
 
 	// Calculate watermark text only once, not in the drawing loop.
 	std::string watermarkText = "OriginPalia 0.179.1 - Made For Free By Wimberton @ UnknownCheats";
-	if (CurrentLevel && (CurrentMap == "PublicHousingPlot_Root")) {
-		watermarkText = "ESPs disabled at your housing plot. Re-enable when you leave!"; \
-			bEnableESP = false;
-	}
-	else if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
+	if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
 		watermarkText = "Waiting for in-game login or loading...";
 	}
 
