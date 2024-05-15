@@ -1033,11 +1033,12 @@ public:
 	float NoClipFlySpeed = 600.0f;
 
 	// Fishing Booleans
-	bool bEnableInstantFishing = false;
 	bool bEnableAutoFishing = false;
+	bool bRequireClickFishing = false;
+	bool bEnableInstantFishing = false;
 	bool bPerfectCatch = true;
 	bool bDoInstantSellFish = false;
-	bool bAutoFishing = false;
+	bool bDoDestroyOthers = false;
 
 	// Fishing Numericals
 	float StartRodHealth = 100.0f;
