@@ -1034,9 +1034,10 @@ public:
 
 	// Fishing Booleans
 	bool bEnableAutoFishing = false;
-	bool bRequireClickFishing = false;
+	bool bRequireClickFishing = true;
 	bool bEnableInstantFishing = false;
 	bool bPerfectCatch = true;
+	bool bNoRodDurabilityLoss = true;
 	bool bDoInstantSellFish = false;
 	bool bDoDestroyOthers = false;
 

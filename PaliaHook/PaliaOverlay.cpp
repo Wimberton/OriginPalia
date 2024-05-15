@@ -766,18 +766,25 @@ static void DrawHUD(const AHUD* HUD) {
 			FishingComponent->RpcServer_EndFishing(Context);
 			FishingComponent->SetFishingState(EFishingState_OLD::None);
 
-			// Sell the fish instantly if caught
 			if (Overlay->bDoInstantSellFish) {
 				UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
-				if (StoreComponent) {
-					FBagSlotLocation FishBagSlot = {};
-					FishBagSlot.BagIndex = 0;
+				UInventoryComponent* InventoryComponent = Character->GetInventory();
 
-					StoreComponent->RpcServer_SellItem(FishBagSlot, 5);  // Selling 5 fish
+				// Sell all fishing EItemCategory Types from all inventory slots when instant fishing
+				if (StoreComponent && InventoryComponent) {
+					for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
+						for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
+							FBagSlotLocation Slot{ BagIndex, SlotIndex };
+							FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
+							if (Item.ItemType->Category == EItemCategory::Fish) {
+								StoreComponent->RpcServer_SellItem(Slot, 10);
+							}
+						}
+					}
 				}
 			}
 
-			// Destroy Item Logic
+			// Destroy Item if not fish (only slot 1)
 			if (Overlay->bDoDestroyOthers) {
 				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
@@ -3098,8 +3105,17 @@ void PaliaOverlay::DrawOverlay()
 											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
 										}
 
+										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
+
+										ImGui::Checkbox("Instant Sell All Fish (All Slots)", &bDoInstantSellFish);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
+
+										ImGui::Checkbox("Automatically Discard Non-Fish (Slot 1)", &bDoDestroyOthers);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
+
 										ImGui::Spacing();
-										ImGui::Text("Instant Fishing Parameters:");
+										ImGui::Text("Custom Fishing Catch Parameters:");
 										ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
 										ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
 										ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
@@ -3108,13 +3124,6 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
 										ImGui::SameLine();
 										ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
-
-										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
-										ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-
-										ImGui::Checkbox("Auto Destroy Items (Slot 1)", &bDoDestroyOthers);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
 									}
 								}
 							}
