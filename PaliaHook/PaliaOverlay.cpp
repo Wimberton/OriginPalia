@@ -453,21 +453,6 @@ static void DrawHUD(const AHUD* HUD) {
 
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
-		
-		// Auto Fishing Logic
-		if (Overlay->bEnableAutoFishing) {
-			AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-			if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
-				if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
-					ValeriaCharacter->ToolPrimaryActionPressed();
-					ValeriaCharacter->ToolPrimaryActionReleased();
-				}
-				else if (!Overlay->bRequireClickFishing) {
-					ValeriaCharacter->ToolPrimaryActionPressed();
-					ValeriaCharacter->ToolPrimaryActionReleased();
-				}
-			}
-		}
 
 		double WorldTime = GameplayStatics->GetTimeSeconds(World);
 
@@ -738,7 +723,7 @@ static void DrawHUD(const AHUD* HUD) {
 	}
 
 	// Logic for Fishing-Related Actions
-	if (Overlay || Overlay->bDoDestroyOthers) {
+	if (Overlay->bEnableInstantFishing) {
 		auto World = GetWorld();
 		if (!World) return;
 
@@ -794,10 +779,7 @@ static void DrawHUD(const AHUD* HUD) {
 
 			// Destroy Item Logic
 			if (Overlay->bDoDestroyOthers) {
-				AValeriaPlayerController* ValeriaPlayerController = Character->GetValeriaPlayerController();
-				if (!ValeriaPlayerController) return;
-
-				ValeriaPlayerController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
+				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
 		}
 		else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) {	
@@ -1283,20 +1265,18 @@ void PaliaOverlay::DrawHUD()
 	if (PlayerController->Pawn) {
 		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
 		if (ValeriaCharacter) {
-			if (bEnableAutoFishing || bEnableInstantFishing) {
-				UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
-				if (FishingComponent) {
-					void* Instance = FishingComponent;
-					const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-					DWORD OldProtection;
-					VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-					int32 Idx = Offsets::ProcessEventIdx;
-					OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-					const void* NewProcEvt = ProcessEventDetour;
-					Vtable[Idx] = NewProcEvt;
-					HookedClient = FishingComponent;
-					VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-				}
+			UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
+			if (FishingComponent) {
+				void* Instance = FishingComponent;
+				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
+				DWORD OldProtection;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
+				int32 Idx = Offsets::ProcessEventIdx;
+				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
+				const void* NewProcEvt = ProcessEventDetour;
+				Vtable[Idx] = NewProcEvt;
+				HookedClient = FishingComponent;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
 			}
 		}
 	}
@@ -1357,7 +1337,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu By Wimberton @ UnknownCheats");
+	std::string WindowTitle = std::string("OriginPalia Menu By Wimberton & The UnknownCheats Community");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -3113,8 +3093,10 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
 
-										ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
+										if (bEnableAutoFishing) {
+											ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
+											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
+										}
 
 										ImGui::Spacing();
 										ImGui::Text("Instant Fishing Parameters:");
