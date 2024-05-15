@@ -1345,7 +1345,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.2 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.4 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2827,19 +2827,25 @@ void PaliaOverlay::DrawOverlay()
 								if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
 									ImGui::Text("Teleport List");
 									ImGui::Text("Current Coords: %.3f, %.3f, %.3f, %.3f", ValeriaCharacter->K2_GetActorLocation().X, ValeriaCharacter->K2_GetActorLocation().Y, ValeriaCharacter->K2_GetActorLocation().Z, ValeriaCharacter->K2_GetActorRotation().Yaw);
-									ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150)); // Start ListBoxHeader with an explicit size
-
+									ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150));
 									for (FLocation& Entry : TeleportLocations) {
 										if (CurrentMap == Entry.MapName || Entry.MapName == "UserDefined") {
-											if (ImGui::Selectable(Entry.Name.c_str())) {
-												ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
-												
-												PlayerController->ClientForceGarbageCollection();
-												PlayerController->ClientFlushLevelStreaming();
+											if (ImGui::Selectable(Entry.Name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+												if (ImGui::IsMouseDoubleClicked(0)) {
+													ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
+
+													PlayerController->ClientForceGarbageCollection();
+													PlayerController->ClientFlushLevelStreaming();
+												}
 											}
 										}
 									}
 									ImGui::ListBoxFooter();
+
+									// Buttons for coordinate actions
+									if (ImGui::Button("Add New Location")) {
+										ImGui::OpenPopup("Add New Location");
+									}
 
 									ImGui::Text("Enter custom XYZ, or get your current ones.");
 									// Set the width for the labels and inputs
@@ -2875,7 +2881,7 @@ void PaliaOverlay::DrawOverlay()
 									ImGui::InputScalar("##TeleportRotateYaw", ImGuiDataType_Double, &TeleportRotate.Yaw, &d1);
 
 									ImGui::Spacing();
-									// Buttons for coordinate actions
+									
 									if (ImGui::Button("Get Current Coordinates")) {
 										TeleportLocation = ValeriaCharacter->K2_GetActorLocation();
 										TeleportRotate = ValeriaCharacter->K2_GetActorRotation();
@@ -2894,6 +2900,29 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::Button("Clear Return Home Cooldown")) {
 										ValeriaPlayerController->RpcServer_ClearReturnHomeCooldown();
 									}
+								}
+
+								// Begin List adding Popup
+								if (ImGui::BeginPopupModal("Add New Location", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+									static int selectedWorld = 0; // 0 for Kilima, 1 for Bahari
+									static char locationName[128] = "";
+
+									// World selection dropdown
+									ImGui::Combo("World", &selectedWorld, "Kilima\0Bahari\0");
+									ImGui::InputText("Location Name", locationName, IM_ARRAYSIZE(locationName));
+
+									// Button to submit the new location
+									if (ImGui::Button("Add to List")) {
+										FVector newLocation = ValeriaCharacter->K2_GetActorLocation();
+										FRotator newRotation = ValeriaCharacter->K2_GetActorRotation();
+										std::string mapRoot = selectedWorld == 0 ? "Village_Root" : "AZ1_01_Root";
+										std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
+										std::string locationNameStr(locationName);
+
+										TeleportLocations.push_back({ mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
+										ImGui::CloseCurrentPopup();
+									}
+									ImGui::EndPopup();
 								}
 							}
 						}
