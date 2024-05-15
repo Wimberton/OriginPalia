@@ -352,12 +352,14 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 				FVector TargetLocation = Overlay->BestTargetLocation;
 				FVector ActorLocation = PlayerPawn->K2_GetActorLocation();
 
-				// Calculate offset based on distance between actor and target
-				FVector Offset = (TargetLocation - ActorLocation).GetNormalized() * 100.0f;
+				FVector Direction = (TargetLocation - ActorLocation).GetNormalized(); // UKismetMathLibrary, calculate cross product
+				FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
+				FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
 
-				FVector NewLocation = TargetLocation + Offset;
+				TargetLocation.Z += 100.0f; // Raise by 100 units in the Z direction
+				FVector NewLocation = TargetLocation + SideOffset;
+
 				FHitResult HitResult;
-				HitResult.bBlockingHit = false;
 				PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
 				Overlay->LastTeleportToTargetTime = now;
 			}
