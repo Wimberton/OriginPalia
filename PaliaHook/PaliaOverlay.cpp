@@ -1235,7 +1235,7 @@ void PaliaOverlay::DrawHUD()
 	style.WindowRounding = 5.0f; // Temporary change of style.
 
 	// Calculate watermark text only once, not in the drawing loop.
-	std::string watermarkText = "OriginPalia 0.179.1 - Made For Free By Wimberton @ UnknownCheats";
+	std::string watermarkText = "OriginPalia Menu By Wimberton & The UnknownCheats Community";
 	if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
 		watermarkText = "Waiting for in-game login or loading...";
 	}
@@ -1337,7 +1337,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu By Wimberton & The UnknownCheats Community");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.1 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
