@@ -987,9 +987,9 @@ public:
 	std::chrono::steady_clock::time_point LastTeleportToTargetTime;
 	std::chrono::steady_clock::time_point LastTimeMapTeleport;
 
-	float SmoothingFactor = 10.0f;
+	float SmoothingFactor = 90.0f;
 	//FVector AimOffset = FVector(0, 0, 0);
-	FVector AimOffset = FVector(0, 0, 0);
+	FVector AimOffset = FVector(-1.5, -1.35, 0);
 	float CurrentAimTime = 0.f;
 	double SelectionThreshold = 50.0;
 
@@ -1035,9 +1035,10 @@ public:
 	// Fishing Booleans
 	bool bEnableInstantFishing = false;
 	bool bEnableAutoFishing = false;
+	bool bRequireClickFishing = false;
 	bool bPerfectCatch = true;
 	bool bDoInstantSellFish = false;
-	bool bAutoFishing = false;
+	bool bDoDestroyOthers = false;
 
 	// Fishing Numericals
 	float StartRodHealth = 100.0f;

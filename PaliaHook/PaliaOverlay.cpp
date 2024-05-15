@@ -383,12 +383,15 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 				// Adjust the aim rotation only if the selected best target is an animal
 				if (IsAnimal) {
 					// Apply offset to pitch and yaw directly
+					float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(World);
 					FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, Overlay->BestTargetLocation);
 					TargetRotation.Pitch += Overlay->AimOffset.X;
 					TargetRotation.Yaw += Overlay->AimOffset.Y;
 
 					// Smooth rotation adjustment
-					FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);  // Adjust interpolation speed
+					float InvertedSmoothing = 100.0f / Overlay->SmoothingFactor;
+					FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, GameplayStatics->GetTimeSeconds(World), Overlay->SmoothingFactor);
+					// FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, DeltaTime, InvertedSmoothing);
 					Controller->SetControlRotation(NewRotation);
 				}
 			}
@@ -685,8 +688,42 @@ static void DrawHUD(const AHUD* HUD) {
 		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
 	}
 
+	// Auto Fishing Logic
+	if (Overlay->bEnableAutoFishing) {
+		auto World = GetWorld();
+		if (!World) return;
+
+		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+		if (!GameplayStatics) return;
+
+		double WorldTime = GameplayStatics->GetTimeSeconds(World);
+
+		auto GameInstance = World->OwningGameInstance;
+		if (!GameInstance) return;
+
+		if (GameInstance->LocalPlayers.Num() == 0) return;
+
+		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+		if (!LocalPlayer) return;
+
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) return;
+
+		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
+		if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+			if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
+				ValeriaCharacter->ToolPrimaryActionPressed();
+				ValeriaCharacter->ToolPrimaryActionReleased();
+			}
+			else if (!Overlay->bRequireClickFishing) {
+				ValeriaCharacter->ToolPrimaryActionPressed();
+				ValeriaCharacter->ToolPrimaryActionReleased();
+			}
+		}
+	}
+
 	// Logic for Instant Fishing
-	if (Overlay->bEnableInstantFishing) {
+	if (Overlay->bEnableInstantFishing || Overlay->bDoDestroyOthers) {
 		auto World = GetWorld();
 		if (!World) return;
 
@@ -717,7 +754,7 @@ static void DrawHUD(const AHUD* HUD) {
 			FFishingEndContext Context;
 			Context.Result = EFishingMiniGameResult::Success;
 			Context.Perfect = Overlay->bPerfectCatch;
-			Context.DurabilityReduction = 100;
+			Context.DurabilityReduction = 0;
 			Context.SourceWaterBody = nullptr;
 			Context.bUsedMultiplayerHelp = false;
 			Context.StartRodHealth = Overlay->StartRodHealth;
@@ -730,14 +767,22 @@ static void DrawHUD(const AHUD* HUD) {
 			FishingComponent->SetFishingState(EFishingState_OLD::None);
 
 			// Sell the fish instantly if caught
-			UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
-			if (StoreComponent) {
-				if (Overlay->bDoInstantSellFish) {
+			if (Overlay->bDoInstantSellFish) {
+				UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
+				if (StoreComponent) {
 					FBagSlotLocation FishBagSlot = {};
 					FishBagSlot.BagIndex = 0;
 
-					StoreComponent->RpcServer_SellItem(FishBagSlot, 2);  // Selling 2 fish
+					StoreComponent->RpcServer_SellItem(FishBagSlot, 5);
 				}
+			}
+
+			// Destroy Item Logic
+			if (Overlay->bDoDestroyOthers) {
+				AValeriaPlayerController* ValeriaPlayerController = Character->GetValeriaPlayerController();
+				if (!ValeriaPlayerController) return;
+
+				ValeriaPlayerController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
 		}
 		else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) {	
@@ -2569,11 +2614,12 @@ void PaliaOverlay::DrawOverlay()
 			// InteliTarget Controls
 			if (ImGui::CollapsingHeader("InteliTarget Settings", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				if (ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot)) {};
+				ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot);
 				ImGui::Checkbox("Enable Legacy Aimbot", &bEnableAimbot);
+
 				if (bEnableAimbot) {
 					ImGui::Text("Aim Smoothing:");
-					ImGui::SliderFloat("Smoothing Factor", &SmoothingFactor, 5.0f, 100.0f, "%1.0f");
+					ImGui::SliderFloat("Smoothing Factor", &SmoothingFactor, 1.0f, 100.0f, "%1.0f");
 					ImGui::Text("Aim Offset Adjustment (Drag Point):");
 					const ImVec2 canvas_size = ImVec2(200, 200); // Canvas size
 					static ImVec2 cursor_pos = ImVec2(0, 0); // Start at the center (0, 0 relative to center)
@@ -2583,7 +2629,7 @@ void PaliaOverlay::DrawOverlay()
 					ImU32 gridBackgroundColor = IM_COL32(26, 28, 33, 255); // Background color
 					ImU32 cursorColor = IM_COL32(69, 39, 160, 255); // Cursor color
 
-					if (ImGui::BeginChild("GridArea", ImVec2(200, 200), true, ImGuiWindowFlags_NoScrollbar)) {
+					if (ImGui::BeginChild("GridArea", ImVec2(200, 200), false, ImGuiWindowFlags_NoScrollbar)) {
 						ImDrawList* draw_list = ImGui::GetWindowDrawList();
 						ImVec2 canvas_p0 = ImGui::GetCursorScreenPos(); // Top-left corner of the canvas
 						ImVec2 grid_center = ImVec2(canvas_p0.x + canvas_size.x * 0.5f, canvas_p0.y + canvas_size.y * 0.5f);
@@ -2613,14 +2659,15 @@ void PaliaOverlay::DrawOverlay()
 				}
 				ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
-				ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
 			}
 
 			ImGui::NextColumn();
 
 			if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen))
 			{
+				ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
+
 				ImGui::Checkbox("Target Animals to Orbit", &bAddAnimalToOrbit);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport the targeted animals into orbit around you!");
 			}
@@ -2641,7 +2688,6 @@ void PaliaOverlay::DrawOverlay()
 								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
 								if (!MovementComponent) return;
 
-								UCharacterMovementComponent* CharMovementComponent = static_cast<UCharacterMovementComponent*>(ValeriaCharacter->GetMovementComponent());
 								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
 
 								FVector MyLocation = ValeriaCharacter->K2_GetActorLocation();
@@ -3001,9 +3047,7 @@ void PaliaOverlay::DrawOverlay()
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
 								UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
-								if (!GardenComponent) return;
 								UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
-								if (!FishingComponent) return;
 
 								FValeriaItem Equipped = ValeriaCharacter->GetEquippedItem();
 								ETools EquippedTool = ETools::None;
@@ -3051,6 +3095,12 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
+										ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
+
+										ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
+
 										ImGui::Spacing();
 										ImGui::Text("Instant Fishing Parameters:");
 										ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
@@ -3065,6 +3115,8 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
 										ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
+										ImGui::Checkbox("Auto Destroy Items (Slot 1)", &bDoDestroyOthers);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
 									}
 									else {
 										ImGui::Text("Fishing feature unavailable until you login / refresh your world");
@@ -3090,7 +3142,6 @@ void PaliaOverlay::DrawOverlay()
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
 								UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
-								if (!PlacementComponent) return;
 
 								ImGui::Columns(1, nullptr, false);
 								if (ImGui::CollapsingHeader("Housing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
