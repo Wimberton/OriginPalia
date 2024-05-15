@@ -449,8 +449,23 @@ static void DrawHUD(const AHUD* HUD) {
 		if (!PlayerController) return;
 
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
-
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
+		
+		// Auto Fishing Logic
+		if (Overlay->bEnableAutoFishing) {
+			AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
+			if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+				if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
+					ValeriaCharacter->ToolPrimaryActionPressed();
+					ValeriaCharacter->ToolPrimaryActionReleased();
+				}
+				else if (!Overlay->bRequireClickFishing) {
+					ValeriaCharacter->ToolPrimaryActionPressed();
+					ValeriaCharacter->ToolPrimaryActionReleased();
+				}
+			}
+		}
+
 		double WorldTime = GameplayStatics->GetTimeSeconds(World);
 
 		if (abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
@@ -685,8 +700,8 @@ static void DrawHUD(const AHUD* HUD) {
 		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
 	}
 
-	// Logic for Instant Fishing
-	if (Overlay->bEnableInstantFishing) {
+	// Logic for Fishing-Related Actions
+	if (Overlay->bEnableInstantFishing || Overlay->bDoDestroyOthers) {
 		auto World = GetWorld();
 		if (!World) return;
 
@@ -717,7 +732,7 @@ static void DrawHUD(const AHUD* HUD) {
 			FFishingEndContext Context;
 			Context.Result = EFishingMiniGameResult::Success;
 			Context.Perfect = Overlay->bPerfectCatch;
-			Context.DurabilityReduction = 100;
+			Context.DurabilityReduction = 0;
 			Context.SourceWaterBody = nullptr;
 			Context.bUsedMultiplayerHelp = false;
 			Context.StartRodHealth = Overlay->StartRodHealth;
@@ -730,14 +745,22 @@ static void DrawHUD(const AHUD* HUD) {
 			FishingComponent->SetFishingState(EFishingState_OLD::None);
 
 			// Sell the fish instantly if caught
-			UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
-			if (StoreComponent) {
-				if (Overlay->bDoInstantSellFish) {
+			if (Overlay->bDoInstantSellFish) {
+				UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
+				if (StoreComponent) {
 					FBagSlotLocation FishBagSlot = {};
 					FishBagSlot.BagIndex = 0;
 
-					StoreComponent->RpcServer_SellItem(FishBagSlot, 2);  // Selling 2 fish
+					StoreComponent->RpcServer_SellItem(FishBagSlot, 5);  // Selling 5 fish
 				}
+			}
+
+			// Destroy Item Logic
+			if (Overlay->bDoDestroyOthers) {
+				AValeriaPlayerController* ValeriaPlayerController = Character->GetValeriaPlayerController();
+				if (!ValeriaPlayerController) return;
+
+				ValeriaPlayerController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
 		}
 		else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) {	
@@ -1223,7 +1246,7 @@ void PaliaOverlay::DrawHUD()
 	if (PlayerController->Pawn) {
 		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
 		if (ValeriaCharacter) {
-			if (bEnableInstantFishing) {
+			if (bEnableAutoFishing || bEnableInstantFishing) {
 				UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
 				if (FishingComponent) {
 					void* Instance = FishingComponent;
@@ -3048,6 +3071,11 @@ void PaliaOverlay::DrawOverlay()
 								if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
 								{
 									if (FishingComponent) {
+										ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
+
+										ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
+
 										ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
@@ -3065,6 +3093,9 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
 										ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
+
+										ImGui::Checkbox("Auto Destroy Items (Slot 1)", &bDoDestroyOthers);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
 									}
 									else {
 										ImGui::Text("Fishing feature unavailable until you login / refresh your world");
