@@ -703,7 +703,6 @@ static void DrawHUD(const AHUD* HUD) {
 		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
 	}
 
-<<<<<<< HEAD
 	// Auto Fishing Logic
 	if (Overlay->bEnableAutoFishing) {
 		auto World = GetWorld();
@@ -738,11 +737,8 @@ static void DrawHUD(const AHUD* HUD) {
 		}
 	}
 
-	// Logic for Instant Fishing
-=======
 	// Logic for Fishing-Related Actions
->>>>>>> 3a7edfca974b83eb0014438bedd64f6f0a566d78
-	if (Overlay->bEnableInstantFishing || Overlay->bDoDestroyOthers) {
+	if (Overlay || Overlay->bDoDestroyOthers) {
 		auto World = GetWorld();
 		if (!World) return;
 
@@ -792,11 +788,7 @@ static void DrawHUD(const AHUD* HUD) {
 					FBagSlotLocation FishBagSlot = {};
 					FishBagSlot.BagIndex = 0;
 
-<<<<<<< HEAD
-					StoreComponent->RpcServer_SellItem(FishBagSlot, 5);
-=======
 					StoreComponent->RpcServer_SellItem(FishBagSlot, 5);  // Selling 5 fish
->>>>>>> 3a7edfca974b83eb0014438bedd64f6f0a566d78
 				}
 			}
 
@@ -3115,11 +3107,6 @@ void PaliaOverlay::DrawOverlay()
 								if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
 								{
 									if (FishingComponent) {
-										ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
-
-										ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
-
 										ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
@@ -3143,15 +3130,9 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
 										ImGui::Checkbox("Instant Sell (Slot 1)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-<<<<<<< HEAD
-=======
 
->>>>>>> 3a7edfca974b83eb0014438bedd64f6f0a566d78
 										ImGui::Checkbox("Auto Destroy Items (Slot 1)", &bDoDestroyOthers);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
-									}
-									else {
-										ImGui::Text("Fishing feature unavailable until you login / refresh your world");
 									}
 								}
 							}
