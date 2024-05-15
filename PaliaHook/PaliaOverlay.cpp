@@ -738,7 +738,8 @@ static void DrawHUD(const AHUD* HUD) {
 		APlayerController* PlayerController = LocalPlayer->PlayerController;
 		if (!PlayerController) return;
 		
-		ABP_ValeriaPlayerController_C* ValeriaController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
+		//ABP_ValeriaPlayerController_C* ValeriaController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
+		AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
 		if (!ValeriaController) return;
 		
 		AValeriaCharacter* Character = ValeriaController->GetValeriaCharacter();
@@ -784,7 +785,7 @@ static void DrawHUD(const AHUD* HUD) {
 				}
 			}
 
-			// Destroy Item if not fish (only slot 1)
+			// Destroy fishing items (only slot 1)
 			if (Overlay->bDoDestroyOthers) {
 				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
@@ -817,12 +818,10 @@ static void DrawHUD(const AHUD* HUD) {
 		if (!MovementComponent) return;
 
 		if (Overlay->bEnableNoclip) {
-			// Enabling noclip
 			MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
 			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		}
 		else {
-			// Disabling noclip
 			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
 			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 			Character->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
@@ -862,7 +861,7 @@ static void DrawHUD(const AHUD* HUD) {
 		CameraRight.Normalize();
 
 		FVector MovementDirection(0.f, 0.f, 0.f);
-		float FlySpeed = Overlay->NoClipFlySpeed;
+		float FlySpeed = 800.0f;
 
 		if (IsKeyHeld('W')) {
 			MovementDirection += CameraForward * FlySpeed;
@@ -1344,7 +1343,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.1 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.2 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2687,6 +2686,7 @@ void PaliaOverlay::DrawOverlay()
 						if (PlayerController && PlayerController->Pawn) {
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
+								AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
 								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
 								if (!MovementComponent) return;
 
@@ -2713,9 +2713,6 @@ void PaliaOverlay::DrawOverlay()
 									static const char* movementModes[] = { "Walking", "Flying", "Fly No Collision" }; // Dropdown menu options
 
 									ImGui::Checkbox("Enable Noclip", &bEnableNoclip);
-									if (bEnableNoclip) {
-										ImGui::SliderFloat("##NoClipFlySpeed", &NoClipFlySpeed, 200.0f, 1500.0f, "%2.0f");
-									}
 
 									// Create a combo box for selecting the movement mode
 									ImGui::Text("Movement Mode");
@@ -2888,9 +2885,12 @@ void PaliaOverlay::DrawOverlay()
 										PlayerController->ClientForceGarbageCollection();
 										PlayerController->ClientFlushLevelStreaming();
 									}
-									ImGui::SameLine();
 									if (ImGui::Button("Teleport To Home Base")) {
 										ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
+									}
+									ImGui::SameLine();
+									if (ImGui::Button("Clear Return Home Cooldown")) {
+										ValeriaPlayerController->RpcServer_ClearReturnHomeCooldown();
 									}
 								}
 							}
@@ -2975,14 +2975,6 @@ void PaliaOverlay::DrawOverlay()
 
 								if (ImGui::CollapsingHeader("Player Features", ImGuiTreeNodeFlags_DefaultOpen))
 								{
-									ImGui::Checkbox("Skip Gifting Timers", &bSkipGiftingTimers);
-									if (bSkipGiftingTimers) {
-										ValeriaPlayerController->RpcServer_SetIgnoreGiftTimer(true);
-									}
-									else {
-										ValeriaPlayerController->RpcServer_SetIgnoreGiftTimer(false);
-									}
-
 									if (ImGui::Button("Toggle Challenge Easy Mode")) {
 										ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
 										bEasyModeActive = !bEasyModeActive;
@@ -3111,7 +3103,7 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Instant Sell All Fish (All Slots)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 
-										ImGui::Checkbox("Automatically Discard Non-Fish (Slot 1)", &bDoDestroyOthers);
+										ImGui::Checkbox("Automatically Discard (Slot 1)", &bDoDestroyOthers);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
 
 										ImGui::Spacing();
