@@ -339,6 +339,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 				FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
 				FRotator NewRotation = CustomMath::RInterpTo(CurrentRotation, TargetRotation, UGameplayStatics::GetWorldDeltaSeconds(World), Overlay->SmoothingFactor);
 				Overlay->BestTargetActor = Entry.Actor;
+				Overlay->BestTargetActorType = Entry.ActorType;
 				Overlay->BestTargetLocation = ActorLocation;
 				Overlay->BestTargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
 			}
@@ -349,19 +350,29 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 		auto now = std::chrono::steady_clock::now();
 		if (IsKeyHeld(VK_XBUTTON2) && BestScore != FLT_MAX) {
 			if (std::chrono::duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 2) {
-				FVector TargetLocation = Overlay->BestTargetLocation;
-				FVector ActorLocation = PlayerPawn->K2_GetActorLocation();
+				bool shouldTeleport = true;
 
-				FVector Direction = (TargetLocation - ActorLocation).GetNormalized(); // UKismetMathLibrary, calculate cross product
-				FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
-				FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
+				// Avoid teleporting to players if configured to
+				if (Overlay->bAvoidTeleportingToPlayers && Overlay->BestTargetActorType == EType::Players) {
+					shouldTeleport = false;
+				}
 
-				TargetLocation.Z += 100.0f; // Raise by 100 units in the Z direction
-				FVector NewLocation = TargetLocation + SideOffset;
+				if (shouldTeleport) {
+					// Teleportation logic
+					FVector TargetLocation = Overlay->BestTargetLocation;
+					FVector ActorLocation = PlayerPawn->K2_GetActorLocation();
 
-				FHitResult HitResult;
-				PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
-				Overlay->LastTeleportToTargetTime = now;
+					FVector Direction = (TargetLocation - ActorLocation).GetNormalized(); // UKismetMathLibrary, calculate cross product
+					FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
+					FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
+
+					TargetLocation.Z += 100.0f; // Raise by 100 units in the Z direction
+					FVector NewLocation = TargetLocation + SideOffset;
+
+					FHitResult HitResult;
+					PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
+					Overlay->LastTeleportToTargetTime = now;
+				}
 			}
 		}
 	}
@@ -2691,6 +2702,8 @@ void PaliaOverlay::DrawOverlay()
 				}
 				ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
+
+				ImGui::Checkbox("Avoid Teleporting To Targeted Players", &bAvoidTeleportingToPlayers);
 			}
 
 			ImGui::NextColumn();
