@@ -431,13 +431,12 @@ static void ManageCache(UWorld* World, PaliaOverlay* Overlay) {
 
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
+	ManageCache(GetWorld(), Overlay);
 
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
 		auto World = GetWorld();
 		if (!World) return;
-		
-		ManageCache(GetWorld(), Overlay);
 		
 		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
 		if (!GameplayStatics) return;
@@ -3126,8 +3125,11 @@ void PaliaOverlay::DrawOverlay()
 									if (ValeriaCharacter) {
 										ImGui::Text("Equipped Tool : %s", STools[(int)EquippedTool]);
 									}
-									else {
-										ImGui::Text("No equipment available for viewing");
+									else { ImGui::Text("No equipment available for viewing");}
+
+									ImGui::Checkbox("Unlock All Outfits", &ValeriaCharacter->GetCharacterCustomizationComponent()->bTemporarilyAllowAllEntitlements);
+									if (ImGui::Button("Save Outfit")) {
+										ValeriaCharacter->GetCharacterCustomizationComponent()->CommitLoadoutToServer();
 									}
 								}
 

@@ -241,8 +241,6 @@ struct FLocation
 
 class PaliaOverlay : public OverlayBase
 {
-private:
-	std::vector<UObject*> HookedComponents;
 protected:
 	virtual void DrawHUD();
 	virtual void DrawOverlay();
@@ -971,7 +969,6 @@ public:
 	}
 
 	// ============ ESP DISPLAY MAPPINGS ================
-
 	bool CacheActorsFast = true;
 
 	float FOV;
