@@ -1091,4 +1091,7 @@ public:
 
 	// Quicksell Hotkeys
 	bool bEnableQuicksellHotkeys = false;
+
+	// Character Customiztion Booleans
+	bool bTempUnlockAllEntitlements = false;
 };

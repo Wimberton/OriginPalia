@@ -3074,6 +3074,7 @@ void PaliaOverlay::DrawOverlay()
 						if (PlayerController && PlayerController->Pawn) {
 							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
 							if (ValeriaCharacter) {
+								//UVAL_CharacterCustomizationComponent* CharacterCustomization = ValeriaCharacter->GetCharacterCustomizationComponent();
 								UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
 								UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
 
@@ -3112,10 +3113,13 @@ void PaliaOverlay::DrawOverlay()
 									}
 									else { ImGui::Text("No equipment available for viewing");}
 
-									ImGui::Checkbox("Unlock All Outfits", &ValeriaCharacter->GetCharacterCustomizationComponent()->bTemporarilyAllowAllEntitlements);
-									if (ImGui::Button("Save Outfit")) {
-										ValeriaCharacter->GetCharacterCustomizationComponent()->CommitLoadoutToServer();
-									}
+									//ImGui::Checkbox("Unlock All Outfits", &bTempUnlockAllEntitlements);
+									//if (bTempUnlockAllEntitlements) {
+									//	CharacterCustomization->bTemporarilyAllowAllEntitlements = true;
+									//}
+									//else {
+									//	CharacterCustomization->bTemporarilyAllowAllEntitlements = false;
+									//}
 								}
 
 								ImGui::NextColumn();
@@ -3150,7 +3154,7 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Instant Sell Fish (All Slots)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 
-										ImGui::Checkbox("Discard Other Unsellables", &bDestroyCustomizationFishing);
+										ImGui::Checkbox("Discard Other Unsellables (Slot 1)", &bDestroyCustomizationFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
 
 										ImGui::Spacing();
