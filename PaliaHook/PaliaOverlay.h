@@ -213,6 +213,7 @@ enum class ELocation
 	Kilima_PhoenixFalls,
 	Kilima_DragonShrine,
 	Kilima_FishermansLagoon,
+	Kilima_WimsFishingSpot,
 
 	// Bahari Stables
 	Bahari_CentralStables,
@@ -298,6 +299,7 @@ public:
 		{ "Village_Root", ELocation::Kilima_PhoenixFalls, "Kilima - Phoenix Falls", FVector(7596.145f, -51226.853f, 4006.341f), FRotator(0.000f, -68.64f, 0.000f)},
 		{ "Village_Root", ELocation::Kilima_DragonShrine, "Kilima - Dragon Shrine", FVector(33743.980f, -22253.369f, 1303.870f), FRotator(0.000f, -90.211f, 0.000f)},
 		{ "Village_Root", ELocation::Kilima_FishermansLagoon, "Kilima - Fisherman's Lagoon", FVector(25325.044f, 19246.651f, -459.559f), FRotator(0.000f, 25.76f, 0.000f)},
+		{ "UserDefined", ELocation::Kilima_WimsFishingSpot, "Kilima - Wims Secret Fishing Spot", FVector(58217.884f, 41798.154f, -452.593f), FRotator(0.000f, 94.089f, 0.000f)},
 		// Bahari Stables
 		{ "AZ1_01_Root", ELocation::Bahari_CentralStables, "Bahari - Central Stables", FVector(103331.330f, -63125.339f, -1948.051f), FRotator(0.000f, 148.09f,-0.000f)},
 		{ "AZ1_01_Root", ELocation::Bahari_TheOutskirts, "Bahari - The Outskirts", FVector(55743.927f, -81821.534f, 902.205f), FRotator(0.000f, 226.06f, 0.000f)},
@@ -335,6 +337,11 @@ public:
 		{"BP_TreeChoppable_Pine_Large2_C", "Pine (L)"},
 
 		// TREES (HOME)
+		{"BP_FoliageOnPlot_Tree_Birch_Sapling_C", "Birch (Sap)"},
+		{"BP_FoliageOnPlot_Tree_Birch_Small_C", "Birch (S)"},
+		{"BP_FoliageOnPlot_TreeBirch_Medium_C", "Birch (M)"},
+		{"BP_FoliageOnPlot_Tree_Birch_Large_C", "Birch (L)"},
+
 		{"BP_TreeGrowable_Birch_Sapling_C", "Birch (Sap)"},
 		{"BP_TreeGrowable_Birch_Small_C", "Birch (S)"},
 		{"BP_TreeGrowable_Birch_Medium_C", "Birch (M)"},
@@ -344,6 +351,11 @@ public:
 		{"BP_TreeGrowable_Juniper_Small_C", "Juniper (S)"},
 		{"BP_TreeGrowable_Juniper_Medium_C", "Juniper (M)"},
 		{"BP_TreeGrowable_Juniper_Large_C", "Juniper (L)"},
+
+		{"BP_FoliageOnPlot_Tree_Oak_Sapling_C", "Oak (Sap)"},
+		{"BP_FoliageOnPlot_Tree_Oak_Small_C", "Oak (S)"},
+		{"BP_FoliageOnPlot_TreeOak_Medium_C", "Oak (M)"},
+		{"BP_FoliageOnPlot_Tree_Oak_Large_C", "Oak (L)"},
 
 		{"BP_TreeGrowable_Oak_Sapling_C", "Oak (Sap)"},
 		{"BP_TreeGrowable_Oak_Small_C", "Oak (S)"},
@@ -404,6 +416,10 @@ public:
 		{"BP_ShrubChoppable_Bush_C", "Bush"},
 
 		// Ores
+		{ "BP_FoliageOnPlot_Stone_C", "Stone (S)" },
+		{ "BP_FoliageOnPlot_RockM_C", "Stone (M)" },
+		{ "BP_FoliageOnPlot_RockL_C", "Stone (L)" },
+
 		{"BP_Mining_Copper_Small_C", "Copper (S)"},
 		{"BP_Mining_Copper_Medium_C", "Copper (M)"},
 		{"BP_Mining_Copper_Large_C", "Copper (L)"},
@@ -1039,7 +1055,8 @@ public:
 	bool bPerfectCatch = true;
 	bool bNoRodDurabilityLoss = true;
 	bool bDoInstantSellFish = false;
-	bool bDoDestroyOthers = false;
+	bool bMoveCustomizationToStorage  = false;
+	bool bDestroyCustomizationFishing = false;
 
 	// Fishing Numericals
 	float StartRodHealth = 100.0f;

@@ -711,7 +711,9 @@ static void DrawHUD(const AHUD* HUD) {
 		APlayerController* PlayerController = LocalPlayer->PlayerController;
 		if (!PlayerController) return;
 
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
+		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
+		if (!ValeriaCharacter) return;
+
 		if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
 			if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
 				ValeriaCharacter->ToolPrimaryActionPressed();
@@ -773,24 +775,52 @@ static void DrawHUD(const AHUD* HUD) {
 				UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
 				UInventoryComponent* InventoryComponent = Character->GetInventory();
 
-				// Sell all fishing EItemCategory Types from all inventory slots when instant fishing
+				// Sell all fishing & junk EItemCategory Types from all inventory slots when instant fishing
 				if (StoreComponent && InventoryComponent) {
 					for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
 						for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
 							FBagSlotLocation Slot{ BagIndex, SlotIndex };
 							FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
-							if (Item.ItemType->Category == EItemCategory::Fish) {
+							if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
 								StoreComponent->RpcServer_SellItem(Slot, 10);
+							}
+							else {
+								ValeriaController->DiscardItem(Slot, 10);
 							}
 						}
 					}
 				}
 			}
 
-			// Destroy fishing items (only slot 1)
-			if (Overlay->bDoDestroyOthers) {
-				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
+			// Move customization items to storage
+			if (Overlay->bMoveCustomizationToStorage) {
+				UInventoryComponent* InventoryComponent = Character->GetInventory();
+
+				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
+					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
+						FBagSlotLocation Slot{ BagIndex, SlotIndex };
+						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
+						if (Item.ItemType->Category == EItemCategory::Customization) {
+							ValeriaController->MoveFromInventoryToPlayerStorage(InventoryComponent, Slot, 10, EStoragePoolType::Primary);
+						}
+					}
+				}
 			}
+			// Discard customization items when fishing
+			if (Overlay->bDestroyCustomizationFishing) {
+				UInventoryComponent* InventoryComponent = Character->GetInventory();
+
+				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
+					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
+						FBagSlotLocation Slot{ BagIndex, SlotIndex };
+						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
+						if (Item.ItemType->Category == EItemCategory::Customization) {
+							ValeriaController->DiscardItem(Slot, 10);
+						}
+					}
+				}
+			}
+
 		}
 		else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) {	
 			return;
@@ -1345,7 +1375,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.4 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.6.5 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2690,7 +2720,7 @@ void PaliaOverlay::DrawOverlay()
 							if (ValeriaCharacter) {
 								AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
 								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-								if (!MovementComponent) return;
+								// if (!MovementComponent) return;
 
 								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
 
@@ -2826,7 +2856,7 @@ void PaliaOverlay::DrawOverlay()
 								// Locations and exploits column
 								if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
 									ImGui::Text("Teleport List");
-									ImGui::Text("Current Coords: %.3f, %.3f, %.3f, %.3f", ValeriaCharacter->K2_GetActorLocation().X, ValeriaCharacter->K2_GetActorLocation().Y, ValeriaCharacter->K2_GetActorLocation().Z, ValeriaCharacter->K2_GetActorRotation().Yaw);
+									ImGui::Text("Double-click a location listing to teleport");
 									ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150));
 									for (FLocation& Entry : TeleportLocations) {
 										if (CurrentMap == Entry.MapName || Entry.MapName == "UserDefined") {
@@ -2847,7 +2877,9 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::OpenPopup("Add New Location");
 									}
 
-									ImGui::Text("Enter custom XYZ, or get your current ones.");
+									ImGui::Text("Current Coords: %.3f, %.3f, %.3f, %.3f", ValeriaCharacter->K2_GetActorLocation().X, ValeriaCharacter->K2_GetActorLocation().Y, ValeriaCharacter->K2_GetActorLocation().Z, ValeriaCharacter->K2_GetActorRotation().Yaw);
+									ImGui::Spacing();
+
 									// Set the width for the labels and inputs
 									const float labelWidth = 50.0f;
 									const float inputWidth = 200.0f;
@@ -3024,28 +3056,15 @@ void PaliaOverlay::DrawOverlay()
 									ImGui::Text("Visit a storefront then use the hotkeys to sell your inventory quickly");
 									ImGui::Checkbox("Enable Quicksell Hotkeys", &bEnableQuicksellHotkeys);
 									ImGui::Spacing();
-									ImGui::Text("NUM1 - Sell Slot 1");
-									ImGui::Spacing();
-									ImGui::Text("NUM2 - Sell Slot 2");
-									ImGui::Spacing();
-									ImGui::Text("NUM3 - Sell Slot 3");
-									ImGui::Spacing();
-									ImGui::Text("NUM4 - Sell Slot 4");
-									ImGui::Spacing();
-									ImGui::Text("NUM5 - Sell Slot 5");
-									ImGui::Spacing();
-									ImGui::Text("NUM6 - Sell Slot 6");
-									ImGui::Spacing();
-									ImGui::Text("NUM7 - Sell Slot 7");
-									ImGui::Spacing();
-									ImGui::Text("NUM8 - Sell Slot 8");
+									ImGui::Text("NUM1 - NUM8 | Sell All Items, Slots 1 through 8");
 
+									const int numpadKeys[] = { VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD7, VK_NUMPAD8 };
 									if (bEnableQuicksellHotkeys) {
 										for (int i = 0; i < 8; ++i) {
-											if (IsKeyHeld(VK_NUMPAD1 + i)) {
+											if (IsKeyHeld(numpadKeys[i])) {
 												FBagSlotLocation quicksellBag = {};
 												quicksellBag.BagIndex = 0;
-												quicksellBag.SlotIndex = i;
+												quicksellBag.SlotIndex = i + 1;
 
 												ValeriaCharacter->StoreComponent->RpcServer_SellItem(quicksellBag, 5);
 											}
@@ -3120,22 +3139,42 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
-										ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
+										if (EquippedTool == ETools::FishingRod) {
+											ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
+											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
 
-										if (bEnableAutoFishing) {
-											ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
-											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
+											if (bEnableAutoFishing) {
+												ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
+												if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
+											}
+										}
+										else {
+											ImGui::Spacing();
+											ImGui::Text("Equip your fishing rod to see more auto-fishing options");
+											ImGui::Spacing();
+
+											bEnableAutoFishing = false;
+											bRequireClickFishing = true;
 										}
 
-										ImGui::Checkbox("Perfect Catch", &bPerfectCatch);
+										ImGui::Checkbox("Always Perfect Catch", &bPerfectCatch);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
 
-										ImGui::Checkbox("Instant Sell All Fish (All Slots)", &bDoInstantSellFish);
+										ImGui::Checkbox("Instant Sell Fish (All Slots)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 
-										ImGui::Checkbox("Automatically Discard (Slot 1)", &bDoDestroyOthers);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Unsellable items such as Waterlogged Chests need to be destroyed in order to keep selling fish.");
+										ImGui::Checkbox("Send Waterlogged Chests To Storage", &bMoveCustomizationToStorage);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move all customization items such as Waterlogged chests to your storage for later usage.");
+
+										ImGui::Checkbox("Discard Waterlogged Chests", &bDestroyCustomizationFishing);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Discard all customization items such as Waterlogged chests when fishing to save inventory space.");
+
+										if (bMoveCustomizationToStorage) {
+											bDestroyCustomizationFishing = false;
+										}
+										if (bDestroyCustomizationFishing) {
+											bMoveCustomizationToStorage = false;
+										}
 
 										ImGui::Spacing();
 										ImGui::Text("Custom Fishing Catch Parameters:");
