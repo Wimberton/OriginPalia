@@ -345,6 +345,12 @@ public:
 		{"BP_TreeGrowable_Birch_Medium_CoOp_C", "Flow-Infused Birch (M)"},
 		{"BP_TreeGrowable_Birch_Large_CoOp_C", "Flow-Infused Birch (L)"},
 
+		// Birch (Foliage On Plot)
+		{"BP_FoliageOnPlot_Tree_Birch_Sapling_C", "Birch (Sap)"},
+		{"BP_FoliageOnPlot_Tree_Birch_Small_C", "Birch (S)"},
+		{"BP_FoliageOnPlot_TreeBirch_Medium_C", "Birch (M)"},
+		{"BP_FoliageOnPlot_Tree_Birch_Large_C", "Birch (L)"},
+
 		// Juniper
 		{"BP_TreeChoppable_Juniper_Sapling_C", "Juniper (Sap)"},
 		{"BP_TreeChoppable_Juniper_Small_C", "Juniper (S)"},
@@ -385,6 +391,13 @@ public:
 		{"BP_TreeGrowable_Oak_Medium_CoOp_C", "Flow-Infused Oak (M)"},
 		{"BP_TreeGrowable_Oak_Large_CoOp_C", "Flow-Infused Oak (L)"},
 
+		// Oak (Foliage On Plot)
+		{"BP_FoliageOnPlot_Tree_Oak_Sapling_C", "Oak (Sap)"},
+		{"BP_FoliageOnPlot_Tree_Oak_Small_C", "Oak (S)"},
+		{"BP_FoliageOnPlot_TreeOak_Medium_C", "Oak (M)"},
+		{"BP_FoliageOnPlot_Tree_Oak_Large_C", "Oak (L)"},
+
+
 		// Pine
 		{"BP_TreeChoppable_Pine_Sapling_C", "Pine (Sap)"},
 		{"BP_TreeChoppable_Pine_Small_C", "Pine (S)"},
@@ -412,6 +425,9 @@ public:
 		// Shrubs
 		{"BP_ShrubChoppable_Bush_C", "Bush"},
 
+		// Shrubs (Foliage On Plot)
+		{ "BP_FoliageOnPlot_Bush_C", "Bush" },
+
 		// Ores //
 
 		// Stone
@@ -424,6 +440,10 @@ public:
 		{"BP_Mining_Stone_Small_MultiHarvest_C", "Stone (S)"},
 		{"BP_Mining_Stone_Medium_MultiHarvest_C", "Stone (M)"},
 		{"BP_Mining_Stone_Large_MultiHarvest_C", "Stone (L)"},
+
+		// Stone (Foliage On Plot)
+		{ "BP_FoliageOnPlot_Stone_C", "Stone (Sap)" },
+		{ "BP_FoliageOnPlot_RockL_C", "Stone (S)" },
 
 		// Copper
 		{"BP_Mining_Copper_Small_C", "Copper (S)"},

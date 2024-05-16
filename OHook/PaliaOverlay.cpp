@@ -1393,6 +1393,8 @@ void PaliaOverlay::DrawOverlay()
 				OpenTab = 0;
 				ImGui::EndTabItem();
 			}
+
+
 			if (ImGui::BeginTabItem("Aimbots & Fun"))
 			{
 				OpenTab = 1;
