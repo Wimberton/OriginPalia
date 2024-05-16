@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(PaliaHook CXX)
+project(OHook CXX)
 enable_language(C)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -57,18 +57,18 @@ set(MINHOOK_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 # Include Minhook headers
 include_directories(${MINHOOK_INCLUDE_DIR})
 
-# PaliaHook DLL
-if(EXISTS "${CMAKE_BINARY_DIR}/PaliaHook.pdb")
-   file(REMOVE ${CMAKE_BINARY_DIR}/PaliaHook.pdb)
+# OHook DLL
+if(EXISTS "${CMAKE_BINARY_DIR}/OHook.pdb")
+   file(REMOVE ${CMAKE_BINARY_DIR}/OHook.pdb)
 endif()
-file(GLOB_RECURSE PALIAHOOK_SOURCES PaliaHook/*.cpp)
-file(GLOB_RECURSE PALIAHOOK_HEADERS PaliaHook/*.h)
+file(GLOB_RECURSE OHook_SOURCES OHook/*.cpp)
+file(GLOB_RECURSE OHook_HEADERS OHook/*.h)
 file(GLOB GLEW_SOURCES glew/src/glew.c)
 set_source_files_properties(${GLEW_SOURCES} PROPERTIES LANGUAGE C)
-add_library(PaliaHook SHARED ${PALIAHOOK_SOURCES} ${PALIAHOOK_HEADERS} ${GLEW_SOURCES})
-target_compile_definitions(PaliaHook PRIVATE $<$<BOOL:${WIN32}>:GLEW_STATIC>)
-target_link_libraries(PaliaHook PRIVATE RendererHook PaliaSDK $<$<BOOL:${WIN32}>:ws2_32> $<$<BOOL:${WIN32}>:iphlpapi> $<$<BOOL:${WIN32}>:opengl32.lib> $<$<BOOL:${WIN32}>:Winmm.lib>)
+add_library(OHook SHARED ${OHook_SOURCES} ${OHook_HEADERS} ${GLEW_SOURCES})
+target_compile_definitions(OHook PRIVATE $<$<BOOL:${WIN32}>:GLEW_STATIC>)
+target_link_libraries(OHook PRIVATE RendererHook PaliaSDK $<$<BOOL:${WIN32}>:ws2_32> $<$<BOOL:${WIN32}>:iphlpapi> $<$<BOOL:${WIN32}>:opengl32.lib> $<$<BOOL:${WIN32}>:Winmm.lib>)
 
 # Link Minhook library
-target_link_directories(PaliaHook PRIVATE ${MINHOOK_LIB_DIR})
-target_link_libraries(PaliaHook PRIVATE MinHook.x64.lib MinHook.x86.lib)
+target_link_directories(OHook PRIVATE ${MINHOOK_LIB_DIR})
+target_link_libraries(OHook PRIVATE MinHook.x64.lib MinHook.x86.lib)
