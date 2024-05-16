@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <OverlayBase.h>
 #include <map>
 #include <vector>
@@ -151,12 +151,13 @@ enum class EOneOffs
 {
 	Player,
 	NPC,
+	FishHook,
+	FishPool,
 	Loot,
 	Quest,
 	RummagePiles,
 	Stables,
-	FishPool,
-	FishHook,
+	Others,
 	MAX
 };
 
@@ -198,6 +199,13 @@ const char* const STools[] = {
 
 enum class ELocation
 {
+	// Home
+	Global_Home,
+
+	// Kilima Entrances
+	Kilima_HousingPlot,
+	Kilima_ToBahariBay,
+
 	// Kilima Stables
 	Kilima_CentralStables,
 	Kilima_MirrorFields,
@@ -205,8 +213,6 @@ enum class ELocation
 	Kilima_WhisperingBanks,
 
 	// Kilima Others
-	Kilima_HousingPlot,
-	Kilima_ToBahariBay,
 	Kilima_Fairgrounds_MajiMarket,
 	Kilima_GeneralStore,
 	Kilima_RepairStation,
@@ -214,6 +220,10 @@ enum class ELocation
 	Kilima_DragonShrine,
 	Kilima_FishermansLagoon,
 	Kilima_WimsFishingSpot,
+
+	// Bahari Entrances
+	Bahari_HousingPlot,
+	Bahari_ToKilimaValley,
 
 	// Bahari Stables
 	Bahari_CentralStables,
@@ -223,9 +233,7 @@ enum class ELocation
 	Bahari_HideawayBluffs,
 	Bahari_BeachcomberCove,
 
-	// Bahari Others
-	Bahari_HousingPlot,
-	Bahari_ToKilimaValley,
+	// Others
 
 	UserDefined
 };
@@ -283,318 +291,277 @@ public:
 	ULevel* CurrentLevel;
 	std::string CurrentMap = "Unknown";
 	std::vector<FLocation> TeleportLocations = {
+		// Global Home
+		{ "UserDefined", ELocation::Global_Home, "[Global] Housing Plot", FVector(00000.000f, 00000.000f, 00000.000f), FRotator(0.000f, 0.00f, 0.000f)},
+		// Kilima Entrances
+		{ "Village_Root", ELocation::Kilima_HousingPlot, "[Kilima] Housing Plot Entrance", FVector(20204.810f, -15375.620f, 2252.460f), FRotator(0.000f, -6.24f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_ToBahariBay, "[Kilima] Bahari Bay Entrance", FVector(50623.753f, -5403.530f, 1312.610f), FRotator(0.000f, -24.72f, 0.000f)},
 		// Kilima Stables
-		{ "Village_Root", ELocation::Kilima_CentralStables, "Kilima - Central Stables", FVector(9746.436f, 11380.740f, -139.406f), FRotator(0.000f, 145.62f,-0.000f)},
-		{ "Village_Root", ELocation::Kilima_MirrorFields, "Kilima - Mirror Fields", FVector(-6586.737f, -24412.872f, 1627.018f), FRotator(0.000f, 259.87f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_LeafhopperHills, "Kilima - Leafhopper Hills", FVector(-21589.245f, 3920.281f, 306.105f), FRotator(0.000f, 117.04f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_WhisperingBanks, "Kilima - Whispering Banks", FVector(38958.433f, 7574.109f, -677.983f), FRotator(0.000f, 214.71f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_CentralStables, "[Kilima] Central Stables", FVector(9746.436f, 11380.740f, -139.406f), FRotator(0.000f, 145.62f,-0.000f)},
+		{ "Village_Root", ELocation::Kilima_MirrorFields, "[Kilima] Mirror Fields", FVector(-6586.737f, -24412.872f, 1627.018f), FRotator(0.000f, 259.87f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_LeafhopperHills, "[Kilima] Leafhopper Hills", FVector(-21589.245f, 3920.281f, 306.105f), FRotator(0.000f, 117.04f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_WhisperingBanks, "[Kilima] Whispering Banks", FVector(38958.433f, 7574.109f, -677.983f), FRotator(0.000f, 214.71f, 0.000f)},
 		// Kilima Others
-		{ "Village_Root", ELocation::Kilima_HousingPlot, "Kilima - Housing Plot Entrance", FVector(20204.810f, -15375.620f, 2252.460f), FRotator(0.000f, -6.24f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_ToBahariBay, "Kilima - Bahari Bay Entrance", FVector(50623.753f, -5403.530f, 1312.610f), FRotator(0.000f, -24.72f, 0.000f)},
-
-		{ "Village_Root", ELocation::Kilima_Fairgrounds_MajiMarket, "Kilima - Fairgrounds Entrance (Maji Market)", FVector(54696.812f, 21802.943f, -114.603f), FRotator(0.000f, -7.65f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_GeneralStore, "Kilima - General Store", FVector(156.193f, -1509.144f, 285.576f), FRotator(0.000f, -122.07f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_RepairStation, "Kilima - Repair Station", FVector(2465.246f, 6734.343f, 303.050f), FRotator(0.000f, 120.89f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_PhoenixFalls, "Kilima - Phoenix Falls", FVector(7596.145f, -51226.853f, 4006.341f), FRotator(0.000f, -68.64f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_DragonShrine, "Kilima - Dragon Shrine", FVector(33743.980f, -22253.369f, 1303.870f), FRotator(0.000f, -90.211f, 0.000f)},
-		{ "Village_Root", ELocation::Kilima_FishermansLagoon, "Kilima - Fisherman's Lagoon", FVector(25325.044f, 19246.651f, -459.559f), FRotator(0.000f, 25.76f, 0.000f)},
-		{ "UserDefined", ELocation::Kilima_WimsFishingSpot, "Kilima - Wims Secret Fishing Spot", FVector(58217.884f, 41798.154f, -452.593f), FRotator(0.000f, 94.089f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_Fairgrounds_MajiMarket, "[Kilima] Fairgrounds Entrance (Maji Market)", FVector(54696.812f, 21802.943f, -114.603f), FRotator(0.000f, -7.65f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_GeneralStore, "[Kilima] General Store", FVector(156.193f, -1509.144f, 285.576f), FRotator(0.000f, -122.07f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_RepairStation, "[Kilima] Repair Station", FVector(2465.246f, 6734.343f, 303.050f), FRotator(0.000f, 120.89f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_PhoenixFalls, "[Kilima] Phoenix Falls", FVector(7596.145f, -51226.853f, 4006.341f), FRotator(0.000f, -68.64f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_DragonShrine, "[Kilima] Dragon Shrine", FVector(33743.980f, -22253.369f, 1303.870f), FRotator(0.000f, -90.211f, 0.000f)},
+		{ "Village_Root", ELocation::Kilima_FishermansLagoon, "[Kilima] Fisherman's Lagoon", FVector(25325.044f, 19246.651f, -459.559f), FRotator(0.000f, 25.76f, 0.000f)},
+		{ "UserDefined", ELocation::Kilima_WimsFishingSpot, "[Kilima] Wims Secret Fishing Spot", FVector(58217.884f, 41798.154f, -452.593f), FRotator(0.000f, 94.089f, 0.000f)},
+		// Bahari Entrances
+		{ "AZ1_01_Root", ELocation::Bahari_HousingPlot, "[Bahari] Housing Plot Entrance", FVector(54451.778f, -81603.206f, 940.587f), FRotator(0.000f, 2.45f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_ToKilimaValley, "[Bahari] Kilima Valley Entrance", FVector(59456.610f,-10932.216f, 897.642f), FRotator(0.000f, -157.46f, 0.000f)},
 		// Bahari Stables
-		{ "AZ1_01_Root", ELocation::Bahari_CentralStables, "Bahari - Central Stables", FVector(103331.330f, -63125.339f, -1948.051f), FRotator(0.000f, 148.09f,-0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_TheOutskirts, "Bahari - The Outskirts", FVector(55743.927f, -81821.534f, 902.205f), FRotator(0.000f, 226.06f, 0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_CoralShores, "Bahari - Coral Shores", FVector(143344.052f, -71851.374f, -4373.302f), FRotator(0.000f, 352.16f, 0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_PulsewaterPlains, "Bahari - Pulsewater Plains", FVector(101257.267f, -23873.064f, -1655.604f), FRotator(0.000f, 287.12f, 0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_HideawayBluffs, "Bahari - Hideaway Bluffs", FVector(82490.721f, 2994.478f, -714.785f), FRotator(0.000f, 14.61f, 0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_BeachcomberCove, "Bahari - Beachcomber Cove", FVector(128767.154f, 4163.842f, -4406.759f), FRotator(0.000f, 312.00f, 0.000f)},
-		// Bahari Others
-		{ "AZ1_01_Root", ELocation::Bahari_HousingPlot, "Bahari - Housing Plot Entrance", FVector(54451.778f, -81603.206f, 940.587f), FRotator(0.000f, 2.45f, 0.000f)},
-		{ "AZ1_01_Root", ELocation::Bahari_ToKilimaValley, "Bahari - Kilima Valley Entrance", FVector(59456.610f,-10932.216f, 897.642f), FRotator(0.000f, -157.46f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_CentralStables, "[Bahari] Central Stables", FVector(103331.330f, -63125.339f, -1948.051f), FRotator(0.000f, 148.09f,-0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_TheOutskirts, "[Bahari] The Outskirts", FVector(55743.927f, -81821.534f, 902.205f), FRotator(0.000f, 226.06f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_CoralShores, "[Bahari] Coral Shores", FVector(143344.052f, -71851.374f, -4373.302f), FRotator(0.000f, 352.16f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_PulsewaterPlains, "[Bahari] Pulsewater Plains", FVector(101257.267f, -23873.064f, -1655.604f), FRotator(0.000f, 287.12f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_HideawayBluffs, "[Bahari] Hideaway Bluffs", FVector(82490.721f, 2994.478f, -714.785f), FRotator(0.000f, 14.61f, 0.000f)},
+		{ "AZ1_01_Root", ELocation::Bahari_BeachcomberCove, "[Bahari] Beachcomber Cove", FVector(128767.154f, 4163.842f, -4406.759f), FRotator(0.000f, 312.00f, 0.000f)},
 	};
 
 	// Class name -> Display name map
 	std::map<std::string, std::string> CLASS_NAME_ALIAS = {
-		// TREES
+		// Trees //
+
+		// Birch
 		{"BP_TreeChoppable_Birch_Sapling_C", "Birch (Sap)"},
 		{"BP_TreeChoppable_Birch_Small_C", "Birch (S)"},
 		{"BP_TreeChoppable_Birch_Medium_C", "Birch (M)"},
 		{"BP_TreeChoppable_Birch_Large_C", "Birch (L)"},
-
-		{"BP_TreeChoppable_Juniper_Sapling_C", "Juniper (Sap)"},
-		{"BP_TreeChoppable_Juniper_Small_C", "Juniper (S)"},
-		{"BP_TreeChoppable_Juniper_Medium_C", "Juniper (M)"},
-		{"BP_TreeChoppable_Juniper_Large_C", "Juniper (L)"},
-
-		{"BP_TreeChoppable_Oak_Sapling_C", "Oak (Sap)"},
-		{"BP_TreeChoppable_Oak_Small_C", "Oak (S)"},
-		{"BP_TreeChoppable_Oak_Medium_C", "Oak (M)"},
-		{"BP_TreeChoppable_Oak_Large_C", "Oak (L)"},
-
-		{"BP_TreeChoppable_Pine_Sapling_C", "Pine (Sap)"},
-		{"BP_TreeChoppable_Pine_Small_C", "Pine (S)"},
-		{"BP_TreeChoppable_Pine_Medium_C", "Pine (M)"},
-		{"BP_TreeChoppable_Pine_Large_C", "Pine (L)"},
-		{"BP_TreeChoppable_Pine_Large2_C", "Pine (L)"},
-
-		// TREES (HOME)
-		{"BP_FoliageOnPlot_Tree_Birch_Sapling_C", "Birch (Sap)"},
-		{"BP_FoliageOnPlot_Tree_Birch_Small_C", "Birch (S)"},
-		{"BP_FoliageOnPlot_TreeBirch_Medium_C", "Birch (M)"},
-		{"BP_FoliageOnPlot_Tree_Birch_Large_C", "Birch (L)"},
-
-		{"BP_TreeGrowable_Birch_Sapling_C", "Birch (Sap)"},
-		{"BP_TreeGrowable_Birch_Small_C", "Birch (S)"},
-		{"BP_TreeGrowable_Birch_Medium_C", "Birch (M)"},
-		{"BP_TreeGrowable_Birch_Large_C", "Birch (L)"},
-
-		{"BP_TreeGrowable_Juniper_Sapling_C", "Juniper (Sap)"},
-		{"BP_TreeGrowable_Juniper_Small_C", "Juniper (S)"},
-		{"BP_TreeGrowable_Juniper_Medium_C", "Juniper (M)"},
-		{"BP_TreeGrowable_Juniper_Large_C", "Juniper (L)"},
-
-		{"BP_FoliageOnPlot_Tree_Oak_Sapling_C", "Oak (Sap)"},
-		{"BP_FoliageOnPlot_Tree_Oak_Small_C", "Oak (S)"},
-		{"BP_FoliageOnPlot_TreeOak_Medium_C", "Oak (M)"},
-		{"BP_FoliageOnPlot_Tree_Oak_Large_C", "Oak (L)"},
-
-		{"BP_TreeGrowable_Oak_Sapling_C", "Oak (Sap)"},
-		{"BP_TreeGrowable_Oak_Small_C", "Oak (S)"},
-		{"BP_TreeGrowable_Oak_Medium_C", "Oak (M)"},
-		{"BP_TreeGrowable_Oak_Large_C", "Oak (L)"},
-
-		{"BP_TreeGrowable_Pine_Sapling_C", "Pine (Sap)"},
-		{"BP_TreeGrowable_Pine_Small_C", "Pine (S)"},
-		{"BP_TreeGrowable_Pine_Medium_C", "Pine (M)"},
-		{"BP_TreeGrowable_Pine_Large_C", "Pine (L)"},
-		{"BP_TreeGrowable_Pine_Large2_C", "Pine (L)"},
-
-		// CO-OP TREES
 		{"BP_TreeChoppable_Birch_Sapling_CoOp_C", "Flow-Infused Birch (Sap)"},
 		{"BP_TreeChoppable_Birch_Small_CoOp_C", "Flow-Infused Birch (S)"},
 		{"BP_TreeChoppable_Birch_Medium_CoOp_C", "Flow-Infused Birch (M)"},
 		{"BP_TreeChoppable_Birch_Large_CoOp_C", "Flow-Infused Birch (L)"},
 
+		// Juniper
+		{"BP_TreeChoppable_Juniper_Sapling_C", "Juniper (Sap)"},
+		{"BP_TreeChoppable_Juniper_Small_C", "Juniper (S)"},
+		{"BP_TreeChoppable_Juniper_Medium_C", "Juniper (M)"},
+		{"BP_TreeChoppable_Juniper_Large_C", "Juniper (L)"},
 		{"BP_TreeChoppable_Juniper_Sapling_CoOp_C", "Flow-Infused Juniper (Sap)"},
 		{"BP_TreeChoppable_Juniper_Small_CoOp_C", "Flow-Infused Juniper (S)"},
 		{"BP_TreeChoppable_Juniper_Medium_CoOp_C", "Flow-Infused Juniper (M)"},
 		{"BP_TreeChoppable_Juniper_Large_CoOp_C", "Flow-Infused Juniper (L)"},
 
+		// Oak
+		{"BP_TreeChoppable_Oak_Sapling_C", "Oak (Sap)"},
+		{"BP_TreeChoppable_Oak_Small_C", "Oak (S)"},
+		{"BP_TreeChoppable_Oak_Medium_C", "Oak (M)"},
+		{"BP_TreeChoppable_Oak_Large_C", "Oak (L)"},
 		{"BP_TreeChoppable_Oak_Sapling_CoOp_C", "Flow-Infused Oak (Sap)"},
 		{"BP_TreeChoppable_Oak_Small_CoOp_C", "Flow-Infused Oak (S)"},
 		{"BP_TreeChoppable_Oak_Medium_CoOp_C", "Flow-Infused Oak (M)"},
 		{"BP_TreeChoppable_Oak_Large_CoOp_C", "Flow-Infused Oak (L)"},
 
+		// Pine
+		{"BP_TreeChoppable_Pine_Sapling_C", "Pine (Sap)"},
+		{"BP_TreeChoppable_Pine_Small_C", "Pine (S)"},
+		{"BP_TreeChoppable_Pine_Medium_C", "Pine (M)"},
+		{"BP_TreeChoppable_Pine_Large_C", "Pine (L)"},
+		{"BP_TreeChoppable_Pine_Large2_C", "Pine (L)"},
 		{"BP_TreeChoppable_Pine_Sapling_CoOp_C", "Flow-Infused Pine (Sap)"},
 		{"BP_TreeChoppable_Pine_Small_CoOp_C", "Flow-Infused Pine (S)"},
 		{"BP_TreeChoppable_Pine_Medium_CoOp_C", "Flow-Infused Pine (M)"},
 		{"BP_TreeChoppable_Pine_Large_CoOp_C", "Flow-Infused Pine (L)"},
 		{"BP_TreeChoppable_Pine_Large2_CoOp_C", "Flow-Infused Pine (L)"},
 
-		// CO-OP TREES (HOME)
-		{"BP_TreeGrowable_Birch_Sapling_CoOp_C", "Flow-Infused Birch (Sap)"},
-		{"BP_TreeGrowable_Birch_Small_CoOp_C", "Flow-Infused Birch (S)"},
-		{"BP_TreeGrowable_Birch_Medium_CoOp_C", "Flow-Infused Birch (M)"},
-		{"BP_TreeGrowable_Birch_Large_CoOp_C", "Flow-Infused Birch (L)"},
-
-		{"BP_TreeGrowable_Juniper_Sapling_CoOp_C", "Flow-Infused Juniper (Sap)"},
-		{"BP_TreeGrowable_Juniper_Small_CoOp_C", "Flow-Infused Juniper (S)"},
-		{"BP_TreeGrowable_Juniper_Medium_CoOp_C", "Flow-Infused Juniper (M)"},
-		{"BP_TreeGrowable_Juniper_Large_CoOp_C", "Flow-Infused Juniper (L)"},
-
-		{"BP_TreeGrowable_Oak_Sapling_CoOp_C", "Flow-Infused Oak (Sap)"},
-		{"BP_TreeGrowable_Oak_Small_CoOp_C", "Flow-Infused Oak (S)"},
-		{"BP_TreeGrowable_Oak_Medium_CoOp_C", "Flow-Infused Oak (M)"},
-		{"BP_TreeGrowable_Oak_Large_CoOp_C", "Flow-Infused Oak (L)"},
-
-		{"BP_TreeGrowable_Pine_Sapling_CoOp_C", "Flow-Infused Pine (Sap)"},
-		{"BP_TreeGrowable_Pine_Small_CoOp_C", "Flow-Infused Pine (S)"},
-		{"BP_TreeGrowable_Pine_Medium_CoOp_C", "Flow-Infused Pine (M)"},
-		{"BP_TreeGrowable_Pine_Large_CoOp_C", "Flow-Infused Pine (L)"},
-		{"BP_TreeGrowable_Pine_Large2_CoOp_C", "Flow-Infused Pine (L)"},
-
 		// Shrubs
 		{"BP_ShrubChoppable_Bush_C", "Bush"},
 
-		// Ores
-		{ "BP_FoliageOnPlot_Stone_C", "Stone (S)" },
-		{ "BP_FoliageOnPlot_RockM_C", "Stone (M)" },
-		{ "BP_FoliageOnPlot_RockL_C", "Stone (L)" },
+		// Ores //
 
-		{"BP_Mining_Copper_Small_C", "Copper (S)"},
-		{"BP_Mining_Copper_Medium_C", "Copper (M)"},
-		{"BP_Mining_Copper_Large_C", "Copper (L)"},
-
-		{"BP_Mining_Copper_Small_SingleHarvest_C", "Copper (S)"},
-		{"BP_Mining_Copper_Medium_SingleHarvest_C", "Copper (M)"},
-		{"BP_Mining_Copper_Large_SingleHarvest_C", "Copper (L)"},
-
-		{"BP_Mining_Copper_Small_MultiHarvest_C", "Copper (S)"},
-		{"BP_Mining_Copper_Medium_MultiHarvest_C", "Copper (M)"},
-		{"BP_Mining_Copper_Large_MultiHarvest_C", "Copper (L)"},
-
+		// Stone
 		{"BP_Mining_Stone_Small_C", "Stone (S)"},
 		{"BP_Mining_Stone_Medium_C", "Stone (M)"},
 		{"BP_Mining_Stone_Large_C", "Stone (L)"},
-
 		{"BP_Mining_Stone_Small_SingleHarvest_C", "Stone (S)"},
 		{"BP_Mining_Stone_Medium_SingleHarvest_C", "Stone (M)"},
 		{"BP_Mining_Stone_Large_SingleHarvest_C", "Stone (L)"},
-
 		{"BP_Mining_Stone_Small_MultiHarvest_C", "Stone (S)"},
 		{"BP_Mining_Stone_Medium_MultiHarvest_C", "Stone (M)"},
 		{"BP_Mining_Stone_Large_MultiHarvest_C", "Stone (L)"},
 
+		// Copper
+		{"BP_Mining_Copper_Small_C", "Copper (S)"},
+		{"BP_Mining_Copper_Medium_C", "Copper (M)"},
+		{"BP_Mining_Copper_Large_C", "Copper (L)"},
+		{"BP_Mining_Copper_Small_SingleHarvest_C", "Copper (S)"},
+		{"BP_Mining_Copper_Medium_SingleHarvest_C", "Copper (M)"},
+		{"BP_Mining_Copper_Large_SingleHarvest_C", "Copper (L)"},
+		{"BP_Mining_Copper_Small_MultiHarvest_C", "Copper (S)"},
+		{"BP_Mining_Copper_Medium_MultiHarvest_C", "Copper (M)"},
+		{"BP_Mining_Copper_Large_MultiHarvest_C", "Copper (L)"},
+
+		// Iron
 		{"BP_Mining_Iron_Small_C", "Iron (S)"},
 		{"BP_Mining_Iron_Medium_C", "Iron (M)"},
 		{"BP_Mining_Iron_Large_C", "Iron (L)"},
-
 		{"BP_Mining_Iron_Small_SingleHarvest_C", "Iron (S)"},
 		{"BP_Mining_Iron_Medium_SingleHarvest_C", "Iron (M)"},
 		{"BP_Mining_Iron_Large_SingleHarvest_C", "Iron (L)"},
-
 		{"BP_Mining_Iron_Small_MultiHarvest_C", "Iron (S)"},
 		{"BP_Mining_Iron_Medium_MultiHarvest_C", "Iron (M)"},
 		{"BP_Mining_Iron_Large_MultiHarvest_C", "Iron (L)"},
 
-		{"BP_Mining_Clay_C", "Clay"},
-		{"BP_Mining_Silver_C", "Silver"},
-		{"BP_Mining_Gold_C", "Gold"},
-
-		{"BP_Mining_Clay_SingleHarvest_C", "Clay"},
-		{"BP_Mining_Silver_SingleHarvest_C", "Silver"},
-		{"BP_Mining_Gold_SingleHarvest_C", "Gold"},
-
-		{"BP_Mining_Clay_MultiHarvest_C", "Clay"},
-		{"BP_Mining_Silver_MultiHarvest_C", "Silver"},
-		{"BP_Mining_Gold_MultiHarvest_C", "Gold"},
-
+		// Palium
 		{"BP_Mining_Palium_C", "Palium"},
 		{"BP_Mining_Palium_Small_C", "Palium (S)"},
 		{"BP_Mining_Palium_Medium_C", "Palium (M)"},
 		{"BP_Mining_Palium_Large_C", "Palium (L)"},
-
 		{"BP_Mining_Palium_SingleHarvest_C", "Palium"},
 		{"BP_Mining_Palium_Small_SingleHarvest_C", "Palium (S)"},
 		{"BP_Mining_Palium_Medium_SingleHarvest_C", "Palium (M)"},
 		{"BP_Mining_Palium_Large_SingleHarvest_C", "Palium (L)"},
-
 		{"BP_Mining_Palium_MultiHarvest_C", "Palium"},
 		{"BP_Mining_Palium_Small_MultiHarvest_C", "Palium (S)"},
 		{"BP_Mining_Palium_Medium_MultiHarvest_C", "Palium (M)"},
 		{"BP_Mining_Palium_Large_MultiHarvest_C", "Palium (L)"},
 
-		// Creatures
-		{"BP_ValeriaHuntingCreature_Cearnuk_T1_C", "Sernuk"},
-		{"BP_ValeriaHuntingCreature_Cearnuk_T2_C", "Elder Sernuk"},
-		{"BP_ValeriaHuntingCreature_Cearnuk_T3_C", "Proudhorn Sernuk"},
+		// Clay
+		{"BP_Mining_Clay_C", "Clay"},
+		{"BP_Mining_Clay_SingleHarvest_C", "Clay"},
+		{"BP_Mining_Clay_MultiHarvest_C", "Clay"},
 
-		{"BP_ValeriaHuntingCreature_Chapaa_T1_C", "Chapaa"},
-		{"BP_ValeriaHuntingCreature_Chapaa_T2_C", "Striped Chapaa"},
-		{"BP_ValeriaHuntingCreature_Chapaa_T3_C", "Azure Chapaa"},
-		{"BP_ValeriaHuntingCreature_Chapaa_T3_MirrorImage_C", "Chapaa (T3 - Mirror)"}, // TODO: Probably do not display this one, as this is most likely the mirrage/ghost chapaa so no need to show it
+		// Silver
+		{"BP_Mining_Silver_C", "Silver"},
+		{"BP_Mining_Silver_SingleHarvest_C", "Silver"},
+		{"BP_Mining_Silver_MultiHarvest_C", "Silver"},
 
-		{"BP_ValeriaHuntingCreature_ChapaaChase_Base_C", "Chapaa Chase (Base)"},
-		{"BP_ValeriaHuntingCreature_ChapaaChase_Fast_C", "Chapaa Chase (Fast)"},
+		// Gold
+		{"BP_Mining_Gold_C", "Gold"},
+		{"BP_Mining_Gold_SingleHarvest_C", "Gold"},
+		{"BP_Mining_Gold_MultiHarvest_C", "Gold"},
 
-		{"BP_ValeriaHuntingCreature_TreeClimber_T1_C", "Muujin"},
-		{"BP_ValeriaHuntingCreature_TreeClimber_T2_C", "Banded Muujin"},
-		{"BP_ValeriaHuntingCreature_TreeClimber_T3_C", "Bluebristle Muujin"},
+		// Creatures //
 
-		// TODO: Provide names that are the same as their drops ingame
+		// Sernuk
+		{"BP_ValeriaHuntingCreature_Cearnuk_T1_C", "Sernuk (Animal)"},
+		{"BP_ValeriaHuntingCreature_Cearnuk_T2_C", "Elder Sernuk (Animal)"},
+		{"BP_ValeriaHuntingCreature_Cearnuk_T3_C", "Proudhorn Sernuk (Animal)"},
 
-		// Bugs
-		{"BP_Bug_BeeU+_C", "Bahari Bee *"},
-		{"BP_Bug_BeeR+_C", "Golden Glory Bee *"},
+		// Chaapa
+		{"BP_ValeriaHuntingCreature_Chapaa_T1_C", "Chapaa (Animal)"},
+		{"BP_ValeriaHuntingCreature_Chapaa_T2_C", "Striped Chapaa (Animal)"},
+		{"BP_ValeriaHuntingCreature_Chapaa_T3_C", "Azure Chapaa (Animal)"},
+
+		// Chaapa (Minigame Event)
+		{"BP_ValeriaHuntingCreature_ChapaaChase_Base_C", "Chapaa Chase - Base (Animal)"},
+		{"BP_ValeriaHuntingCreature_ChapaaChase_Fast_C", "Chapaa Chase - Fast (Animal)"},
+
+		// Muujin
+		{"BP_ValeriaHuntingCreature_TreeClimber_T1_C", "Muujin (Animal)"},
+		{"BP_ValeriaHuntingCreature_TreeClimber_T2_C", "Banded Muujin (Animal)"},
+		{"BP_ValeriaHuntingCreature_TreeClimber_T3_C", "Bluebristle Muujin (Animal)"},
+
+		// Bugs //
+
+		// Bee
 		{"BP_Bug_BeeU_C", "Bahari Bee"},
+		{"BP_Bug_BeeU+_C", "Bahari Bee *"},
 		{"BP_Bug_BeeR_C", "Golden Glory Bee"},
+		{"BP_Bug_BeeR+_C", "Golden Glory Bee *"},
 
-		{"BP_Bug_BeetleC+_C", "Spotted Stink Bug *"},
-		{"BP_Bug_BeetleU+_C", "Proudhorned Stag Beetle *"},
-		{"BP_Bug_BeetleR+_C", "Raspberry Beetle *"},
-		{"BP_Bug_BeetleE+_C", "Ancient Amber Beetle *"},
+		// Beetle
 		{"BP_Bug_BeetleC_C", "Spotted Stink Bug"},
+		{"BP_Bug_BeetleC+_C", "Spotted Stink Bug *"},
 		{"BP_Bug_BeetleU_C", "Proudhorned Stag Beetle"},
+		{"BP_Bug_BeetleU+_C", "Proudhorned Stag Beetle *"},
 		{"BP_Bug_BeetleR_C", "Raspberry Beetle"},
+		{"BP_Bug_BeetleR+_C", "Raspberry Beetle *"},
 		{"BP_Bug_BeetleE_C", "Ancient Amber Beetle"},
+		{"BP_Bug_BeetleE+_C", "Ancient Amber Beetle *"},
 
-		{"BP_Bug_ButterflyC+_C", "Common Blue Butterfly *"},
-		{"BP_Bug_ButterflyU+_C", "Duskwing Butterfly *"},
-		{"BP_Bug_ButterflyR+_C", "Brighteye Butterfly *"},
-		{"BP_Bug_ButterflyE+_C", "Rainbow-Tipped Butterfly *"},
+		// Butterfly
 		{"BP_Bug_ButterflyC_C", "Common Blue Butterfly"},
+		{"BP_Bug_ButterflyC+_C", "Common Blue Butterfly *"},
 		{"BP_Bug_ButterflyU_C", "Duskwing Butterfly"},
+		{"BP_Bug_ButterflyU+_C", "Duskwing Butterfly *"},
 		{"BP_Bug_ButterflyR_C", "Brighteye Butterfly"},
+		{"BP_Bug_ButterflyR+_C", "Brighteye Butterfly *"},
 		{"BP_Bug_ButterflyE_C", "Rainbow-Tipped Butterfly"},
+		{"BP_Bug_ButterflyE+_C", "Rainbow-Tipped Butterfly *"},
 
-		{ "BP_Bug_CicadaC+_C", "Common Bark Cicada *" },
-		{ "BP_Bug_CicadaU+_C", "Cerulean Cicada *" },
-		{ "BP_Bug_CicadaR+_C", "Spitfire Cicada *" },
-		{ "BP_Bug_CicadaC_C", "Common Bark Cicada" },
-		{ "BP_Bug_CicadaU_C", "Cerulean Cicada" },
-		{ "BP_Bug_CicadaR_C", "Spitfire Cicada" },
+		// Cicada
+		{"BP_Bug_CicadaC_C", "Common Bark Cicada"},
+		{"BP_Bug_CicadaC+_C", "Common Bark Cicada *"},
+		{"BP_Bug_CicadaU_C", "Cerulean Cicada"},
+		{"BP_Bug_CicadaU+_C", "Cerulean Cicada *"},
+		{"BP_Bug_CicadaR_C", "Spitfire Cicada"},
+		{"BP_Bug_CicadaR+_C", "Spitfire Cicada *"},
 
-		{ "BP_Bug_CrabC+_C", "Bahari Crab *" },
-		{ "BP_Bug_CrabU+_C", "Spineshell Crab *" },
-		{ "BP_Bug_CrabR+_C", "Vampire Crab *" },
-		{ "BP_Bug_CrabC_C", "Bahari Crab" },
-		{ "BP_Bug_CrabU_C", "Spineshell Crab" },
-		{ "BP_Bug_CrabR_C", "Vampire Crab" },
+		// Crab
+		{"BP_Bug_CrabC_C", "Bahari Crab"},
+		{"BP_Bug_CrabC+_C", "Bahari Crab *"},
+		{"BP_Bug_CrabU_C", "Spineshell Crab"},
+		{"BP_Bug_CrabU+_C", "Spineshell Crab *"},
+		{"BP_Bug_CrabR_C", "Vampire Crab"},
+		{"BP_Bug_CrabR+_C", "Vampire Crab *"},
 
-		{ "BP_Bug_CricketC+_C", "Common Field Cricket *" },
-		{ "BP_Bug_CricketU+_C", "Garden Leafhopper *" },
-		{ "BP_Bug_CricketR+_C", "Azure Stonehopper *" },
-		{ "BP_Bug_CricketC_C", "Common Field Cricket" },
-		{ "BP_Bug_CricketU_C", "Garden Leafhopper" },
-		{ "BP_Bug_CricketR_C", "Azure Stonehopper" },
+		// Cricket
+		{"BP_Bug_CricketC_C", "Common Field Cricket"},
+		{"BP_Bug_CricketC+_C", "Common Field Cricket *"},
+		{"BP_Bug_CricketU_C", "Garden Leafhopper"},
+		{"BP_Bug_CricketU+_C", "Garden Leafhopper *"},
+		{"BP_Bug_CricketR_C", "Azure Stonehopper"},
+		{"BP_Bug_CricketR+_C", "Azure Stonehopper *"},
 
-		{ "BP_Bug_DragonflyC+_C", "Brushtail Dragonfly *" },
-		{ "BP_Bug_DragonflyU+_C", "Inky Dragonfly *" },
-		{ "BP_Bug_DragonflyR+_C", "Firebreathing Dragonfly *" },
-		{ "BP_Bug_DragonflyE+_C", "Jewelwing Dragonfly *" },
-		{ "BP_Bug_DragonflyC_C", "Brushtail Dragonfly" },
-		{ "BP_Bug_DragonflyU_C", "Inky Dragonfly" },
-		{ "BP_Bug_DragonflyR_C", "Firebreathing Dragonfly" },
-		{ "BP_Bug_DragonflyE_C", "Jewelwing Dragonfly" },
+		// Dragonfly
+		{"BP_Bug_DragonflyC_C", "Brushtail Dragonfly"},
+		{"BP_Bug_DragonflyC+_C", "Brushtail Dragonfly *"},
+		{"BP_Bug_DragonflyU_C", "Inky Dragonfly"},
+		{"BP_Bug_DragonflyU+_C", "Inky Dragonfly *"},
+		{"BP_Bug_DragonflyR_C", "Firebreathing Dragonfly"},
+		{"BP_Bug_DragonflyR+_C", "Firebreathing Dragonfly *"},
+		{"BP_Bug_DragonflyE_C", "Jewelwing Dragonfly"},
+		{"BP_Bug_DragonflyE+_C", "Jewelwing Dragonfly *"},
 
-		{ "BP_Bug_GlowbugC+_C", "Paper Lantern Bug *" },
-		{ "BP_Bug_GlowbugR+_C", "Bahari Glowbug *" },
-		{ "BP_Bug_GlowbugC_C", "Paper Lantern Bug" },
-		{ "BP_Bug_GlowbugR_C", "Bahari Glowbug" },
+		// Glowbug
+		{"BP_Bug_GlowbugC_C", "Paper Lantern Bug"},
+		{"BP_Bug_GlowbugC+_C", "Paper Lantern Bug *"},
+		{"BP_Bug_GlowbugR_C", "Bahari Glowbug"},
+		{"BP_Bug_GlowbugR+_C", "Bahari Glowbug *"},
 
-		{ "BP_Bug_LadybugU+_C", "Garden Ladybug *" },
-		{ "BP_Bug_LadybugR+_C", "Princess Ladybug *" },
-		{ "BP_Bug_LadybugU_C", "Garden Ladybug" },
-		{ "BP_Bug_LadybugR_C", "Princess Ladybug" },
+		// Ladybug
+		{"BP_Bug_LadybugU_C", "Garden Ladybug"},
+		{"BP_Bug_LadybugU+_C", "Garden Ladybug *"},
+		{"BP_Bug_LadybugR_C", "Princess Ladybug"},
+		{"BP_Bug_LadybugR+_C", "Princess Ladybug *"},
 
-		{ "BP_Bug_MantisU+_C", "Garden Mantis *" },
-		{ "BP_Bug_MantisR1+_C", "Spotted Mantis *" },
-		{ "BP_Bug_MantisR2+_C", "Leafstalker Mantis *" },
-		{ "BP_Bug_MantisE+_C", "Fairy Mantis *" },
-		{ "BP_Bug_MantisU_C", "Garden Mantis" },
-		{ "BP_Bug_MantisR1_C", "Spotted Mantis" },
-		{ "BP_Bug_MantisR2_C", "Leafstalker Mantis" },
-		{ "BP_Bug_MantisE_C", "Fairy Mantis" },
+		// Mantis
+		{"BP_Bug_MantisU_C", "Garden Mantis"},
+		{"BP_Bug_MantisU+_C", "Garden Mantis *"},
+		{"BP_Bug_MantisR1_C", "Spotted Mantis"},
+		{"BP_Bug_MantisR1+_C", "Spotted Mantis *"},
+		{"BP_Bug_MantisR2_C", "Leafstalker Mantis"},
+		{"BP_Bug_MantisR2+_C", "Leafstalker Mantis *"},
+		{"BP_Bug_MantisE_C", "Fairy Mantis"},
+		{"BP_Bug_MantisE+_C", "Fairy Mantis *"},
 
-		{ "BP_Bug_MothC+_C", "Kilima Night Moth *" },
-		{ "BP_Bug_MothU+_C", "Lunar Fairy Moth *" },
-		{ "BP_Bug_MothR+_C", "Gossamer Veil Moth *" },
-		{ "BP_Bug_MothC_C", "Kilima Night Moth" },
-		{ "BP_Bug_MothU_C", "Lunar Fairy Moth" },
-		{ "BP_Bug_MothR_C", "Gossamer Veil Moth" },
+		// Moth
+		{"BP_Bug_MothC_C", "Kilima Night Moth"},
+		{"BP_Bug_MothC+_C", "Kilima Night Moth *"},
+		{"BP_Bug_MothU_C", "Lunar Fairy Moth"},
+		{"BP_Bug_MothU+_C", "Lunar Fairy Moth *"},
+		{"BP_Bug_MothR_C", "Gossamer Veil Moth"},
+		{"BP_Bug_MothR+_C", "Gossamer Veil Moth *"},
 
-		{ "BP_Bug_PedeU+_C", "Garden Millipede *" },
-		{ "BP_Bug_PedeR1+_C", "Hairy Millipede *" },
-		{ "BP_Bug_PedeR2+_C", "Scintillating Centipede *" },
-		{ "BP_Bug_PedeU_C", "Garden Millipede" },
-		{ "BP_Bug_PedeR1_C", "Hairy Millipede" },
-		{ "BP_Bug_PedeR2_C", "Scintillating Centipede" },
+		// Pede
+		{"BP_Bug_PedeU_C", "Garden Millipede"},
+		{"BP_Bug_PedeU+_C", "Garden Millipede *"},
+		{"BP_Bug_PedeR1_C", "Hairy Millipede"},
+		{"BP_Bug_PedeR1+_C", "Hairy Millipede *"},
+		{"BP_Bug_PedeR2_C", "Scintillating Centipede"},
+		{"BP_Bug_PedeR2+_C", "Scintillating Centipede *"},
 
-		{ "BP_Bug_SnailU+_C", "Garden Snail *" },
-		{ "BP_Bug_SnailR+_C", "Stripeshell Snail *" },
-		{ "BP_Bug_SnailU_C", "Garden Snail" },
-		{ "BP_Bug_SnailR_C", "Stripeshell Snail" },
+		// Snail
+		{"BP_Bug_SnailU_C", "Garden Snail"},
+		{"BP_Bug_SnailU+_C", "Garden Snail *"},
+		{"BP_Bug_SnailR_C", "Stripeshell Snail"},
+		{"BP_Bug_SnailR+_C", "Stripeshell Snail *"},
 
 		// Forageables
-		{ "BP_Coral+_C", "Coral *" }, // have yet to see a SQ (star quality)
 		{ "BP_Coral_C", "Coral" },
 		{ "BP_Gatherable_MushroomBlue+_C", "Brightshroom *" },
 		{ "BP_Gatherable_MushroomBlue_C", "Brightshroom" },
@@ -609,7 +576,6 @@ public:
 		{ "BP_Oyster_C", "Unopened Oyster" },
 		{ "BP_PoisonFlower+_C", "Briar Daisy *" },
 		{ "BP_PoisonFlower_C", "Briar Daisy" },
-		{ "BP_Seashell+_C", "Shell *" }, // have yet to see a SQ
 		{ "BP_Seashell_C", "Shell" },
 		{ "BP_Spice_DariCloves+_C", "Dari Cloves *" },
 		{ "BP_Spice_DariCloves_C", "Dari Cloves" },
@@ -727,45 +693,45 @@ public:
 		{ "BP_Trash_WaterloggedBoot", "Waterlogged Boot" },
 
 		// Villagers
-		{ "BP_Villager_Miner_C", "Hodari" },
-		{ "BP_VillagerTheArchaeologist_C", "Jina" },
-		{ "BP_Villager_Cook_C", "Reth" },
-		{ "BP_Villager_Tish_C", "Tish" },
-		{ "BP_VillagerTheDemolitionist_C", "Najuma" },
-		{ "BP_Villager_Healer_C", "Chayne" },
-		{ "BP_Villager_Elouisa_C", "Elouisa" },
-		{ "BP_Villager_TheMagistrate_C", "Eshe" },
-		{ "BP_Villager_TheLibrarian_C", "Caleri" },
-		{ "BP_Villager_Tamala_C", "Tamala" },
-		{ "BP_Villager_Blacksmith_C", "Sifuu" },
-		{ "BP_Villager_Farmer_C", "Badruu" },
-		{ "BP_VillagerDeliveryBoy_C", "Auni" },
-		{ "BP_Villager_Farmboy_C", "Nai'o" },
-		{ "BP_Villager_Tau_C", "Tau" },
-		{ "BP_VillagerTheInnKeeper_C", "Ashura" },
-		{ "BP_Villager_Hekla_C", "Hekla" },
-		{ "BP_Villager_Zeki_C", "Zeki" },
-		{ "BP_Villager_Rancher_C", "Delaila" },
-		{ "BP_VillagerFisherman_C", "Einar" },
-		{ "BP_Villager_Kenyatta_C", "Kenyatta" },
-		{ "BP_Villager_Mayor_C", "Kenli" },
-		{ "BP_Villager_Jel_C", "Jel" },
-		{ "BP_VillagerTheHunter_C", "Hassian" },
-		{ "BP_VillagerTheWatcher_C", "Subira" },
+		{ "BP_Villager_Miner_C", "[NPC] Hodari" },
+		{ "BP_VillagerTheArchaeologist_C", "[NPC] Jina" },
+		{ "BP_Villager_Cook_C", "[NPC] Reth" },
+		{ "BP_Villager_Tish_C", "[NPC] Tish" },
+		{ "BP_VillagerTheDemolitionist_C", "[NPC] Najuma" },
+		{ "BP_Villager_Healer_C", "[NPC] Chayne" },
+		{ "BP_Villager_Elouisa_C", "[NPC] Elouisa" },
+		{ "BP_Villager_TheMagistrate_C", "[NPC] Eshe" },
+		{ "BP_Villager_TheLibrarian_C", "[NPC] Caleri" },
+		{ "BP_Villager_Tamala_C", "[NPC] Tamala" },
+		{ "BP_Villager_Blacksmith_C", "[NPC] Sifuu" },
+		{ "BP_Villager_Farmer_C", "[NPC] Badruu" },
+		{ "BP_VillagerDeliveryBoy_C", "[NPC] Auni" },
+		{ "BP_Villager_Farmboy_C", "[NPC] Nai'o" },
+		{ "BP_Villager_Tau_C", "[NPC] Tau" },
+		{ "BP_VillagerTheInnKeeper_C", "[NPC] Ashura" },
+		{ "BP_Villager_Hekla_C", "[NPC] Hekla" },
+		{ "BP_Villager_Zeki_C", "[NPC] Zeki" },
+		{ "BP_Villager_Rancher_C", "[NPC] Delaila" },
+		{ "BP_VillagerFisherman_C", "[NPC] Einar" },
+		{ "BP_Villager_Kenyatta_C", "[NPC] Kenyatta" },
+		{ "BP_Villager_Mayor_C", "[NPC] Kenli" },
+		{ "BP_Villager_Jel_C", "[NPC] Jel" },
+		{ "BP_VillagerTheHunter_C", "[NPC] Hassian" },
+		{ "BP_VillagerTheWatcher_C", "[NPC] Subira" },
 
 		// Loot
-		{ "BP_Hunting_LootBag_C", "Loot - Animal"},
-		{ "BP_InsectBallLoot_C", "Loot - Bug" },
-		{ "BP_LootChestRockPile_C", "Loot - Stone" },
-		{ "BP_LootChestClayPile_C", "Loot - Clay" },
-		{ "BP_LootChestCopperPile_C", "Loot - Copper" },
-		{ "BP_LootChestIronPile_C", "Loot - Iron" },
-		{ "BP_LootChestPaliumPile_C", "Loot - Palium" },
-		{ "BP_LootChestWoodBundle_Enchanted_C", "Loot - Flow" },
-		{ "BP_LootChestWoodBundle_Pine_C", "Loot - Heartwood" },
-		{ "BP_LootChestWoodBundle_Juniper_C", "Loot - Sapwood" },
-		{ "BP_LootChestWoodBundle_Oak_C", "Loot - Sapwood" },
-		{ "BP_LootChestWoodBundle_Birch_C", "Loot - Sapwood" },
+		{ "BP_Hunting_LootBag_C", "[Loot] Animal"},
+		{ "BP_InsectBallLoot_C", "[Loot] Bug" },
+		{ "BP_LootChestRockPile_C", "[Loot] Stone" },
+		{ "BP_LootChestClayPile_C", "[Loot] Clay" },
+		{ "BP_LootChestCopperPile_C", "[Loot] Copper" },
+		{ "BP_LootChestIronPile_C", "[Loot] Iron" },
+		{ "BP_LootChestPaliumPile_C", "[Loot] Palium" },
+		{ "BP_LootChestWoodBundle_Enchanted_C", "[Loot] Flow" },
+		{ "BP_LootChestWoodBundle_Pine_C", "[Loot] Heartwood" },
+		{ "BP_LootChestWoodBundle_Juniper_C", "[Loot] Sapwood" },
+		{ "BP_LootChestWoodBundle_Oak_C", "[Loot] Sapwood" },
+		{ "BP_LootChestWoodBundle_Birch_C", "[Loot] Sapwood" },
 
 		{ "BP_ChapaaPile_C", "Rummage Pile (Kilima)" },
 		{ "BP_BeachPile_C", "Rummage Pile (Bahari)" },
@@ -773,7 +739,6 @@ public:
 		{ "BP_Stables_Sign_C", "Stables - Fast Travel" },
 		{ "BP_Stables_FrontGate_01_C", "Stables - Front Gate 1" },
 		{ "BP_Stables_FrontGate_02_C", "Stables - Front Gate 2" },
-		
 	};
 
 	// Search map for assigning gatherable size
@@ -958,16 +923,16 @@ public:
 	};
 
 	// Is able to be gathered by player
-	bool IsFree(SDK::UGatherableComponent* comp) {
-		auto isFree = [](SDK::EVitalType type) {
-			return type != SDK::EVitalType::Coins &&
-				type != SDK::EVitalType::CommunityPoints &&
-				type != SDK::EVitalType::Health &&
-				type != SDK::EVitalType::MedalFishing &&
-				type != SDK::EVitalType::PremiumCurrency;
-		};
-		return isFree(comp->VitalRequired) && isFree(comp->Vital2Required);
-	}
+	//bool IsFree(SDK::UGatherableComponent* comp) {
+	//	auto isFree = [](SDK::EVitalType type) {
+	//		return type != SDK::EVitalType::Coins &&
+	//			type != SDK::EVitalType::CommunityPoints &&
+	//			type != SDK::EVitalType::Health &&
+	//			type != SDK::EVitalType::MedalFishing &&
+	//			type != SDK::EVitalType::PremiumCurrency;
+	//	};
+	//	return isFree(comp->VitalRequired) && isFree(comp->Vital2Required);
+	//}*/
 
 	// ============ ESP DISPLAY MAPPINGS ================
 	bool CacheActorsFast = true;
@@ -984,7 +949,7 @@ public:
 	bool bEnableAimbot = false;
 	bool bEnableSilentAimbot = false;
 	bool bDrawFOVCircle = true;
-	bool bTeleportToTargeted = true;
+	bool bTeleportToTargeted = false;
 	bool bAvoidTeleportingToPlayers = true;
 	bool bTargetTeleportTo = true;
 	bool bVisualizeDefault = false;

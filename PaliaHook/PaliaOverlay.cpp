@@ -171,6 +171,7 @@ void PaliaOverlay::SetupColors() {
 	SingleColors[(int)EOneOffs::Loot] = IM_COL32(0xEE, 0x82, 0xEE, 0xFF); // Violet
 	SingleColors[(int)EOneOffs::Quest] = IM_COL32(0xFF, 0xA5, 0x00, 0xFF); // Orange
 	SingleColors[(int)EOneOffs::RummagePiles] = IM_COL32(0xFF, 0x45, 0x00, 0xFF); // Orange Red
+	SingleColors[(int)EOneOffs::Others] = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF); // White
 
 	// Define a different color for Stables
 	SingleColors[(int)EOneOffs::Stables] = IM_COL32(0x8B, 0x45, 0x13, 0xFF); // Saddle Brown
@@ -1417,14 +1418,13 @@ void PaliaOverlay::DrawOverlay()
 				if (bDrawFOVCircle) {
 					ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
 				}
-
-				ImGui::Checkbox("Show Others", &bVisualizeDefault);
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
 			}
 
-			if (ImGui::CollapsingHeader("Player & Entities", ImGuiTreeNodeFlags_DefaultOpen))
+			ImGui::NextColumn();
+
+			if (ImGui::CollapsingHeader("Animals"))
 			{
-				ImGui::BeginTable("Odds", 3);
+				ImGui::BeginTable("Animals", 3);
 				{
 					ImGui::TableSetupColumn("Name");
 					ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
@@ -1437,90 +1437,119 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::Text("Color");
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Players")) {
-						Singles[(int)EOneOffs::Player] =
-							!Singles[(int)EOneOffs::Player];
+					if (ImGui::Button("Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Players", &Singles[(int)EOneOffs::Player]);
+					ImGui::Checkbox("##Sernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Players", &SingleColors[(int)EOneOffs::Player]);
+					ImGui::ColorPicker("##Sernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("NPCs")) {
-						Singles[(int)EOneOffs::NPC] =
-							!Singles[(int)EOneOffs::NPC];
+					if (ImGui::Button("Elder Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##NPC", &Singles[(int)EOneOffs::NPC]);
+					ImGui::Checkbox("##ElderSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##NPC", &SingleColors[(int)EOneOffs::NPC]);
+					ImGui::ColorPicker("##ElderSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Fish")) {
-						Fish[(int)EFishType::Hook] =
-							!Fish[(int)EFishType::Hook];
+					if (ImGui::Button("Proudhorn Sernuk")) {
+						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Fish", &Fish[(int)EFishType::Hook]);
+					ImGui::Checkbox("##ProudhornSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Fish", &FishColors[(int)EFishType::Hook]);
+					ImGui::ColorPicker("##ProudhornSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Fish Pools")) {
-						Fish[(int)EFishType::Node] =
-							!Fish[(int)EFishType::Node];
+					if (ImGui::Button("Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Pools", &Fish[(int)EFishType::Node]);
+					ImGui::Checkbox("##Chapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Pools", &FishColors[(int)EFishType::Node]);
+					ImGui::ColorPicker("##Chapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Loot")) {
-						Singles[(int)EOneOffs::Loot] =
-							!Singles[(int)EOneOffs::Loot];
+					if (ImGui::Button("Striped Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Loot", &Singles[(int)EOneOffs::Loot]);
+					ImGui::Checkbox("##StripedChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Loot", &SingleColors[(int)EOneOffs::Loot]);
+					ImGui::ColorPicker("##StripedChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Quests")) {
-						Singles[(int)EOneOffs::Quest] =
-							!Singles[(int)EOneOffs::Quest];
+					if (ImGui::Button("Azure Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Quest", &Singles[(int)EOneOffs::Quest]);
+					ImGui::Checkbox("##AzureChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Quest", &SingleColors[(int)EOneOffs::Quest]);
+					ImGui::ColorPicker("##AzureChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Rummage Piles")) {
-						Singles[(int)EOneOffs::RummagePiles] =
-							!Singles[(int)EOneOffs::RummagePiles];
+					if (ImGui::Button("Minigame Chapaa")) {
+						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase] =
+							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##RummagePiles", &Singles[(int)EOneOffs::RummagePiles]);
+					ImGui::Checkbox("##MinigameChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##RummagePiles", &SingleColors[(int)EOneOffs::RummagePiles]);
+					ImGui::ColorPicker("##MinigameChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					if (ImGui::Button("Stables")) {
-						Singles[(int)EOneOffs::Stables] =
-							!Singles[(int)EOneOffs::Stables];
+					if (ImGui::Button("Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1];
 					}
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Stables", &Singles[(int)EOneOffs::Stables]);
+					ImGui::Checkbox("##Muujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
 					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Stables", &SingleColors[(int)EOneOffs::Stables]);
+					ImGui::ColorPicker("##Muujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Banded Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BandedMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BandedMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Bluebristle Muujin")) {
+						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3] =
+							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BluebristleMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##BluebristleMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
 				}
 				ImGui::EndTable();
 			}
-
-			ImGui::NextColumn();
-
 			if (ImGui::CollapsingHeader("Ores"))
 			{
 				ImGui::BeginTable("Ores", 5);
@@ -1665,7 +1694,6 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::TableNextColumn();
 					ImGui::Text("Normal");
 					ImGui::TableNextColumn();
-					ImGui::Text("Star");
 					ImGui::TableNextColumn();
 					ImGui::Text("Color");
 					ImGui::TableNextRow();
@@ -1674,7 +1702,6 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Coral", &Forageables[(int)EForageableType::Coral][0]);
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##CoralP", &Forageables[(int)EForageableType::Coral][1]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Coral", &ForageableColors[(int)EForageableType::Coral]);
 					ImGui::TableNextRow();
@@ -1691,7 +1718,6 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Shell", &Forageables[(int)EForageableType::Shell][0]);
 					ImGui::TableNextColumn();
-					ImGui::Checkbox("##ShellP", &Forageables[(int)EForageableType::Shell][1]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Shell", &ForageableColors[(int)EForageableType::Shell]);
 					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -1877,219 +1903,9 @@ void PaliaOverlay::DrawOverlay()
 				}
 				ImGui::EndTable();
 			}
-			if (ImGui::CollapsingHeader("Trees"))
-			{
-				ImGui::BeginTable("Trees", 5);
-				{
-					ImGui::TableSetupColumn("Name");
-					ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::Text("Sm");
-					ImGui::TableNextColumn();
-					ImGui::Text("Med");
-					ImGui::TableNextColumn();
-					ImGui::Text("Lg");
-					ImGui::TableNextColumn();
-					ImGui::Text("Color");
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Bush")) {
-						Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush] =
-							!Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##BushSm", &Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush]);
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Bush", &TreeColors[(int)ETreeType::Bush]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Sapwood")) {
-						Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large] =
-							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium] =
-							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small] =
-							!Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##SapwoodSm", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##SapwoodMed", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##SapwoodLg", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Sapwood", &TreeColors[(int)ETreeType::Sapwood]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Heartwood")) {
-						Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large] =
-							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium] =
-							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small] =
-							!Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##HeartwoodSm", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##HeartwoodMed", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##HeartwoodLg", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Heartwood", &TreeColors[(int)ETreeType::Heartwood]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Flow-Infused")) {
-						Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large] =
-							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium] =
-							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small] =
-							!Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##FlowSm", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##FlowMed", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium]);
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##FlowLg", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Flow", &TreeColors[(int)ETreeType::Flow]);
-				}
-				ImGui::EndTable();
-			}
 
 			ImGui::NextColumn();
 
-			if (ImGui::CollapsingHeader("Animals"))
-			{
-				ImGui::BeginTable("Animals", 3);
-				{
-					ImGui::TableSetupColumn("Name");
-					ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
-					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::Text("Show");
-					ImGui::TableNextColumn();
-					ImGui::Text("Color");
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Sernuk")) {
-						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1] =
-							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Sernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Sernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Elder Sernuk")) {
-						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2] =
-							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##ElderSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##ElderSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Proudhorn Sernuk")) {
-						Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3] =
-							!Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##ProudhornSernuk", &Animals[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##ProudhornSernuk", &AnimalColors[(int)ECreatureKind::Cearnuk][(int)ECreatureQuality::Tier3]);
-					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::Text("Show");
-					ImGui::TableNextColumn();
-					ImGui::Text("Color");
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Chapaa")) {
-						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1] =
-							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Chapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Chapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Striped Chapaa")) {
-						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2] =
-							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##StripedChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##StripedChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Azure Chapaa")) {
-						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3] =
-							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##AzureChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##AzureChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Tier3]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Minigame Chapaa")) {
-						Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase] =
-							!Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##MinigameChapaa", &Animals[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##MinigameChapaa", &AnimalColors[(int)ECreatureKind::Chapaa][(int)ECreatureQuality::Chase]);
-					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-					ImGui::TableNextColumn();
-					ImGui::TableNextColumn();
-					ImGui::Text("Show");
-					ImGui::TableNextColumn();
-					ImGui::Text("Color");
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Muujin")) {
-						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1] =
-							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##Muujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##Muujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier1]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Banded Muujin")) {
-						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2] =
-							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##BandedMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##BandedMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier2]);
-					ImGui::TableNextRow();
-					ImGui::TableNextColumn();
-					if (ImGui::Button("Bluebristle Muujin")) {
-						Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3] =
-							!Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3];
-					}
-					ImGui::TableNextColumn();
-					ImGui::Checkbox("##BluebristleMuujin", &Animals[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
-					ImGui::TableNextColumn();
-					ImGui::ColorPicker("##BluebristleMuujin", &AnimalColors[(int)ECreatureKind::TreeClimber][(int)ECreatureQuality::Tier3]);
-				}
-				ImGui::EndTable();
-			}
 			if (ImGui::CollapsingHeader("Bugs"))
 			{
 				ImGui::Text("Enable all:");
@@ -2621,6 +2437,168 @@ void PaliaOverlay::DrawOverlay()
 				}
 				ImGui::EndTable();
 			}
+			if (ImGui::CollapsingHeader("Trees"))
+			{
+				ImGui::BeginTable("Trees", 5);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Sm", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Med", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Lg", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Sm");
+					ImGui::TableNextColumn();
+					ImGui::Text("Med");
+					ImGui::TableNextColumn();
+					ImGui::Text("Lg");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Bush")) {
+						Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush] =
+							!Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##BushSm", &Trees[(int)ETreeType::Bush][(int)EGatherableSize::Bush]);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Bush", &TreeColors[(int)ETreeType::Bush]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Sapwood")) {
+						Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodSm", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodMed", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##SapwoodLg", &Trees[(int)ETreeType::Sapwood][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Sapwood", &TreeColors[(int)ETreeType::Sapwood]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Heartwood")) {
+						Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodSm", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodMed", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##HeartwoodLg", &Trees[(int)ETreeType::Heartwood][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Heartwood", &TreeColors[(int)ETreeType::Heartwood]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					if (ImGui::Button("Flow-Infused")) {
+						Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large] =
+							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium] =
+							Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small] =
+							!Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small];
+					}
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowSm", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Small]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowMed", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Medium]);
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##FlowLg", &Trees[(int)ETreeType::Flow][(int)EGatherableSize::Large]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Flow", &TreeColors[(int)ETreeType::Flow]);
+				}
+				ImGui::EndTable();
+			}
+			if (ImGui::CollapsingHeader("Player & Entities"))
+			{
+				ImGui::BeginTable("Odds", 3);
+				{
+					ImGui::TableSetupColumn("Name");
+					ImGui::TableSetupColumn("Show", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 40);
+					ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::Text("Show");
+					ImGui::TableNextColumn();
+					ImGui::Text("Color");
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Players");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Players", &Singles[(int)EOneOffs::Player]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Players", &SingleColors[(int)EOneOffs::Player]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("NPCs");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##NPC", &Singles[(int)EOneOffs::NPC]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##NPC", &SingleColors[(int)EOneOffs::NPC]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Fish");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Fish", &Fish[(int)EFishType::Hook]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Fish", &FishColors[(int)EFishType::Hook]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Fish Pools");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Pools", &Fish[(int)EFishType::Node]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Pools", &FishColors[(int)EFishType::Node]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Loot");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Loot", &Singles[(int)EOneOffs::Loot]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Loot", &SingleColors[(int)EOneOffs::Loot]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Quests");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Quest", &Singles[(int)EOneOffs::Quest]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Quest", &SingleColors[(int)EOneOffs::Quest]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Rummage Piles");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##RummagePiles", &Singles[(int)EOneOffs::RummagePiles]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##RummagePiles", &SingleColors[(int)EOneOffs::RummagePiles]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Stables");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Stables", &Singles[(int)EOneOffs::Stables]);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Stables", &SingleColors[(int)EOneOffs::Stables]);
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					ImGui::Text("Others");
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
+					ImGui::TableNextColumn();
+					ImGui::Checkbox("##Others", &bVisualizeDefault);
+					ImGui::TableNextColumn();
+					ImGui::ColorPicker("##Others", &SingleColors[(int)EOneOffs::Others]);
+				}
+				ImGui::EndTable();
+			}
 		}
 		// ==================================== 1 Aimbots & Fun TAB
 		else if (OpenTab == 1) {
@@ -2846,10 +2824,15 @@ void PaliaOverlay::DrawOverlay()
 										if (CurrentMap == Entry.MapName || Entry.MapName == "UserDefined") {
 											if (ImGui::Selectable(Entry.Name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 												if (ImGui::IsMouseDoubleClicked(0)) {
-													ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
+													if (Entry.Type == ELocation::Global_Home) {
+														ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
+													}
+													else {
+														ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
 
-													PlayerController->ClientForceGarbageCollection();
-													PlayerController->ClientFlushLevelStreaming();
+														PlayerController->ClientForceGarbageCollection();
+														PlayerController->ClientFlushLevelStreaming();
+													}
 												}
 											}
 										}
@@ -2908,13 +2891,6 @@ void PaliaOverlay::DrawOverlay()
 
 										PlayerController->ClientForceGarbageCollection();
 										PlayerController->ClientFlushLevelStreaming();
-									}
-									if (ImGui::Button("Teleport To Home Base")) {
-										ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Clear Return Home Cooldown")) {
-										ValeriaPlayerController->RpcServer_ClearReturnHomeCooldown();
 									}
 								}
 
