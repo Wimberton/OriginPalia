@@ -1054,7 +1054,6 @@ public:
 	bool bPerfectCatch = true;
 	bool bNoRodDurabilityLoss = true;
 	bool bDoInstantSellFish = false;
-	bool bMoveCustomizationToStorage  = false;
 	bool bDestroyCustomizationFishing = false;
 
 	// Fishing Numericals

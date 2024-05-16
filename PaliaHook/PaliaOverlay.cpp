@@ -794,41 +794,13 @@ static void DrawHUD(const AHUD* HUD) {
 							if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
 								StoreComponent->RpcServer_SellItem(Slot, 10);
 							}
-							else {
-								ValeriaController->DiscardItem(Slot, 10);
-							}
 						}
 					}
 				}
 			}
-
-			// Move customization items to storage
-			if (Overlay->bMoveCustomizationToStorage) {
-				UInventoryComponent* InventoryComponent = Character->GetInventory();
-
-				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
-					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
-						FBagSlotLocation Slot{ BagIndex, SlotIndex };
-						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
-						if (Item.ItemType->Category == EItemCategory::Customization) {
-							ValeriaController->MoveFromInventoryToPlayerStorage(InventoryComponent, Slot, 10, EStoragePoolType::Primary);
-						}
-					}
-				}
-			}
-			// Discard customization items when fishing
+			// Discard Waterlogged chests when fishing
 			if (Overlay->bDestroyCustomizationFishing) {
-				UInventoryComponent* InventoryComponent = Character->GetInventory();
-
-				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
-					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
-						FBagSlotLocation Slot{ BagIndex, SlotIndex };
-						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
-						if (Item.ItemType->Category == EItemCategory::Customization) {
-							ValeriaController->DiscardItem(Slot, 10);
-						}
-					}
-				}
+				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
 
 		}
@@ -3178,18 +3150,8 @@ void PaliaOverlay::DrawOverlay()
 										ImGui::Checkbox("Instant Sell Fish (All Slots)", &bDoInstantSellFish);
 										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
 
-										ImGui::Checkbox("Send Waterlogged Chests To Storage", &bMoveCustomizationToStorage);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Move all customization items such as Waterlogged chests to your storage for later usage.");
-
-										ImGui::Checkbox("Discard Waterlogged Chests", &bDestroyCustomizationFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Discard all customization items such as Waterlogged chests when fishing to save inventory space.");
-
-										if (bMoveCustomizationToStorage) {
-											bDestroyCustomizationFishing = false;
-										}
-										if (bDestroyCustomizationFishing) {
-											bMoveCustomizationToStorage = false;
-										}
+										ImGui::Checkbox("Discard Other Unsellables", &bDestroyCustomizationFishing);
+										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
 
 										ImGui::Spacing();
 										ImGui::Text("Custom Fishing Catch Parameters:");
