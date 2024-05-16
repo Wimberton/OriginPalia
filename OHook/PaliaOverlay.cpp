@@ -1042,7 +1042,6 @@ void PaliaOverlay::ProcessActors(int step) {
 			continue;
 
 		FVector ActorPosition = Actor->K2_GetActorLocation();
-		// note: Skip actors that return [0,0,0] due to the code I had to add to K2_GetActorLocation
 		if (ActorPosition.X == 0 && ActorPosition.Y == 0 && ActorPosition.Z == 0) continue;
 
 		auto ClassName = Actor->Class->GetName();

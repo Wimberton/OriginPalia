@@ -442,8 +442,8 @@ public:
 		{"BP_Mining_Stone_Large_MultiHarvest_C", "Stone (L)"},
 
 		// Stone (Foliage On Plot)
-		{ "BP_FoliageOnPlot_Stone_C", "Stone (Sap)" },
-		{ "BP_FoliageOnPlot_RockL_C", "Stone (S)" },
+		{ "BP_FoliageOnPlot_Stone_C", "Stone (S)" },
+		{ "BP_FoliageOnPlot_RockL_C", "Stone (L)" },
 
 		// Copper
 		{"BP_Mining_Copper_Small_C", "Copper (S)"},
