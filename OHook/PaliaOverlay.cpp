@@ -5,6 +5,7 @@
 #include<iostream>
 #include <windows.h>
 
+#include <algorithm>
 #include <detours.h>
 #include <RendererDetector.h>
 #include <BaseHook.h>
@@ -199,6 +200,9 @@ static void* HookedClient = nullptr;
 static void* vmt = nullptr;
 static std::unordered_set<std::string> invocations;
 static UFont* Roboto = nullptr;
+bool SortByName(const FEntry& a, const FEntry& b) {
+	return a.DisplayName < b.DisplayName;
+}
 
 void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOVRadius) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
@@ -365,13 +369,13 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 
 					FVector Direction = (TargetLocation - ActorLocation).GetNormalized(); // UKismetMathLibrary, calculate cross product
 					FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
-					FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
+					//FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
 
-					TargetLocation.Z += 100.0f; // Raise by 100 units in the Z direction
-					FVector NewLocation = TargetLocation + SideOffset;
+					TargetLocation.Z += 150.0f; // Raise by 100 units in the Z direction
+					//FVector NewLocation = TargetLocation + SideOffset;
 
 					FHitResult HitResult;
-					PlayerPawn->K2_SetActorLocation(NewLocation, false, &HitResult, true);
+					PlayerPawn->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
 					Overlay->LastTeleportToTargetTime = now;
 				}
 			}
@@ -428,8 +432,8 @@ void DrawCircle(UCanvas* Canvas, FVector2D Center, float Radius, int32 NumSegmen
 	}
 }
 
-// Function to manage cache based on the game state
-static void ManageCache(UWorld* World, PaliaOverlay* Overlay) {
+// Function to clear cache based on the game state
+static void ClearActorCache(UWorld* World, PaliaOverlay* Overlay) {
 	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
 	if (!GameplayStatics) return;
 
@@ -441,9 +445,38 @@ static void ManageCache(UWorld* World, PaliaOverlay* Overlay) {
 	}
 }
 
+// Function to manage cache outside of general functions
+void ManageActorCache(UWorld* World, PaliaOverlay* Overlay) {
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
+
+	double WorldTime = GameplayStatics->GetTimeSeconds(World);
+
+	if (abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
+		Overlay->LastCachedTime = WorldTime;
+		Overlay->ProcessActors(Overlay->ActorStep);
+
+		Overlay->ActorStep++;
+		if (Overlay->ActorStep >= (int)EType::MAX) {
+			Overlay->ActorStep = 0;
+		}
+	}
+}
+
+// Function to convert std::vector<FEntry> to TArray<FEntry>
+TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
+	TArray<FEntry> TArrayEntries;
+	for (const auto& Entry : VectorEntries) {
+		TArrayEntries.Add(Entry);
+	}
+	return TArrayEntries;
+}
+
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
-	ManageCache(GetWorld(), Overlay);
+	
+	ManageActorCache(GetWorld(), Overlay);
+	ClearActorCache(GetWorld(), Overlay);
 
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
@@ -466,18 +499,6 @@ static void DrawHUD(const AHUD* HUD) {
 
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		if (abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
-			Overlay->LastCachedTime = WorldTime;
-			Overlay->ProcessActors(Overlay->ActorStep);
-
-			Overlay->ActorStep++;
-			if (Overlay->ActorStep >= (int)EType::MAX) {
-				Overlay->ActorStep = 0;
-			}
-		}
 
 		// Draw ESP Names Entities
 		for (FEntry& Entry : Overlay->CachedActors) {
@@ -1358,7 +1379,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.1 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2534,64 +2555,90 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::Text("Color");
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Players");
+					if (ImGui::Button("Players")) {
+						Singles[(int)EOneOffs::Player] =
+							!Singles[(int)EOneOffs::Player];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Players", &Singles[(int)EOneOffs::Player]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Players", &SingleColors[(int)EOneOffs::Player]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("NPCs");
+					if (ImGui::Button("NPCs")) {
+						Singles[(int)EOneOffs::NPC] =
+							!Singles[(int)EOneOffs::NPC];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##NPC", &Singles[(int)EOneOffs::NPC]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##NPC", &SingleColors[(int)EOneOffs::NPC]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Fish");
+					if (ImGui::Button("Fish")) {
+						Fish[(int)EFishType::Hook] =
+							!Fish[(int)EFishType::Hook];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Fish", &Fish[(int)EFishType::Hook]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Fish", &FishColors[(int)EFishType::Hook]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Fish Pools");
+					if (ImGui::Button("Fish Pools")) {
+						Fish[(int)EFishType::Node] =
+							!Fish[(int)EFishType::Node];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Pools", &Fish[(int)EFishType::Node]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Pools", &FishColors[(int)EFishType::Node]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Loot");
+					if (ImGui::Button("Loot")) {
+						Singles[(int)EOneOffs::Loot] =
+							!Singles[(int)EOneOffs::Loot];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Loot", &Singles[(int)EOneOffs::Loot]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Loot", &SingleColors[(int)EOneOffs::Loot]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Quests");
+					if (ImGui::Button("Quests")) {
+						Singles[(int)EOneOffs::Quest] =
+							!Singles[(int)EOneOffs::Quest];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Quest", &Singles[(int)EOneOffs::Quest]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Quest", &SingleColors[(int)EOneOffs::Quest]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Rummage Piles");
+					if (ImGui::Button("Rummage Piles")) {
+						Singles[(int)EOneOffs::RummagePiles] =
+							!Singles[(int)EOneOffs::RummagePiles];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##RummagePiles", &Singles[(int)EOneOffs::RummagePiles]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##RummagePiles", &SingleColors[(int)EOneOffs::RummagePiles]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Stables");
+					if (ImGui::Button("Stables")) {
+						Singles[(int)EOneOffs::Stables] =
+							!Singles[(int)EOneOffs::Stables];
+					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Stables", &Singles[(int)EOneOffs::Stables]);
 					ImGui::TableNextColumn();
 					ImGui::ColorPicker("##Stables", &SingleColors[(int)EOneOffs::Stables]);
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
-					ImGui::Text("Others");
-					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized. If something is not showing on the ESP, try enabling this.");
+					if (ImGui::Button("Others")) {
+						bVisualizeDefault = !bVisualizeDefault;
+					}
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized.");
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Others", &bVisualizeDefault);
 					ImGui::TableNextColumn();
@@ -2891,6 +2938,38 @@ void PaliaOverlay::DrawOverlay()
 
 										PlayerController->ClientForceGarbageCollection();
 										PlayerController->ClientFlushLevelStreaming();
+									}
+								}
+
+								if (ImGui::CollapsingHeader("Gatherable Items Options")) {
+									
+									ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
+									ImGui::Text("Populates from enabled Forageable ESP options.");
+
+									// Automatically sort by name before showing the list
+									std::sort(CachedActors.begin(), CachedActors.end(), [](const FEntry& a, const FEntry& b) { return a.DisplayName < b.DisplayName; });
+
+									if (ImGui::ListBoxHeader("##PickableTeleportList", ImVec2(-1, 150))) {
+										for (FEntry& Entry : CachedActors) {
+											if (Entry.shouldAdd && (Entry.ActorType == EType::Forage || Entry.ActorType == EType::Loot)) {
+												if (Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
+													FVector PickableLocation = Entry.Actor->K2_GetActorLocation();
+													FRotator PickableRotation = Entry.Actor->K2_GetActorRotation();
+
+													if (ImGui::Selectable(Entry.DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+														if (ImGui::IsMouseDoubleClicked(0)) {
+															FHitResult PickableHitResult;
+															ValeriaCharacter->K2_SetActorLocation(PickableLocation, false, &PickableHitResult, true);
+														}
+													}
+												}
+											}
+										}
+										ImGui::ListBoxFooter();
+
+										// future : interact with/without being within interactable location?
+										//			ValeriaCharacter->PrimaryInteractPressed();
+										//			ValeriaCharacter->PrimaryInteractReleased();
 									}
 								}
 

@@ -48,15 +48,6 @@ add_library(PaliaSDK STATIC ${PALIASDK_SOURCES} ${PALIASDK_HEADERS})
 target_include_directories(PaliaSDK PUBLIC PaliaSDK)
 target_precompile_headers(PaliaSDK PRIVATE PaliaSDK/SDK.hpp)
 
-# Set the path to Minhook headers
-set(MINHOOK_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-# Set the path to Minhook libraries
-set(MINHOOK_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-
-# Include Minhook headers
-include_directories(${MINHOOK_INCLUDE_DIR})
-
 # OHook DLL
 if(EXISTS "${CMAKE_BINARY_DIR}/OHook.pdb")
    file(REMOVE ${CMAKE_BINARY_DIR}/OHook.pdb)
@@ -68,7 +59,3 @@ set_source_files_properties(${GLEW_SOURCES} PROPERTIES LANGUAGE C)
 add_library(OHook SHARED ${OHook_SOURCES} ${OHook_HEADERS} ${GLEW_SOURCES})
 target_compile_definitions(OHook PRIVATE $<$<BOOL:${WIN32}>:GLEW_STATIC>)
 target_link_libraries(OHook PRIVATE RendererHook PaliaSDK $<$<BOOL:${WIN32}>:ws2_32> $<$<BOOL:${WIN32}>:iphlpapi> $<$<BOOL:${WIN32}>:opengl32.lib> $<$<BOOL:${WIN32}>:Winmm.lib>)
-
-# Link Minhook library
-target_link_directories(OHook PRIVATE ${MINHOOK_LIB_DIR})
-target_link_libraries(OHook PRIVATE MinHook.x64.lib MinHook.x86.lib)
