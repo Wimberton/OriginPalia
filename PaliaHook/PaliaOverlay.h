@@ -275,6 +275,7 @@ public:
 
 	AActor* BestTargetActorAnimal = nullptr;
 	AActor* BestTargetActor = nullptr;
+	EType BestTargetActorType;
 	FVector BestTargetLocation;
 	FRotator BestTargetRotation;
 
@@ -987,6 +988,7 @@ public:
 	bool bEnableSilentAimbot = false;
 	bool bDrawFOVCircle = true;
 	bool bTeleportToTargeted = true;
+	bool bAvoidTeleportingToPlayers = true;
 	bool bTargetTeleportTo = true;
 	bool bVisualizeDefault = false;
 	bool bEnableESPCulling = true;
