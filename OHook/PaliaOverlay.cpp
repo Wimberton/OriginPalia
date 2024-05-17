@@ -1261,6 +1261,34 @@ static void ProcessEventDetour(const UObject* Class, class UFunction* Function, 
 		}
 	}
 
+	// Movement Velocity Logic
+	if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
+		auto MovementParams = reinterpret_cast<SDK::Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params);
+
+		auto World = GetWorld();
+		if (!World) return;
+
+		auto GameInstance = World->OwningGameInstance;
+		if (!GameInstance) return;
+
+		if (GameInstance->LocalPlayers.Num() == 0) return;
+
+		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+		if (!LocalPlayer) return;
+
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) return;
+
+		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
+		if (!ValeriaCharacter) return;
+
+		UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+		if (!MovementComponent) return;
+
+		FValeriaClientToServerMoveInfo BypassServerMove;
+		MovementParams->MoveInfo.TargetVelocity = FVector(0, 0, 0);
+	}
+
 	//GetVFunction<void(*)(const UObject*, class UFunction*, void*)>(this, Offsets::ProcessEventIdx)(this, Function, Parms);
 	OriginalProcEvent(Class, Function, Params);
 }
@@ -1344,6 +1372,26 @@ void PaliaOverlay::DrawHUD()
 		}
 	}
 
+	// HOOKING MOVEMENTCOMPONENT
+	if (PlayerController->Pawn) {
+		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
+		if (ValeriaCharacter) {
+			UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+			if (MovementComponent) {
+				void* Instance = MovementComponent;
+				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
+				DWORD OldProtection;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
+				int32 Idx = Offsets::ProcessEventIdx;
+				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
+				const void* NewProcEvt = ProcessEventDetour;
+				Vtable[Idx] = NewProcEvt;
+				HookedClient = MovementComponent;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
+			}
+		}
+	}
+
 	// HOOKING PROCESSEVENT IN AHUD
 	if (HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
 		void* Instance = PlayerController->MyHUD;
@@ -1378,7 +1426,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.1 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.2 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2730,6 +2778,7 @@ void PaliaOverlay::DrawOverlay()
 							if (ValeriaCharacter) {
 								AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
 								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+								UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
 								// if (!MovementComponent) return;
 
 								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
@@ -2796,68 +2845,99 @@ void PaliaOverlay::DrawOverlay()
 										}
 									}
 
+									const float InputWidth = 80.0f;
+
 									// Global Game Speed with slider
-									ImGui::Text("Global Game Speed:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Changes the global speed of your game. This is different than movement speed!");
 									const char* globalGameSpeedItems[] = { "Default", "Half", "3X", "7X", "15X", "50X", "75X", "100X" };
 									float globalGameSpeedValues[] = { 1.0f, 0.5f, 3.0f, 7.0f, 15.0f, 50.0f, 75.0f, 100.0f };
+
+									ImGui::Text("Global Game Speed:");
 									if (ImGui::SliderInt("##GlobalGameSpeed", &globalGameSpeedIndex, 0, 7, globalGameSpeedItems[globalGameSpeedIndex])) {
 										GlobalGameSpeed = globalGameSpeedValues[globalGameSpeedIndex];
 										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GlobalGameSpeed);
 									}
 
-									// Walk Speed with slider
-									ImGui::Text("Walk Speed:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Walk faster and further when this is higher.");
-									const char* walkSpeedItems[] = { "Default", "Medium", "High", "Very High", "Extreme" };
-									float walkSpeedValues[] = { 565.0f, 685.0f, 825.0f, 1050.0f, 1250.0f };
-									if (ImGui::SliderInt("##WalkSpeed", &walkSpeedIndex, 0, 4, walkSpeedItems[walkSpeedIndex])) {
-										MovementComponent->MaxWalkSpeed = walkSpeedValues[walkSpeedIndex];
+									// Walk Speed
+									ImGui::Text("Walk Speed: ");
+									if (ImGui::InputScalar("##WalkSpeed", ImGuiDataType_Float, &CustomWalkSpeed, &f5)) {
+										MovementComponent->MaxWalkSpeed = CustomWalkSpeed;
+									}
+									ImGui::SameLine();
+									if (ImGui::Button("R##WalkSpeed")) {
+										CustomWalkSpeed = WalkSpeed;
+										MovementComponent->MaxWalkSpeed = WalkSpeed;
 									}
 
-									// Climbing Speed with slider
-									ImGui::Text("Climbing Speed:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Climb faster and further when this is higher.");
-									const char* climbingSpeedItems[] = { "Default", "Medium", "High", "Very High", "Extreme" };
-									float climbingSpeedValues[] = { 80.0f, 165.0f, 400.0f, 650.0f, 1050.0f };
-									if (ImGui::SliderInt("##ClimbingSpeed", &climbingSpeedIndex, 0, 4, climbingSpeedItems[climbingSpeedIndex])) {
-										MovementComponent->ClimbingSpeed = climbingSpeedValues[climbingSpeedIndex];
+									// Sprint Speed
+									ImGui::Text("Sprint Speed: ");
+									if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &CustomSprintSpeedMultiplier, &f5)) {
+										MovementComponent->SprintSpeedMultiplier = CustomSprintSpeedMultiplier;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##SprintSpeedMultiplier")) {
+										CustomSprintSpeedMultiplier = SprintSpeedMultiplier;
+										MovementComponent->SprintSpeedMultiplier = SprintSpeedMultiplier;
 									}
 
-									// Gliding Speed with slider
-									ImGui::Text("Gliding Speed:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Glide faster when this is higher.");
-									const char* glidingSpeedItems[] = { "Default", "Medium", "High", "Very High", "Extreme" };
-									float glidingSpeedValues[] = { 900.0f, 1150.0f, 1400.0f, 1750.0f, 2250.0f };
-									if (ImGui::SliderInt("##GlidingSpeed", &glidingSpeedIndex, 0, 4, glidingSpeedItems[glidingSpeedIndex])) {
-										MovementComponent->GlidingMaxSpeed = glidingSpeedValues[glidingSpeedIndex];
+									// Climbing Speed
+									ImGui::Text("Climbing Speed: ");
+									if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &CustomClimbingSpeed, &f5)) {
+										MovementComponent->ClimbingSpeed = CustomClimbingSpeed;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##ClimbingSpeed")) {
+										CustomClimbingSpeed = ClimbingSpeed;
+										MovementComponent->ClimbingSpeed = ClimbingSpeed;
 									}
 
-									// Gliding Fall Speed buttons
-									ImGui::Text("Gliding Fall Speed:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Glide for longer distances when this is lower.");
-									const char* glidingFallSpeedItems[] = { "Default", "Half", "None" };
-									float glidingFallSpeedValues[] = { 250.0f, 125.0, 1.0f };
-									if (ImGui::SliderInt("##GlidingFallSpeed", &glidingFallSpeedIndex, 0, 2, glidingFallSpeedItems[glidingFallSpeedIndex])) {
-										MovementComponent->GlidingFallSpeed = glidingFallSpeedValues[glidingFallSpeedIndex];
+									// Gliding Speed
+									ImGui::Text("Gliding Speed: ");
+									if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &CustomGlidingSpeed, &f5)) {
+										MovementComponent->GlidingMaxSpeed = CustomGlidingSpeed;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##GlidingSpeed")) {
+										CustomGlidingSpeed = GlidingSpeed;
+										MovementComponent->GlidingMaxSpeed = GlidingSpeed;
 									}
 
-									// Jump Velocity buttons
-									ImGui::Text("Jump Velocity:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Jump larger distances when this is higher.");
-									const char* jumpVelocityItems[] = { "Default", "Medium", "High", "Very High", "Extreme", "Crazy"};
-									float jumpVelocityValues[] = { 700.0f, 925.0f, 1250.0f, 1750.0f, 2250.0f, 3850.0f };
-									if (ImGui::SliderInt("##JumpVelocity", &jumpVelocityIndex, 0, 5, jumpVelocityItems[jumpVelocityIndex])) {
-										MovementComponent->JumpZVelocity = jumpVelocityValues[jumpVelocityIndex];
+									// Gliding Fall Speed
+									ImGui::Text("Gliding Fall Speed: ");
+									if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &CustomGlidingFallSpeed, &f5)) {
+										MovementComponent->GlidingFallSpeed = CustomGlidingFallSpeed;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##GlidingFallSpeed")) {
+										CustomGlidingFallSpeed = GlidingFallSpeed;
+										MovementComponent->GlidingFallSpeed = GlidingFallSpeed;
+									}
+
+									// Jump Velocity
+									ImGui::Text("Jump Velocity: ");
+									if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &CustomJumpVelocity, &f5)) {
+										MovementComponent->JumpZVelocity = CustomJumpVelocity;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##JumpVelocity")) {
+										CustomJumpVelocity = JumpVelocity;
+										MovementComponent->JumpZVelocity = JumpVelocity;
 									}
 
 									// Step Height
-									ImGui::Text("Step Height:");
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Step over larger obstables when this is higher.");
-									const char* stepHeightItems[] = { "Default", "Medium", "High", "Very High", "Extreme", "Crazy", "Ridiculous" };
-									float stepHeightValues[] = { 45.0f, 90.0f, 185.0f, 250.0f, 375.0f, 450.0f, 725.0f };
-									if (ImGui::SliderInt("##MaxStepHeight", &maxStepHeightIndex, 0, 6, stepHeightItems[maxStepHeightIndex])) {
-										MovementComponent->MaxStepHeight = stepHeightValues[maxStepHeightIndex];
+									ImGui::Text("Step Height: ");
+									if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &CustomMaxStepHeight, &f5)) {
+										MovementComponent->MaxStepHeight = CustomMaxStepHeight;
+									}
+									
+									ImGui::SameLine();
+									if (ImGui::Button("R##MaxStepHeight")) {
+										CustomMaxStepHeight = MaxStepHeight;
+										MovementComponent->MaxStepHeight = MaxStepHeight;
 									}
 								}
 

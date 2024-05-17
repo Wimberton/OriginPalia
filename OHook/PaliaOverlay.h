@@ -1067,20 +1067,29 @@ public:
 
 	// Movement Numericals
 	int currentMovementModeIndex = 0;
-	int movementVelocityIndex = 0;
 	int globalGameSpeedIndex = 0;
-	int walkSpeedIndex = 0;
-	int climbingSpeedIndex = 0;
-	int glidingSpeedIndex = 0;
-	int glidingFallSpeedIndex = 0;
-	int jumpVelocityIndex = 0;
-	int maxStepHeightIndex = 0;
-	int maxStepHeightOutOfWaterIndex = 0;
-	int gravityScaleIndex = 0;
 
 	float velocitySpeedMultiplier = 0.0f;
 	float GlobalGameSpeed = 1.0f;
 	float NoClipFlySpeed = 600.0f;
+
+	// These will be used for resetting back to default values
+	float WalkSpeed = 565.0f;  // Default walk speed
+	float SprintSpeedMultiplier = 1.65f;  // Default sprint speed multiplier
+	float ClimbingSpeed = 80.0f;  // Default climbing speed
+	float GlidingSpeed = 900.0f;  // Default gliding speed
+	float GlidingFallSpeed = 250.0f;  // Default gliding fall speed
+	float JumpVelocity = 700.0f;  // Default jump velocity
+	float MaxStepHeight = 45.0f;  // Default maximum step height
+
+	// These will be set using the configs, can be changed
+	float CustomWalkSpeed = 565.0f;  // Custom, Dynamic walk speed
+	float CustomSprintSpeedMultiplier = 1.65f;  // Custom, Dynamic sprint speed multiplier
+	float CustomClimbingSpeed = 80.0f;  // Custom, Dynamic climbing speed
+	float CustomGlidingSpeed = 900.0f;  // Custom, Dynamic gliding speed
+	float CustomGlidingFallSpeed = 250.0f;  // Custom, Dynamic gliding fall speed
+	float CustomJumpVelocity = 700.0f;  // Custom, Dynamic jump velocity
+	float CustomMaxStepHeight = 45.0f;  // Custom, Dynamic maximum step height
 
 	// Fishing Booleans
 	bool bEnableAutoFishing = false;
