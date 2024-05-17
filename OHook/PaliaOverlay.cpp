@@ -371,7 +371,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 					FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
 					//FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
 
-					TargetLocation.Z += 150.0f; // Raise by 100 units in the Z direction
+					TargetLocation.Z += 150.0f; // Raise by 150 units in the Z direction
 					//FVector NewLocation = TargetLocation + SideOffset;
 
 					FHitResult HitResult;
@@ -2956,7 +2956,9 @@ void PaliaOverlay::DrawOverlay()
 														ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
 													}
 													else {
-														ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
+														//ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
+														FHitResult HitResult;
+														ValeriaCharacter->K2_SetActorLocation(Entry.Location, false, &HitResult, true);
 
 														PlayerController->ClientForceGarbageCollection();
 														PlayerController->ClientFlushLevelStreaming();
@@ -3015,7 +3017,9 @@ void PaliaOverlay::DrawOverlay()
 									}
 									ImGui::SameLine();
 									if (ImGui::Button("Teleport To Coordinates")) {
-										ValeriaCharacter->K2_TeleportTo(TeleportLocation, TeleportRotate);
+										//ValeriaCharacter->K2_TeleportTo(TeleportLocation, TeleportRotate);
+										FHitResult HitResult;
+										ValeriaCharacter->K2_SetActorLocation(TeleportLocation, false, &HitResult, true);
 
 										PlayerController->ClientForceGarbageCollection();
 										PlayerController->ClientFlushLevelStreaming();
@@ -3023,7 +3027,7 @@ void PaliaOverlay::DrawOverlay()
 								}
 
 								if (ImGui::CollapsingHeader("Gatherable Items Options")) {
-									
+
 									ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
 									ImGui::Text("Populates from enabled Forageable ESP options.");
 
@@ -3033,16 +3037,23 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::ListBoxHeader("##PickableTeleportList", ImVec2(-1, 150))) {
 										for (FEntry& Entry : CachedActors) {
 											if (Entry.shouldAdd && (Entry.ActorType == EType::Forage || Entry.ActorType == EType::Loot)) {
+
+												// Enabled ESP options only
+												if (Entry.ActorType == EType::Forage && !Forageables[Entry.Type][Entry.Quality]) continue;
+
 												if (Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
 													FVector PickableLocation = Entry.Actor->K2_GetActorLocation();
 													FRotator PickableRotation = Entry.Actor->K2_GetActorRotation();
 
 													if (ImGui::Selectable(Entry.DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
 														if (ImGui::IsMouseDoubleClicked(0)) {
+															PickableLocation.Z += 150; // Raise by 150 units in the Z direction
+
 															FHitResult PickableHitResult;
 															ValeriaCharacter->K2_SetActorLocation(PickableLocation, false, &PickableHitResult, true);
 														}
 													}
+
 												}
 											}
 										}
