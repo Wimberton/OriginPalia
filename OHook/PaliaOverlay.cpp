@@ -1016,6 +1016,7 @@ void PaliaOverlay::ProcessActors(int step) {
 			STATIC_CLASS_MULT("BP_WaterPlane_Fishing_Base_SQ_C");
 			STATIC_CLASS_MULT("BP_Minigame_Fish_C");
 		}
+		// Is there a reason why there is no break here? (Or doesn't matter?)
 	};
 
 	if (SearchClass) {
@@ -1038,8 +1039,7 @@ void PaliaOverlay::ProcessActors(int step) {
 
 	for (AActor* Actor : Actors)
 	{
-		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
-			continue;
+		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) continue;
 
 		FVector ActorPosition = Actor->K2_GetActorLocation();
 		if (ActorPosition.X == 0 && ActorPosition.Y == 0 && ActorPosition.Z == 0) continue;
@@ -1160,6 +1160,10 @@ void PaliaOverlay::ProcessActors(int step) {
 		case EType::Stables:
 			shouldAdd = true;
 			Type = 1;
+			if (ClassName.find("_FrontGate_") != std::string::npos) {
+				shouldAdd = false;
+				Actor->K2_DestroyActor();
+			}
 			break;
 		case EType::Fish:
 		{
