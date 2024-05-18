@@ -475,6 +475,48 @@ TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 	
+	// Remove Gates Logic
+	if (Overlay->bRemoveGates) {
+		auto World = GetWorld();
+		if (!World) return;
+
+		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+		if (!GameplayStatics) return;
+
+		auto GameInstance = World->OwningGameInstance;
+		if (!GameInstance) return;
+
+		if (GameInstance->LocalPlayers.Num() == 0) return;
+
+		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+		if (!LocalPlayer) return;
+
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) return;
+
+		std::vector<AActor*> Actors;
+		std::vector<UClass*> SearchClasses;
+
+		STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
+		STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
+
+		//if (!SearchClasses.empty()) {
+			Actors = FindAllActorsOfTypes(World, SearchClasses);
+
+			for (AActor* Actor : Actors) {
+				// Destroying Method
+				//if (!Actor->IsActorBeingDestroyed()) {
+				//	Actor->K2_DestroyActor();
+				//}
+
+				// Moving Method
+				FVector GatePurgatory(50.0f, 50.0f, 50.0f);
+				FHitResult HitResult;
+				Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
+			}
+		//}
+	}
+
 	ManageActorCache(GetWorld(), Overlay);
 	ClearActorCache(GetWorld(), Overlay);
 
@@ -1007,8 +1049,8 @@ void PaliaOverlay::ProcessActors(int step) {
 	case EType::Stables:
 		if (Singles[(int)EOneOffs::Stables]) {
 			STATIC_CLASS_MULT("BP_Stables_Sign_C");
-			STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
-			STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
+			//STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
+			//STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
 		}
 		break;
 	case EType::Fish:
@@ -1016,6 +1058,7 @@ void PaliaOverlay::ProcessActors(int step) {
 			STATIC_CLASS_MULT("BP_WaterPlane_Fishing_Base_SQ_C");
 			STATIC_CLASS_MULT("BP_Minigame_Fish_C");
 		}
+		// Is there a reason why there is no break here? (Or doesn't matter?)
 	};
 
 	if (SearchClass) {
@@ -1036,10 +1079,8 @@ void PaliaOverlay::ProcessActors(int step) {
 		}
 	}
 
-	for (AActor* Actor : Actors)
-	{
-		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
-			continue;
+	for (AActor* Actor : Actors) {
+		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) continue;
 
 		FVector ActorPosition = Actor->K2_GetActorLocation();
 		if (ActorPosition.X == 0 && ActorPosition.Y == 0 && ActorPosition.Z == 0) continue;
