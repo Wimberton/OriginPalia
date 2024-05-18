@@ -1161,8 +1161,9 @@ void PaliaOverlay::ProcessActors(int step) {
 			shouldAdd = true;
 			Type = 1;
 			if (ClassName.find("_FrontGate_") != std::string::npos) {
-				shouldAdd = false;
-				Actor->K2_DestroyActor();
+				FVector ZeroVector(50.0f, 50.0f, 50.0f); // Keeping it away from 0,0,0 (Invalid actor check) 
+				FHitResult HitResult;
+				Actor->K2_SetActorLocation(ZeroVector, false, &HitResult, true);
 			}
 			break;
 		case EType::Fish:
