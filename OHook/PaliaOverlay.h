@@ -999,6 +999,7 @@ public:
 
 	// ============ ESP DISPLAY MAPPINGS ================
 	bool CacheActorsFast = true;
+	bool bRemoveGates = true; // Don't think it should have an UI option
 
 	float FOV;
 	int screenWidth;

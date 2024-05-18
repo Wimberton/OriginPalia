@@ -475,6 +475,48 @@ TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 	
+	// Remove Gates Logic
+	if (Overlay->bRemoveGates) {
+		auto World = GetWorld();
+		if (!World) return;
+
+		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+		if (!GameplayStatics) return;
+
+		auto GameInstance = World->OwningGameInstance;
+		if (!GameInstance) return;
+
+		if (GameInstance->LocalPlayers.Num() == 0) return;
+
+		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+		if (!LocalPlayer) return;
+
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) return;
+
+		std::vector<AActor*> Actors;
+		std::vector<UClass*> SearchClasses;
+
+		STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
+		STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
+
+		//if (!SearchClasses.empty()) {
+			Actors = FindAllActorsOfTypes(World, SearchClasses);
+
+			for (AActor* Actor : Actors) {
+				// Destroying Method
+				//if (!Actor->IsActorBeingDestroyed()) {
+				//	Actor->K2_DestroyActor();
+				//}
+
+				// Moving Method
+				FVector GatePurgatory(50.0f, 50.0f, 50.0f);
+				FHitResult HitResult;
+				Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
+			}
+		//}
+	}
+
 	ManageActorCache(GetWorld(), Overlay);
 	ClearActorCache(GetWorld(), Overlay);
 
@@ -1007,8 +1049,8 @@ void PaliaOverlay::ProcessActors(int step) {
 	case EType::Stables:
 		if (Singles[(int)EOneOffs::Stables]) {
 			STATIC_CLASS_MULT("BP_Stables_Sign_C");
-			STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
-			STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
+			//STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
+			//STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
 		}
 		break;
 	case EType::Fish:
@@ -1037,8 +1079,7 @@ void PaliaOverlay::ProcessActors(int step) {
 		}
 	}
 
-	for (AActor* Actor : Actors)
-	{
+	for (AActor* Actor : Actors) {
 		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) continue;
 
 		FVector ActorPosition = Actor->K2_GetActorLocation();
@@ -1160,11 +1201,6 @@ void PaliaOverlay::ProcessActors(int step) {
 		case EType::Stables:
 			shouldAdd = true;
 			Type = 1;
-			if (ClassName.find("_FrontGate_") != std::string::npos) {
-				FVector ZeroVector(50.0f, 50.0f, 50.0f); // Keeping it away from 0,0,0 (Invalid actor check) 
-				FHitResult HitResult;
-				Actor->K2_SetActorLocation(ZeroVector, false, &HitResult, true);
-			}
 			break;
 		case EType::Fish:
 		{
