@@ -1038,6 +1038,8 @@ public:
 	double SelectionThreshold = 50.0;
 
 	// Movement Booleans
+	bool bEnablePersistantMovement = true; // persistance check in DrawHUD for movement
+	
 	bool bGatherBot = false;
 
 	bool bAutoUpdateTickRegistration = false;

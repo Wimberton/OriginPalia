@@ -520,6 +520,40 @@ static void DrawHUD(const AHUD* HUD) {
 	ManageActorCache(GetWorld(), Overlay);
 	ClearActorCache(GetWorld(), Overlay);
 
+	// Logic for Persistant Movement
+	if (Overlay->bEnablePersistantMovement) {
+		auto World = GetWorld();
+		if (!World) return;
+
+		auto GameInstance = World->OwningGameInstance;
+		if (!GameInstance) return;
+
+		if (GameInstance->LocalPlayers.Num() == 0) return;
+
+		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+		if (!LocalPlayer) return;
+
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) return;
+
+		AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+		if (!ValeriaController) return;
+
+		AValeriaCharacter* Character = ValeriaController->GetValeriaCharacter();
+		if (!Character) return;
+
+		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
+		
+		// walkspeed
+		MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
+		MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
+		MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
+		MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
+		MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
+		MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
+		MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
+	}
+
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
 		auto World = GetWorld();
@@ -1467,7 +1501,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.2 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.3.1 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
