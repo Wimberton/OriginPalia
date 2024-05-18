@@ -75,17 +75,22 @@ Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, 
 
 ## Fishing Settings:
 - Enable Instant Fishing *(force end fishing when your bobber hits the water)*
+- Complete auto-fishing. With the option to require left-click or fully autonomous.
 - Start and End Rod Health sliders *(customize the total health of your fishing rod)*
 - Start and End Fish Health sliders *(customize the total health of the fish when caught)*
 - Capture and override fishing spot options *(capture and fish from any previous fishing pool)*
 - Perfect Catch option *(choose whether your catch was perfect or not every time)*
-- Instant Sell (Slot 1) *(automatically sell fish from your bag 1 slot 1. Open a shop once for this to work)*
+- Instant Sell All Fish *(automatically sell fish from your bag. Open a shop once for this to work)*
 
 ## Locations & Coordinates:
 - Display current coordinates *(use these coordinates to perform certain actions)*
 - List of teleport locations *(a good list of easily teleportable locations to efficiently perform tasks such as shopping, repairing, etc)*
 - Custom coordinate input *(enter or get custom coordinates to perform certain actions)*
 - Buttons for teleport actions *(teleport home, to locations, and other actions)*
+
+## Pickable Locations
+- Display a list of currently pickable items
+- Teleport to pickable items
 
 ## Building
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
