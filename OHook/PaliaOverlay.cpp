@@ -294,7 +294,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 		FVector TargetVelocity = Entry.Actor->GetVelocity();
 		FVector RelativeVelocity = TargetVelocity - PlayerGetPawn->GetVelocity();
 		FVector RelativeDirection = RelativeVelocity.GetNormalized();
-			
+
 		double Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
 		double Angle = CustomMath::RadiansToDegrees(acosf(ForwardVector.Dot(DirectionToActor)));
 		double TimeToTarget = Distance / 343.0;
@@ -308,7 +308,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 
 		// Weighting factors for different factors
 		double AngleWeight = 0.5, DistanceWeight = 0.3, MovementWeight = 0.0;
-			
+
 		// Adjust weighting factors based on EType
 		switch (Entry.ActorType) {
 		case EType::Animal:
@@ -332,7 +332,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 			MovementWeight = 0.0;
 			break;
 		}
-			
+
 		// Calculate score based on weighted sum of factors
 		// double Score = (AngleWeight * Angle) + (DistanceWeight * Distance / 100.0) + (MovementWeight * RelativeDirection.Magnitude());
 		double Score = (AngleWeight * Angle) + (DistanceWeight * Distance) + (MovementWeight * RelativeDirection.Magnitude());
@@ -433,8 +433,7 @@ void DrawCircle(UCanvas* Canvas, FVector2D Center, float Radius, int32 NumSegmen
 }
 
 // Function to clear cache based on the game state
-static void ClearActorCache(UWorld* World, PaliaOverlay* Overlay) {
-	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+static void ClearActorCache(UWorld* World, UGameplayStatics* GameplayStatics, PaliaOverlay* Overlay) {
 	if (!GameplayStatics) return;
 
 	// Clear cache on level change
@@ -446,8 +445,7 @@ static void ClearActorCache(UWorld* World, PaliaOverlay* Overlay) {
 }
 
 // Function to manage cache outside of general functions
-void ManageActorCache(UWorld* World, PaliaOverlay* Overlay) {
-	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+void ManageActorCache(UWorld* World, UGameplayStatics* GameplayStatics, PaliaOverlay* Overlay) {
 	if (!GameplayStatics) return;
 
 	double WorldTime = GameplayStatics->GetTimeSeconds(World);
@@ -474,109 +472,63 @@ TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
 
 static void DrawHUD(const AHUD* HUD) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
-	
+
+	auto World = GetWorld();
+	if (!World) return;
+
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
+
+	// Cache
+	ManageActorCache(World, GameplayStatics, Overlay);
+	ClearActorCache(World, GameplayStatics, Overlay);
+
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
+
+	if (GameInstance->LocalPlayers.Num() == 0) return;
+
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer || !LocalPlayer->IsValidLowLevel() || LocalPlayer->IsDefaultObject()) return;
+
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController || !PlayerController->IsValidLowLevel() || PlayerController->IsDefaultObject()) return;
+
+	APawn* PlayerPawn = PlayerController->K2_GetPawn();
+	if (!PlayerPawn || !PlayerPawn->IsValidLowLevel() || PlayerPawn->IsDefaultObject()) return;
+
+	AValeriaCharacter* Character = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
+	if (!Character || !Character->IsValidLowLevel() || Character->IsDefaultObject()) return;
+
+	AValeriaPlayerController* Controller = static_cast<AValeriaPlayerController*>(PlayerController);
+	if (!Controller || !Controller->IsValidLowLevel() || Controller->IsDefaultObject()) return;
+
 	// Remove Gates Logic
 	if (Overlay->bRemoveGates) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
 		std::vector<AActor*> Actors;
 		std::vector<UClass*> SearchClasses;
 
 		STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
 		STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
 
-		//if (!SearchClasses.empty()) {
-			Actors = FindAllActorsOfTypes(World, SearchClasses);
+		Actors = FindAllActorsOfTypes(World, SearchClasses);
 
-			for (AActor* Actor : Actors) {
-				// Destroying Method
-				//if (!Actor->IsActorBeingDestroyed()) {
-				//	Actor->K2_DestroyActor();
-				//}
+		for (AActor* Actor : Actors) {
+			// Destroying Method
+			//if (!Actor->IsActorBeingDestroyed()) {
+			//	Actor->K2_DestroyActor();
+			//}
 
-				// Moving Method
-				FVector GatePurgatory(50.0f, 50.0f, 50.0f);
-				FHitResult HitResult;
-				Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
-			}
-		//}
-	}
-
-	ManageActorCache(GetWorld(), Overlay);
-	ClearActorCache(GetWorld(), Overlay);
-
-	// Persistent Movement Logic
-	if (Overlay->bEnablePersistantMovement) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
-		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!ValeriaCharacter) return;
-
-		UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-		if (!MovementComponent) return;
-
-		if (MovementComponent->IsValidLowLevel() && !MovementComponent->IsDefaultObject()) {
-			MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
-			MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
-			MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
-			MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
-			MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
-			MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
-			MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
+			// Moving Method
+			FVector GatePurgatory(50.0f, 50.0f, 50.0f);
+			FHitResult HitResult;
+			Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
 		}
 	}
 
 	// Logic for ESP Drawing & FOV Circle/Line
 	if (Overlay->bEnableESP) {
-		auto World = GetWorld();
-		if (!World) return;
-		
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
-		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
-		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
+		FVector PawnLocation = PlayerPawn->K2_GetActorLocation();
 
 		// Draw ESP Names Entities
 		for (FEntry& Entry : Overlay->CachedActors) {
@@ -775,90 +727,25 @@ static void DrawHUD(const AHUD* HUD) {
 
 	// Logic For InteliTargeting Updates (FOV)
 	if (Overlay->bEnableAimbot || Overlay->bDrawFOVCircle) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
-		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
-		if (!PlayerGetPawn) return;
-
-		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
+		UpdateInteliAim(PlayerController, PlayerPawn, Overlay->FOVRadius);
 	}
 
 	// Auto Fishing Logic
 	if (Overlay->bEnableAutoFishing) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
-		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!ValeriaCharacter) return;
-
-		if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+		if (Character && Character->GetEquippedItem().ItemType->IsFishingRod()) {
 			if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
-				ValeriaCharacter->ToolPrimaryActionPressed();
-				ValeriaCharacter->ToolPrimaryActionReleased();
+				Character->ToolPrimaryActionPressed();
+				Character->ToolPrimaryActionReleased();
 			}
 			else if (!Overlay->bRequireClickFishing) {
-				ValeriaCharacter->ToolPrimaryActionPressed();
-				ValeriaCharacter->ToolPrimaryActionReleased();
+				Character->ToolPrimaryActionPressed();
+				Character->ToolPrimaryActionReleased();
 			}
 		}
 	}
 
 	// Logic for Fishing-Related Actions
 	if (Overlay->bEnableInstantFishing) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-		
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-		
-		//ABP_ValeriaPlayerController_C* ValeriaController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
-		AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
-		if (!ValeriaController) return;
-		
-		AValeriaCharacter* Character = ValeriaController->GetValeriaCharacter();
-		if (!Character) return;
-
 		UFishingComponent* FishingComponent = Character->GetFishing();
 		if (!FishingComponent) return;
 
@@ -866,7 +753,7 @@ static void DrawHUD(const AHUD* HUD) {
 		EFishingState_NEW FishingState = static_cast<EFishingState_NEW>(FishingComponent->GetFishingState());
 		if (FishingState == EFishingState_NEW::Bite) {
 			// Setup the end context for fishing
-			FFishingEndContext Context;
+			FFishingEndContext Context{};
 			Context.Result = EFishingMiniGameResult::Success;
 			Context.Perfect = Overlay->bPerfectCatch;
 			Context.DurabilityReduction = 0;
@@ -900,7 +787,7 @@ static void DrawHUD(const AHUD* HUD) {
 			}
 			// Discard Waterlogged chests when fishing
 			if (Overlay->bDestroyCustomizationFishing) {
-				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
+				Controller->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 			}
 
 		}
@@ -911,23 +798,6 @@ static void DrawHUD(const AHUD* HUD) {
 
 	// Logic for Noclip
 	if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
-
-		auto World = GetWorld();
-		if (!World) return;
-		
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-		
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-		
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-		
-		AValeriaCharacter* Character = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!Character) return;
-		
 		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
 		if (!MovementComponent) return;
 
@@ -943,24 +813,9 @@ static void DrawHUD(const AHUD* HUD) {
 
 		Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
 	}
+
 	// Logic for Noclip Camera
 	if (Overlay->bEnableNoclip) {
-		auto World = GetWorld();
-		if (!World) return;
-		
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-		
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-		
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-		
-		AValeriaCharacter* Character = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!Character) return;
-
 		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
 		if (!MovementComponent) return;
 
@@ -1301,7 +1156,7 @@ static void ProcessEventDetour(const UObject* Class, class UFunction* Function, 
 
 		UProjectileFiringComponent* Component = static_cast<UProjectileFiringComponent*>(const_cast<UObject*>(Class));
 		if (!Component) return;
-		
+
 		AValeriaPlayerController* PC = static_cast<AValeriaPlayerController*>(PlayerController);
 		if (!PC) return;
 
@@ -1329,7 +1184,7 @@ static void ProcessEventDetour(const UObject* Class, class UFunction* Function, 
 					FHitResult HitResult;
 					ProjData.ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
 					HitResult.Location = FVector_NetQuantize(NewProjectileLocation);
-					
+
 					//OriginalProcEvent(Class, Function, Params);
 					Component->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
 				}
@@ -1503,7 +1358,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.3.2 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.2 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2950,7 +2805,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &CustomSprintSpeedMultiplier, &f5)) {
 										MovementComponent->SprintSpeedMultiplier = CustomSprintSpeedMultiplier;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##SprintSpeedMultiplier")) {
 										CustomSprintSpeedMultiplier = SprintSpeedMultiplier;
@@ -2962,7 +2817,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &CustomClimbingSpeed, &f5)) {
 										MovementComponent->ClimbingSpeed = CustomClimbingSpeed;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##ClimbingSpeed")) {
 										CustomClimbingSpeed = ClimbingSpeed;
@@ -2974,7 +2829,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &CustomGlidingSpeed, &f5)) {
 										MovementComponent->GlidingMaxSpeed = CustomGlidingSpeed;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##GlidingSpeed")) {
 										CustomGlidingSpeed = GlidingSpeed;
@@ -2986,7 +2841,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &CustomGlidingFallSpeed, &f5)) {
 										MovementComponent->GlidingFallSpeed = CustomGlidingFallSpeed;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##GlidingFallSpeed")) {
 										CustomGlidingFallSpeed = GlidingFallSpeed;
@@ -2998,7 +2853,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &CustomJumpVelocity, &f5)) {
 										MovementComponent->JumpZVelocity = CustomJumpVelocity;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##JumpVelocity")) {
 										CustomJumpVelocity = JumpVelocity;
@@ -3010,7 +2865,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &CustomMaxStepHeight, &f5)) {
 										MovementComponent->MaxStepHeight = CustomMaxStepHeight;
 									}
-									
+
 									ImGui::SameLine();
 									if (ImGui::Button("R##MaxStepHeight")) {
 										CustomMaxStepHeight = MaxStepHeight;
@@ -3087,7 +2942,7 @@ void PaliaOverlay::DrawOverlay()
 									ImGui::InputScalar("##TeleportRotateYaw", ImGuiDataType_Double, &TeleportRotate.Yaw, &d1);
 
 									ImGui::Spacing();
-									
+
 									if (ImGui::Button("Get Current Coordinates")) {
 										TeleportLocation = ValeriaCharacter->K2_GetActorLocation();
 										TeleportRotate = ValeriaCharacter->K2_GetActorRotation();
@@ -3159,7 +3014,7 @@ void PaliaOverlay::DrawOverlay()
 										std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
 										std::string locationNameStr(locationName);
 
-										TeleportLocations.push_back({ mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
+										TeleportLocations.push_back({ mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation });
 										ImGui::CloseCurrentPopup();
 									}
 									ImGui::EndPopup();
@@ -3335,7 +3190,7 @@ void PaliaOverlay::DrawOverlay()
 									if (ValeriaCharacter) {
 										ImGui::Text("Equipped Tool : %s", STools[(int)EquippedTool]);
 									}
-									else { ImGui::Text("No equipment available for viewing");}
+									else { ImGui::Text("No equipment available for viewing"); }
 
 									//ImGui::Checkbox("Unlock All Outfits", &bTempUnlockAllEntitlements);
 									//if (bTempUnlockAllEntitlements) {
