@@ -204,6 +204,34 @@ bool SortByName(const FEntry& a, const FEntry& b) {
 	return a.DisplayName < b.DisplayName;
 }
 
+// Housing Placement Modification Logic
+void SetCanPlaceHereTrue() {
+
+	auto World = GetWorld();
+	if (!World) return;
+
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
+
+	if (GameInstance->LocalPlayers.Num() == 0) return;
+
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
+
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
+
+	AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
+	if (!ValeriaCharacter) return;
+
+	UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+	if (!PlacementComponent) return;
+
+	// Set CanPlaceHere to true
+	PlacementComponent->CanPlaceHere = true;
+}
+
+// Logic for Updating InteliFOV information
 void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOVRadius) {
 	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
@@ -417,6 +445,7 @@ void UpdateInteliAim(APlayerController* Controller, APawn* PlayerPawn, float FOV
 	}
 }
 
+// Creation of the InteliFOV Circle
 void DrawCircle(UCanvas* Canvas, FVector2D Center, float Radius, int32 NumSegments, FLinearColor Color, float Thickness = 1.0f) {
 	// Calculate screen center more accurately
 	FVector2D ScreenCenter(Canvas->ClipX / 2, Canvas->ClipY / 2);
@@ -1009,6 +1038,11 @@ static void DrawHUD(const AHUD* HUD) {
 		FHitResult HitResult;
 		Character->K2_SetActorLocation(Character->K2_GetActorLocation() + MovementDelta, false, &HitResult, false);
 	}
+
+	// Housing Place Anywhere Logic
+	if (Overlay->bPlaceAnywhere) {
+		SetCanPlaceHereTrue();
+	}
 }
 
 void PaliaOverlay::ProcessActors(int step) {
@@ -1469,6 +1503,26 @@ void PaliaOverlay::DrawHUD()
 		}
 	}
 
+	// HOOKING PLACEMENTCOMPONENT
+	if (PlayerController->Pawn) {
+		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
+		if (ValeriaCharacter) {
+			UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+			if (PlacementComponent) {
+				void* Instance = PlacementComponent;
+				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
+				DWORD OldProtection;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
+				int32 Idx = Offsets::ProcessEventIdx;
+				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
+				const void* NewProcEvt = ProcessEventDetour;
+				Vtable[Idx] = NewProcEvt;
+				HookedClient = PlacementComponent;
+				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
+			}
+		}
+	}
+
 	// HOOKING PROCESSEVENT IN AHUD
 	if (HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
 		void* Instance = PlayerController->MyHUD;
@@ -1503,7 +1557,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.3.2 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.4 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -3417,7 +3471,7 @@ void PaliaOverlay::DrawOverlay()
 								ImGui::Columns(1, nullptr, false);
 								if (ImGui::CollapsingHeader("Housing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
 									if (PlacementComponent) {
-										ImGui::Text("Housing mods coming soon.");
+										ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere);
 									}
 									else {
 										ImGui::Text("No Placement Component available.");
