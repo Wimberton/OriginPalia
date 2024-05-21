@@ -21,6 +21,7 @@
 #include "Utils.h"
 #include <HookManager.h>
 #include <imgui_internal.h>
+#include <tchar.h>
 
 using namespace VectorMath;
 using namespace SDK;
@@ -202,6 +203,13 @@ static std::unordered_set<std::string> invocations;
 static UFont* Roboto = nullptr;
 bool SortByName(const FEntry& a, const FEntry& b) {
 	return a.DisplayName < b.DisplayName;
+}
+bool IsGameWindowActive() {
+	HWND foregroundWindow = GetForegroundWindow();
+	// You may need to adjust the class name or window title to match your game
+	TCHAR windowClassName[256];
+	GetClassName(foregroundWindow, windowClassName, sizeof(windowClassName) / sizeof(TCHAR));
+	return _tcscmp(windowClassName, TEXT("UnrealWindow")) == 0;
 }
 
 // Housing Placement Modification Logic
@@ -974,6 +982,8 @@ static void DrawHUD(const AHUD* HUD) {
 	}
 	// Logic for Noclip Camera
 	if (Overlay->bEnableNoclip) {
+		if (!IsGameWindowActive()) return;
+
 		auto World = GetWorld();
 		if (!World) return;
 		
@@ -1557,7 +1567,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.4 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.4.1 (Game Version 0.179.1)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
@@ -2922,7 +2932,7 @@ void PaliaOverlay::DrawOverlay()
 								static FRotator TeleportRotate;
 
 								const double d20 = 20., d5 = 5., d1 = 1., dhalf = 0.5;
-								const float f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5;
+								const float f1000 = 1000.0f, f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5;
 
 								// Setting the columns layout
 								ImGui::Columns(2, nullptr, false);
@@ -2979,13 +2989,14 @@ void PaliaOverlay::DrawOverlay()
 									const float InputWidth = 80.0f;
 
 									// Global Game Speed with slider
-									const char* globalGameSpeedItems[] = { "Default", "Half", "3X", "7X", "15X", "50X", "75X", "100X" };
-									float globalGameSpeedValues[] = { 1.0f, 0.5f, 3.0f, 7.0f, 15.0f, 50.0f, 75.0f, 100.0f };
-
-									ImGui::Text("Global Game Speed:");
-									if (ImGui::SliderInt("##GlobalGameSpeed", &globalGameSpeedIndex, 0, 7, globalGameSpeedItems[globalGameSpeedIndex])) {
-										GlobalGameSpeed = globalGameSpeedValues[globalGameSpeedIndex];
-										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GlobalGameSpeed);
+									ImGui::Text("Global Game Speed: ");
+									if (ImGui::InputScalar("##GlobalGameSpeed", ImGuiDataType_Float, &CustomGameSpeed, &f1, &f1000, "%.2f", ImGuiInputTextFlags_None)) {
+										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, CustomGameSpeed);
+									}
+									ImGui::SameLine();
+									if (ImGui::Button("R##GlobalGameSpeed")) {
+										CustomGameSpeed = GameSpeed;
+										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GameSpeed);
 									}
 
 									// Walk Speed

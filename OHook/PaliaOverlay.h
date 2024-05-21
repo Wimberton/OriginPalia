@@ -1078,6 +1078,7 @@ public:
 
 	// These will be used for resetting back to default values
 	float WalkSpeed = 565.0f;  // Default walk speed
+	float GameSpeed = 1.0f; // Default game speed
 	float SprintSpeedMultiplier = 1.65f;  // Default sprint speed multiplier
 	float ClimbingSpeed = 80.0f;  // Default climbing speed
 	float GlidingSpeed = 900.0f;  // Default gliding speed
@@ -1087,6 +1088,7 @@ public:
 
 	// These will be set using the configs, can be changed
 	float CustomWalkSpeed = 565.0f;  // Custom, Dynamic walk speed
+	float CustomGameSpeed = 1.0f; // Custom, Dynamic game speed
 	float CustomSprintSpeedMultiplier = 1.65f;  // Custom, Dynamic sprint speed multiplier
 	float CustomClimbingSpeed = 80.0f;  // Custom, Dynamic climbing speed
 	float CustomGlidingSpeed = 900.0f;  // Custom, Dynamic gliding speed
