@@ -509,91 +509,106 @@ TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
 	return TArrayEntries;
 }
 
-static void DrawHUD(const AHUD* HUD) {
-	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
+
+// HACK LOGICS //
+void Func_DoRemoveGates(const PaliaOverlay* Overlay) {
+	if (!Overlay->bRemoveGates) return;
 	
-	// Remove Gates Logic
-	if (Overlay->bRemoveGates) {
-		auto World = GetWorld();
-		if (!World) return;
+	auto World = GetWorld();
+	if (!World) return;
 
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
 
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
 
-		if (GameInstance->LocalPlayers.Num() == 0) return;
+	if (GameInstance->LocalPlayers.Num() == 0) return;
 
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
 
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
 
-		std::vector<AActor*> Actors;
-		std::vector<UClass*> SearchClasses;
+	std::vector<UClass*> SearchClasses;
 
-		STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
-		STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
+	STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C");
+	STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C");
 
-		//if (!SearchClasses.empty()) {
-			Actors = FindAllActorsOfTypes(World, SearchClasses);
-
-			for (AActor* Actor : Actors) {
-				// Destroying Method
-				//if (!Actor->IsActorBeingDestroyed()) {
-				//	Actor->K2_DestroyActor();
-				//}
-
-				// Moving Method
-				FVector GatePurgatory(50.0f, 50.0f, 50.0f);
-				FHitResult HitResult;
-				Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
-			}
-		//}
+	for (const std::vector<AActor*> Actors = FindAllActorsOfTypes(World, SearchClasses); AActor* Actor : Actors) {
+		FVector GatePurgatory(0.0f, 0.0f, -2000.0f);
+		FHitResult HitResult;
+		Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
 	}
+}
 
-	ManageActorCache(GetWorld(), Overlay);
-	ClearActorCache(GetWorld(), Overlay);
+void Func_DoInteliAim(const PaliaOverlay* Overlay) {
+	if (!Overlay->bEnableAimbot && !Overlay->bDrawFOVCircle) return;
+	
+	auto World = GetWorld();
+	if (!World) return;
 
-	// Persistent Movement Logic
-	if (Overlay->bEnablePersistantMovement) {
-		auto World = GetWorld();
-		if (!World) return;
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
 
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
+	double WorldTime = GameplayStatics->GetTimeSeconds(World);
 
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
 
-		if (GameInstance->LocalPlayers.Num() == 0) return;
+	if (GameInstance->LocalPlayers.Num() == 0) return;
 
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
 
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
 
-		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!ValeriaCharacter) return;
+	APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
+	if (!PlayerGetPawn) return;
 
-		UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-		if (!MovementComponent) return;
+	UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
+}
 
-		if (MovementComponent->IsValidLowLevel() && !MovementComponent->IsDefaultObject()) {
-			MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
-			MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
-			MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
-			MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
-			MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
-			MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
-			MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
-		}
+void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
+	if (!Overlay->bEnablePersistantMovement) return;
+	
+	auto World = GetWorld();
+	if (!World) return;
+
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
+
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
+
+	if (GameInstance->LocalPlayers.Num() == 0) return;
+
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
+
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
+
+	AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
+	if (!ValeriaCharacter) return;
+
+	UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+	if (!MovementComponent) return;
+
+	if (MovementComponent->IsValidLowLevel() && !MovementComponent->IsDefaultObject()) {
+		MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
+		MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
+		MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
+		MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
+		MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
+		MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
+		MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
 	}
+}
 
-	// Logic for ESP Drawing & FOV Circle/Line
+void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 	if (Overlay->bEnableESP) {
 		auto World = GetWorld();
 		if (!World) return;
@@ -611,8 +626,12 @@ static void DrawHUD(const AHUD* HUD) {
 
 		APlayerController* PlayerController = LocalPlayer->PlayerController;
 		if (!PlayerController) return;
-
+		
 		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
+		
+		// It'll crash at the Game Menu (not in-game) without this check
+		if (!PlayerGetPawn) return;
+		
 		FVector PawnLocation = PlayerGetPawn->K2_GetActorLocation();
 
 		// Draw ESP Names Entities
@@ -805,164 +824,129 @@ static void DrawHUD(const AHUD* HUD) {
 				}
 			}
 		}
-	}
-	else {
+	} else {
 		Overlay->CachedActors.clear();
 	}
+}
 
-	// Logic For InteliTargeting Updates (FOV)
-	if (Overlay->bEnableAimbot || Overlay->bDrawFOVCircle) {
-		auto World = GetWorld();
-		if (!World) return;
+void Func_DoAutoFishing(const PaliaOverlay* Overlay) {
+	if (!Overlay->bEnableAutoFishing) return;
 
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
+	auto World = GetWorld();
+	if (!World) return;
 
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
+	UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+	if (!GameplayStatics) return;
 
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
+	auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
 
-		if (GameInstance->LocalPlayers.Num() == 0) return;
+	if (GameInstance->LocalPlayers.Num() == 0) return;
 
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
 
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
 
-		APawn* PlayerGetPawn = PlayerController->K2_GetPawn();
-		if (!PlayerGetPawn) return;
+	AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
+	if (!ValeriaCharacter) return;
 
-		UpdateInteliAim(PlayerController, PlayerGetPawn, Overlay->FOVRadius);
-	}
-
-	// Auto Fishing Logic
-	if (Overlay->bEnableAutoFishing) {
-		auto World = GetWorld();
-		if (!World) return;
-
-		UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-		if (!GameplayStatics) return;
-
-		double WorldTime = GameplayStatics->GetTimeSeconds(World);
-
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
-
-		if (GameInstance->LocalPlayers.Num() == 0) return;
-
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-
-		AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
-		if (!ValeriaCharacter) return;
-
-		if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
-			if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
-				ValeriaCharacter->ToolPrimaryActionPressed();
-				ValeriaCharacter->ToolPrimaryActionReleased();
-			}
-			else if (!Overlay->bRequireClickFishing) {
-				ValeriaCharacter->ToolPrimaryActionPressed();
-				ValeriaCharacter->ToolPrimaryActionReleased();
-			}
+	if (ValeriaCharacter && ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+		if (Overlay->bRequireClickFishing && IsKeyHeld(VK_LBUTTON)) {
+			ValeriaCharacter->ToolPrimaryActionPressed();
+			ValeriaCharacter->ToolPrimaryActionReleased();
+		} else if (!Overlay->bRequireClickFishing) {
+			ValeriaCharacter->ToolPrimaryActionPressed();
+			ValeriaCharacter->ToolPrimaryActionReleased();
 		}
 	}
+}
 
-	// Logic for Fishing-Related Actions
-	if (Overlay->bEnableInstantFishing) {
-		auto World = GetWorld();
-		if (!World) return;
+void Func_DoInstantFishing(const PaliaOverlay* Overlay) {
+	if (!Overlay->bEnableInstantFishing) return;
 
-		auto GameInstance = World->OwningGameInstance;
-		if (!GameInstance) return;
+	const auto World = GetWorld();
+	if (!World) return;
 
-		if (GameInstance->LocalPlayers.Num() == 0) return;
+	const auto GameInstance = World->OwningGameInstance;
+	if (!GameInstance) return;
 
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-		if (!LocalPlayer) return;
-		
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
-		if (!PlayerController) return;
-		
-		//ABP_ValeriaPlayerController_C* ValeriaController = static_cast<ABP_ValeriaPlayerController_C*>(PlayerController);
-		AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
-		if (!ValeriaController) return;
-		
-		AValeriaCharacter* Character = ValeriaController->GetValeriaCharacter();
-		if (!Character) return;
+	if (GameInstance->LocalPlayers.Num() == 0) return;
 
-		UFishingComponent* FishingComponent = Character->GetFishing();
-		if (!FishingComponent) return;
+	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+	if (!LocalPlayer) return;
 
-		// Check the current fishing state before applying instant fishing logic
-		EFishingState_NEW FishingState = static_cast<EFishingState_NEW>(FishingComponent->GetFishingState());
-		if (FishingState == EFishingState_NEW::Bite) {
-			// Setup the end context for fishing
-			FFishingEndContext Context;
-			Context.Result = EFishingMiniGameResult::Success;
-			Context.Perfect = Overlay->bPerfectCatch;
-			Context.DurabilityReduction = 0;
-			Context.SourceWaterBody = nullptr;
-			Context.bUsedMultiplayerHelp = false;
-			Context.StartRodHealth = Overlay->StartRodHealth;
-			Context.EndRodHealth = Overlay->EndRodHealth;
-			Context.StartFishHealth = Overlay->StartFishHealth;
-			Context.EndFishHealth = Overlay->EndFishHealth;
+	APlayerController* PlayerController = LocalPlayer->PlayerController;
+	if (!PlayerController) return;
 
-			// End fishing with the provided context
-			FishingComponent->RpcServer_EndFishing(Context);
-			FishingComponent->SetFishingState(EFishingState_OLD::None);
+	const auto ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+	if (!ValeriaController) return;
 
-			if (Overlay->bDoInstantSellFish) {
-				UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
-				UInventoryComponent* InventoryComponent = Character->GetInventory();
+	const AValeriaCharacter* Character = ValeriaController->GetValeriaCharacter();
+	if (!Character) return;
 
-				// Sell all fishing & junk EItemCategory Types from all inventory slots when instant fishing
-				if (StoreComponent && InventoryComponent) {
-					for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
-						for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
-							FBagSlotLocation Slot{ BagIndex, SlotIndex };
-							FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
-							if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
-								StoreComponent->RpcServer_SellItem(Slot, 10);
-							}
+	UFishingComponent* FishingComponent = Character->GetFishing();
+	if (!FishingComponent) return;
+
+	const auto FishingState = static_cast<EFishingState_NEW>(FishingComponent->GetFishingState());
+	if (FishingState == EFishingState_NEW::Bite) {
+		FFishingEndContext Context;
+		Context.Result = EFishingMiniGameResult::Success;
+		Context.Perfect = Overlay->bPerfectCatch;
+		Context.DurabilityReduction = 0;
+		Context.SourceWaterBody = nullptr;
+		Context.bUsedMultiplayerHelp = false;
+		Context.StartRodHealth = Overlay->StartRodHealth;
+		Context.EndRodHealth = Overlay->EndRodHealth;
+		Context.StartFishHealth = Overlay->StartFishHealth;
+		Context.EndFishHealth = Overlay->EndFishHealth;
+
+		FishingComponent->RpcServer_EndFishing(Context);
+		FishingComponent->SetFishingState(EFishingState_OLD::None);
+
+		if (Overlay->bDoInstantSellFish) {
+			UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
+			UInventoryComponent* InventoryComponent = Character->GetInventory();
+
+			if (StoreComponent && InventoryComponent) {
+				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
+					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
+						FBagSlotLocation Slot{ BagIndex, SlotIndex };
+						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
+						if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
+							StoreComponent->RpcServer_SellItem(Slot, 10);
 						}
 					}
 				}
 			}
-			// Discard Waterlogged chests when fishing
-			if (Overlay->bDestroyCustomizationFishing) {
-				ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
-			}
-
 		}
-		else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) {	
-			return;
+		
+		if (Overlay->bDestroyCustomizationFishing) {
+			ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
 		}
 	}
 
-	// Logic for Noclip
-	if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
+	//else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) 
+}
 
-		auto World = GetWorld();
+void Func_DoNoClip(PaliaOverlay* Overlay) {
+	if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
+		const auto World = GetWorld();
 		if (!World) return;
-		
-		auto GameInstance = World->OwningGameInstance;
+
+		const auto GameInstance = World->OwningGameInstance;
 		if (!GameInstance) return;
+
 		if (GameInstance->LocalPlayers.Num() == 0) return;
-		
-		ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
+
+		const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
 		if (!LocalPlayer) return;
-		
-		APlayerController* PlayerController = LocalPlayer->PlayerController;
+
+		const APlayerController* PlayerController = LocalPlayer->PlayerController;
 		if (!PlayerController) return;
-		
-		AValeriaCharacter* Character = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
+
+		const AValeriaCharacter* Character = static_cast<AValeriaCharacter*>(PlayerController->K2_GetPawn());
 		if (!Character) return;
 		
 		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
@@ -971,15 +955,15 @@ static void DrawHUD(const AHUD* HUD) {
 		if (Overlay->bEnableNoclip) {
 			MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
 			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		}
-		else {
+		} else {
 			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
 			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 			Character->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 		}
-
-		Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
 	}
+
+	Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
+
 	// Logic for Noclip Camera
 	if (Overlay->bEnableNoclip) {
 		if (!IsGameWindowActive()) return;
@@ -1048,7 +1032,35 @@ static void DrawHUD(const AHUD* HUD) {
 		FHitResult HitResult;
 		Character->K2_SetActorLocation(Character->K2_GetActorLocation() + MovementDelta, false, &HitResult, false);
 	}
+}
 
+static void DrawHUD(const AHUD* HUD) {
+	PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
+
+	// Remove Gates Logic
+	Func_DoRemoveGates(Overlay);
+
+	ManageActorCache(GetWorld(), Overlay);
+	ClearActorCache(GetWorld(), Overlay);
+
+	// Persistent Movement Logic
+	Func_DoPersistentMovement(Overlay);
+
+	// Logic for ESP Drawing & FOV Circle/Line
+	Func_DoESP(Overlay, HUD);
+
+	// Logic For InteliTargeting Updates (FOV)
+	Func_DoInteliAim(Overlay);
+
+	// Auto Fishing Logic
+	Func_DoAutoFishing(Overlay);
+
+	// Logic for Fishing-Related Actions
+	Func_DoInstantFishing(Overlay);
+
+	// Logic for Noclip
+	Func_DoNoClip(Overlay);
+	
 	// Housing Place Anywhere Logic
 	if (Overlay->bPlaceAnywhere) {
 		SetCanPlaceHereTrue();
