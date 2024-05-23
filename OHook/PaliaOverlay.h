@@ -161,7 +161,7 @@ enum class EOneOffs
 	MAX
 };
 
-struct FEntry
+const struct FEntry
 {
 	AActor* Actor;
 	FVector WorldPosition;
