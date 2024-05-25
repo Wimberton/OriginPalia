@@ -197,7 +197,7 @@ namespace SDKExt
 {
 	// Define TWeakObjectPtr in the SDK namespace
 	template<typename UEType>
-	class TWeakObjectPtr : public FWeakObjectPtr
+	class TWeakObjectPtr : public SDK::FWeakObjectPtr
 	{
 	public:
 		TWeakObjectPtr() : FWeakObjectPtr() {}

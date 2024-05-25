@@ -26,6 +26,139 @@
 using namespace VectorMath;
 using namespace SDK;
 
+struct GameContext {
+	UWorld* World;
+	UGameplayStatics* GameplayStatics;
+	UGameInstance* GameInstance;
+	APlayerController* PlayerController;
+	AValeriaPlayerController* ValeriaController;
+	APawn* ValeriaPawn;
+	AValeriaCharacter* ValeriaCharacter;
+	UValeriaCharacterMoveComponent* MovementComponent;
+	UFishingComponent* FishingComponent;
+	UPlacementComponent* PlacementComponent;
+	UProjectileFiringComponent* FiringComponent;
+	
+	GameContext()
+		: World(nullptr)
+		  , GameplayStatics(nullptr)
+		  , GameInstance(nullptr)
+		  , PlayerController(nullptr)
+		  , ValeriaController(nullptr)
+		  , ValeriaPawn(nullptr)
+		  , ValeriaCharacter(nullptr)
+		  , MovementComponent(nullptr)
+		  , FishingComponent(nullptr)
+	      , PlacementComponent(nullptr)
+	      , FiringComponent(nullptr){}
+
+	void Reset() {
+		World = nullptr;
+		GameplayStatics = nullptr;
+		GameInstance = nullptr;
+		PlayerController = nullptr;
+		ValeriaController = nullptr;
+		ValeriaPawn = nullptr;
+		ValeriaCharacter = nullptr;
+		FishingComponent = nullptr;
+		PlacementComponent = nullptr;
+		FiringComponent = nullptr;
+	}
+
+	bool Get() {
+		if (!World) {
+			World = GetWorld();
+			if (!World) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!GameplayStatics) {
+			GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+			if (!GameplayStatics) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!GameInstance) {
+			GameInstance = World->OwningGameInstance;
+			if (GameInstance->LocalPlayers.Num() == 0) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!PlayerController) {
+			PlayerController = GameInstance->LocalPlayers[0]->PlayerController;
+			if (!PlayerController) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!ValeriaController) {
+			ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+			if (!ValeriaController) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!ValeriaPawn) {
+			ValeriaPawn = ValeriaController->K2_GetPawn();
+			if (!ValeriaPawn) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!ValeriaCharacter) {
+			ValeriaCharacter = ValeriaController->GetValeriaCharacter();
+			if (!ValeriaCharacter) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!MovementComponent) {
+			MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+			if (!ValeriaCharacter) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!FishingComponent) {
+			FishingComponent = ValeriaCharacter->GetFishing();
+			if (!FishingComponent) {
+				Reset();
+				return false;
+			}
+		}
+		
+		if (!PlacementComponent) {
+			PlacementComponent = ValeriaCharacter->GetPlacement();
+			if (!PlacementComponent) {
+				Reset();
+				return false;
+			}
+		}
+
+		if (!FiringComponent) {
+			FiringComponent = ValeriaCharacter->GetFiringComponent();
+			if (!FiringComponent) {
+				Reset();
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+};
+
 std::map<int, std::string> PaliaOverlay::CreatureQualityNames = {
 	{0, "Unknown"},
 	{1, "T1"},
@@ -49,92 +182,6 @@ std::map<int, std::string> PaliaOverlay::GatherableSizeNames = {
 	{4, "Bush"}
 };
 
-template<typename SearchType>
-SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
-	SearchType T = (SearchType)0;
-	for (auto& Entry : map)
-	{
-		bool bFound = false;
-
-		for (auto& Str : Entry.second) {
-			if (Text.find(Str) != std::string::npos) {
-				T = Entry.first;
-				bFound = true;
-				break;
-			}
-		}
-
-		if (bFound)
-			break;
-	}
-	return T;
-}
-
-template<typename SearchType>
-SearchType GetFlagSingleEnd(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
-	SearchType T = (SearchType)0;
-	for (auto& Entry : map)
-	{
-		bool bFound = false;
-
-		for (auto& Str : Entry.second) {
-			if (Text.ends_with(Str)) {
-				T = Entry.first;
-				bFound = true;
-				break;
-			}
-		}
-
-		if (bFound)
-			break;
-	}
-	return T;
-}
-
-template<typename SearchType>
-SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
-	SearchType T = (SearchType)0;
-	for (auto& Entry : map)
-	{
-		for (auto& Str : Entry.second) {
-			if (Text.find(Str) != std::string::npos) {
-				T |= Entry.first;
-			}
-		}
-	}
-	return T;
-}
-
-template <size_t size_x>
-bool AnyTrue(bool(&arr)[size_x]) {
-	for (int x = 0; x < size_x; x++) {
-		if (arr[x]) return true;
-	}
-	return false;
-}
-
-template <size_t size_x, size_t size_y>
-bool AnyTrue2D(bool(&arr)[size_x][size_y]) {
-	for (int x = 0; x < size_x; x++) {
-		for (int y = 0; y < size_y; y++) {
-			if (arr[x][y]) return true;
-		}
-	}
-	return false;
-}
-
-template <size_t size_x, size_t size_y, size_t size_z>
-bool AnyTrue3D(bool(&arr)[size_x][size_y][size_z]) {
-	for (int x = 0; x < size_x; x++) {
-		for (int y = 0; y < size_y; y++) {
-			for (int z = 0; z < size_z; z++) {
-				if (arr[x][y][z]) return true;
-			}
-		}
-	}
-	return false;
-}
-
 void PaliaOverlay::SetupColors() {
 	// Forageable colors
 	for (int pos : ForageableCommon) {
@@ -151,109 +198,272 @@ void PaliaOverlay::SetupColors() {
 	}
 
 	// Animal colors
-	for (int i = 0; i < (int)ECreatureKind::MAX; i++) {
-		AnimalColors[i][(int)ECreatureQuality::Tier1] = IM_COL32(0xCD, 0xCD, 0xCD, 0xFF); // Light Gray
-		AnimalColors[i][(int)ECreatureQuality::Tier2] = IM_COL32(0x32, 0xCD, 0x32, 0xFF); // Lime Green
-		AnimalColors[i][(int)ECreatureQuality::Tier3] = IM_COL32(0x1E, 0x90, 0xFF, 0xFF); // Dodger Blue
-		AnimalColors[i][(int)ECreatureQuality::Chase] = IM_COL32(0xFF, 0xD7, 0x00, 0xFF); // Gold
+	for (auto& AnimalColor : AnimalColors) {
+		AnimalColor[static_cast<int>(ECreatureQuality::Tier1)] = IM_COL32(0xCD, 0xCD, 0xCD, 0xFF); // Light Gray
+		AnimalColor[static_cast<int>(ECreatureQuality::Tier2)] = IM_COL32(0x32, 0xCD, 0x32, 0xFF); // Lime Green
+		AnimalColor[static_cast<int>(ECreatureQuality::Tier3)] = IM_COL32(0x1E, 0x90, 0xFF, 0xFF); // Dodger Blue
+		AnimalColor[static_cast<int>(ECreatureQuality::Chase)] = IM_COL32(0xFF, 0xD7, 0x00, 0xFF); // Gold
 	}
 
 	// Bug colors
-	for (int i = 0; i < (int)EBugKind::MAX; i++) {
-		BugColors[i][(int)EBugQuality::Common] = IM_COL32(0xCD, 0xCD, 0xCD, 0xFF); // Light Gray
-		BugColors[i][(int)EBugQuality::Uncommon] = IM_COL32(0x32, 0xCD, 0x32, 0xFF); // Lime Green
-		BugColors[i][(int)EBugQuality::Rare] = IM_COL32(0x1E, 0x90, 0xFF, 0xFF); // Dodger Blue
-		BugColors[i][(int)EBugQuality::Rare2] = IM_COL32(0x00, 0xBF, 0xFF, 0xFF); // Deep Sky Blue
-		BugColors[i][(int)EBugQuality::Epic] = IM_COL32(0xFF, 0xD7, 0x00, 0xFF); // Gold
+	for (auto& BugColor : BugColors) {
+		BugColor[static_cast<int>(EBugQuality::Common)] = IM_COL32(0xCD, 0xCD, 0xCD, 0xFF); // Light Gray
+		BugColor[static_cast<int>(EBugQuality::Uncommon)] = IM_COL32(0x32, 0xCD, 0x32, 0xFF); // Lime Green
+		BugColor[static_cast<int>(EBugQuality::Rare)] = IM_COL32(0x1E, 0x90, 0xFF, 0xFF); // Dodger Blue
+		BugColor[static_cast<int>(EBugQuality::Rare2)] = IM_COL32(0x00, 0xBF, 0xFF, 0xFF); // Deep Sky Blue
+		BugColor[static_cast<int>(EBugQuality::Epic)] = IM_COL32(0xFF, 0xD7, 0x00, 0xFF); // Gold
 	}
 
 	// Player & Entities colors
-	SingleColors[(int)EOneOffs::Player] = IM_COL32(0xFF, 0x63, 0x47, 0xFF); // Tomato Red
-	SingleColors[(int)EOneOffs::NPC] = IM_COL32(0xDE, 0xB8, 0x87, 0xFF); // Burly Wood
-	SingleColors[(int)EOneOffs::Loot] = IM_COL32(0xEE, 0x82, 0xEE, 0xFF); // Violet
-	SingleColors[(int)EOneOffs::Quest] = IM_COL32(0xFF, 0xA5, 0x00, 0xFF); // Orange
-	SingleColors[(int)EOneOffs::RummagePiles] = IM_COL32(0xFF, 0x45, 0x00, 0xFF); // Orange Red
-	SingleColors[(int)EOneOffs::Others] = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF); // White
+	SingleColors[static_cast<int>(EOneOffs::Player)] = IM_COL32(0xFF, 0x63, 0x47, 0xFF); // Tomato Red
+	SingleColors[static_cast<int>(EOneOffs::NPC)] = IM_COL32(0xDE, 0xB8, 0x87, 0xFF); // Burly Wood
+	SingleColors[static_cast<int>(EOneOffs::Loot)] = IM_COL32(0xEE, 0x82, 0xEE, 0xFF); // Violet
+	SingleColors[static_cast<int>(EOneOffs::Quest)] = IM_COL32(0xFF, 0xA5, 0x00, 0xFF); // Orange
+	SingleColors[static_cast<int>(EOneOffs::RummagePiles)] = IM_COL32(0xFF, 0x45, 0x00, 0xFF); // Orange Red
+	SingleColors[static_cast<int>(EOneOffs::Others)] = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF); // White
 
 	// Define a different color for Stables
-	SingleColors[(int)EOneOffs::Stables] = IM_COL32(0x8B, 0x45, 0x13, 0xFF); // Saddle Brown
+	SingleColors[static_cast<int>(EOneOffs::Stables)] = IM_COL32(0x8B, 0x45, 0x13, 0xFF); // Saddle Brown
 };
 
 std::vector<std::string> debugger;
 
-#define STATIC_CLASS(CName)						\
-{												\
-	static class UClass* Clss = nullptr;		\
-	if (!Clss || !Clss->IsValidLowLevel())		\
-		Clss = UObject::FindClassFast(CName);	\
-	SearchClass = Clss;							\
-}
-#define STATIC_CLASS_MULT(CName)				\
-{												\
-	static class UClass* Clss = nullptr;		\
-	if (!Clss || !Clss->IsValidLowLevel())		\
-		Clss = UObject::FindClassFast(CName);	\
-	SearchClasses.push_back(Clss);				\
-}
 
-static void(__fastcall* OriginalProcEvent)(const UObject*, class UFunction*, void*);
+
+//static void(__fastcall* OriginalProcEvent)(const UObject*, class UFunction*, void*);
 static void* HookedClient = nullptr;
-static void* vmt = nullptr;
 static std::unordered_set<std::string> invocations;
 static UFont* Roboto = nullptr;
-bool SortByName(const FEntry& a, const FEntry& b) {
-	return a.DisplayName < b.DisplayName;
-}
-bool IsGameWindowActive() {
-	HWND foregroundWindow = GetForegroundWindow();
-	// You may need to adjust the class name or window title to match your game
-	TCHAR windowClassName[256];
-	GetClassName(foregroundWindow, windowClassName, sizeof(windowClassName) / sizeof(TCHAR));
-	return _tcscmp(windowClassName, TEXT("UnrealWindow")) == 0;
-}
 
-// Housing Placement Modification Logic
-void SetCanPlaceHereTrue() {
+GameContext PaliaContext;
 
-	auto World = GetWorld();
-	if (!World) return;
+// Global variable declaration
+void (__fastcall *OriginalProcessEvent)(const UObject*, UFunction*, void*);
 
-	auto GameInstance = World->OwningGameInstance;
-	if (!GameInstance) return;
 
-	if (GameInstance->LocalPlayers.Num() == 0) return;
-
-	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-	if (!LocalPlayer) return;
-
-	APlayerController* PlayerController = LocalPlayer->PlayerController;
-	if (!PlayerController) return;
-
-	AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-	if (!ValeriaCharacter) return;
-
-	UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
-	if (!PlacementComponent) return;
-
-	// Set CanPlaceHere to true
-	PlacementComponent->CanPlaceHere = true;
-}
-
-// Logic for Updating InteliFOV information
-void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* ValeriaController, APawn* PlayerPawn, AValeriaCharacter* Character) {
-	auto Overlay = dynamic_cast<PaliaOverlay*>(OverlayBase::Instance);
+// Others //
+void Func_DoRemoveGates() {
+	if (!PaliaContext.Get()) return;
 	
-	FVector PawnLocation = PlayerPawn->K2_GetActorLocation();
-	FRotator PawnRotation = PlayerPawn->GetControlRotation();
+	std::vector<UClass*> SearchClasses;
+	STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C")
+	STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C")
+
+	for (const std::vector<AActor*> Actors = FindAllActorsOfTypes(PaliaContext.World, SearchClasses); AActor* Actor : Actors) {
+		//FVector GatePurgatory = {0.0, 0.0, -2000.0};
+		//FHitResult HitResult;
+		//Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
+		Actor->K2_DestroyActor();
+	}
+}
+
+void Func_DoTeleportLoot(const PaliaOverlay* Overlay) {
+	if (!Overlay->bEnableLootbagTeleportation || !PaliaContext.Get()) return;
+	
+	UClass* SearchClass;
+	STATIC_CLASS("BP_Loot_C")
+
+	for (const std::vector<AActor*> Actors = FindAllActorsOfType(PaliaContext.World, SearchClass); AActor* Actor : Actors) {
+		// NOTE: This needs a way compare if the loot isn't ores, for now this will do
+		FHitResult HitResult;
+		FVector Loc = PaliaContext.ValeriaPawn->K2_GetActorLocation();
+
+		Loc.Z += 130;
+		Actor->K2_SetActorLocation(Loc, false, &HitResult, true);
+	}
+}
+
+// Movement //
+void Func_DoNoClip(PaliaOverlay* Overlay) {
+	if (!PaliaContext.MovementComponent || !PaliaContext.MovementComponent->IsValidLowLevel() || PaliaContext.MovementComponent->IsDefaultObject()) return;
+	
+	if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
+		if (Overlay->bEnableNoclip) {
+			PaliaContext.MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
+			PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		} else {
+			PaliaContext.MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
+			PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+			PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		}
+	}
+
+	Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
+
+	// Logic for Noclip Camera
+	if (Overlay->bEnableNoclip) {
+		if (!IsGameWindowActive()) return;
+		
+		// Calculate forward and right vectors based on the camera's yaw
+		const FRotator& CameraRot = PaliaContext.ValeriaController->PlayerCameraManager->GetCameraRotation();
+		
+		FVector CameraForward = UKismetMathLibrary::GetForwardVector(CameraRot);
+		FVector CameraRight = UKismetMathLibrary::GetRightVector(CameraRot);
+		constexpr FVector CameraUp = {0.f, 0.f, 1.f};
+
+		CameraForward.Normalize();
+		CameraRight.Normalize();
+
+		FVector MovementDirection= {0.f, 0.f, 0.f};
+		constexpr float FlySpeed = 800.0f;
+
+		if (IsKeyHeld('W')) {
+			MovementDirection += CameraForward * FlySpeed;
+		}
+		if (IsKeyHeld('S')) {
+			MovementDirection -= CameraForward * FlySpeed;
+		}
+		if (IsKeyHeld('D')) {
+			MovementDirection += CameraRight * FlySpeed;
+		}
+		if (IsKeyHeld('A')) {
+			MovementDirection -= CameraRight * FlySpeed;
+		}
+		if (IsKeyHeld(VK_SPACE)) {
+			MovementDirection += CameraUp * FlySpeed;
+		}
+		if (IsKeyHeld(VK_CONTROL)) {
+			MovementDirection -= CameraUp * FlySpeed;
+		}
+
+		// Normalize the total movement direction
+		MovementDirection.Normalize();
+		MovementDirection *= FlySpeed;
+
+		// Time delta
+		constexpr float DeltaTime = 1.0f / 60.0f;  // Assuming 60 FPS
+
+		const FVector MovementDelta = MovementDirection * DeltaTime;
+
+		// Update character position
+		FHitResult HitResult;
+		PaliaContext.ValeriaCharacter->K2_SetActorLocation(PaliaContext.ValeriaCharacter->K2_GetActorLocation() + MovementDelta, false, &HitResult, false);
+	}
+}
+
+void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
+	if (!PaliaContext.MovementComponent || !PaliaContext.MovementComponent->IsValidLowLevel() || PaliaContext.MovementComponent->IsDefaultObject()) return;
+	
+	PaliaContext.MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
+	PaliaContext.MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
+	PaliaContext.MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
+	PaliaContext.MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
+	PaliaContext.MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
+	PaliaContext.MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
+	PaliaContext.MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
+}
+
+// Placement Hooks //
+void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
+	if (!PaliaContext.PlacementComponent || !PaliaContext.PlacementComponent->IsValidLowLevel() || PaliaContext.PlacementComponent->IsDefaultObject()) return;
+
+	PaliaContext.PlacementComponent->CanPlaceHere = Overlay->bPlaceAnywhere;
+}
+
+// Fishing Hooks //
+void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
+	if (!PaliaContext.FishingComponent || !PaliaContext.FishingComponent->IsValidLowLevel() || PaliaContext.FishingComponent->IsDefaultObject()) return;
+	
+	if(Overlay->bEnableInstantFishing ) {
+		if (static_cast<EFishingState_NEW>(PaliaContext.FishingComponent->GetFishingState()) == EFishingState_NEW::Bite) {
+			FFishingEndContext Context;
+			Context.Result = EFishingMiniGameResult::Success;
+			Context.Perfect = Overlay->bPerfectCatch;
+			Context.DurabilityReduction = 0;
+			Context.SourceWaterBody = nullptr;
+			Context.bUsedMultiplayerHelp = false;
+			Context.StartRodHealth = Overlay->StartRodHealth;
+			Context.EndRodHealth = Overlay->EndRodHealth;
+			Context.StartFishHealth = Overlay->StartFishHealth;
+			Context.EndFishHealth = Overlay->EndFishHealth;
+
+			PaliaContext.FishingComponent->RpcServer_EndFishing(Context);
+			PaliaContext.FishingComponent->SetFishingState(EFishingState_OLD::None);
+
+			if (Overlay->bDoInstantSellFish) {
+				UVillagerStoreComponent* StoreComponent =  PaliaContext.ValeriaCharacter->StoreComponent;
+				UInventoryComponent* InventoryComponent =  PaliaContext.ValeriaCharacter->GetInventory();
+
+				if (StoreComponent && InventoryComponent) {
+					for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
+						for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
+							FBagSlotLocation Slot{ BagIndex, SlotIndex };
+							FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
+							if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
+								StoreComponent->RpcServer_SellItem(Slot, 10);
+							}
+						}
+					}
+				}
+			}
+		
+			if (Overlay->bDestroyCustomizationFishing) {
+				PaliaContext.ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
+			}
+		}
+	}
+	
+	if(Overlay->bEnableAutoFishing ) {
+		if (PaliaContext.ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+			if (!Overlay->bRequireClickFishing || IsKeyHeld(VK_LBUTTON)) {
+				PaliaContext.ValeriaCharacter->ToolPrimaryActionPressed();
+				PaliaContext.ValeriaCharacter->ToolPrimaryActionReleased();
+			}
+		}
+	}
+	
+}
+
+// Function to clear cache based on the game state
+void ClearActorCache(PaliaOverlay* Overlay) {
+	if (!PaliaContext.Get()) return;
+	
+	// Clear cache on level change
+	if (Overlay->CurrentLevel != PaliaContext.World->PersistentLevel) {
+		Overlay->CachedActors.clear();
+		Overlay->CurrentLevel = PaliaContext.World->PersistentLevel;
+		Overlay->CurrentMap = UGameplayStatics::GetCurrentLevelName(PaliaContext.World, false).ToString();
+	}
+}
+
+// Function to manage cache outside of general functions
+void ManageActorCache(PaliaOverlay* Overlay) {
+	if (!PaliaContext.Get()) return;
+	
+	if (const double WorldTime = UGameplayStatics::GetTimeSeconds(PaliaContext.World); abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
+		Overlay->LastCachedTime = WorldTime;
+		Overlay->ProcessActors(Overlay->ActorStep);
+
+		Overlay->ActorStep++;
+		if (Overlay->ActorStep >= static_cast<int>(EType::MAX)) {
+			Overlay->ActorStep = 0;
+		}
+	}
+}
+
+// Creation of the InteliFOV Circle
+void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegments, const FLinearColor Color, const float Thickness = 1.0f) {
+	// Calculate screen center more accurately
+	const FVector2D ScreenCenter(static_cast<double>(Canvas->ClipX) / 2.0,static_cast<double>(Canvas->ClipY) / 2.0);
+	
+	const double Increment = 360.0 / static_cast<double>(NumSegments);
+	FVector2D LastPos = {ScreenCenter.X + Radius, ScreenCenter.Y};
+
+	for (int i = 1; i <= NumSegments; i++) {
+		const double Rad = CustomMath::DegreesToRadians(Increment * static_cast<double>(i));
+		FVector2D NewPos = {ScreenCenter.X + Radius * cos(Rad), ScreenCenter.Y + Radius * sin(Rad)};
+		Canvas->K2_DrawLine(LastPos, NewPos, Thickness, Color);
+		LastPos = NewPos;
+	}
+}
+
+void Func_DoInteliAim(PaliaOverlay* Overlay) {
+	if (!(Overlay->bEnableAimbot || Overlay->bDrawFOVCircle) || !PaliaContext.Get()) return;
+	
+	FVector PawnLocation = PaliaContext.ValeriaPawn->K2_GetActorLocation();
+	FRotator PawnRotation = PaliaContext.ValeriaPawn->GetControlRotation();
 	FVector ForwardVector = UKismetMathLibrary::GetForwardVector(PawnRotation);
 	double BestScore = FLT_MAX;  // Using a scoring system based on various factors such as distance, area fov, prediction
-
-	// FVector BestTargetLocation;
-	// FRotator BestTargetRotation;
-	//
-	// FVector AdjustedTargetLocation;
-	// FVector DirectionToBestActor;
-	// FRotator NewRotation;
 
 	for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
 		if (!Actor) continue;
@@ -307,7 +517,7 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 		FVector ActorLocation = Actor->K2_GetActorLocation();
 		FVector DirectionToActor = (ActorLocation - PawnLocation).GetNormalized();
 		FVector TargetVelocity = Actor->GetVelocity();
-		FVector RelativeVelocity = TargetVelocity - PlayerPawn->GetVelocity();
+		FVector RelativeVelocity = TargetVelocity - PaliaContext.ValeriaPawn->GetVelocity();
 		FVector RelativeDirection = RelativeVelocity.GetNormalized();
 			
 		double Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
@@ -316,7 +526,6 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 		FVector PredictedLocation = ActorLocation + TargetVelocity * TimeToTarget; // Predictive aiming
 
 		if (ActorLocation.X == 0 && ActorLocation.Y == 0 && ActorLocation.Z == 0) continue;
-		// double Distance = sqrt(pow(PawnLocation.X - ActorLocation.X, 2) + pow(PawnLocation.Y - ActorLocation.Y, 2) + pow(PawnLocation.Z - ActorLocation.Z, 2)) * 0.01;
 
 		if (Distance < 2.0) continue;
 		if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance) continue;
@@ -349,15 +558,9 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 		}
 			
 		// Calculate score based on weighted sum of factors
-		// double Score = (AngleWeight * Angle) + (DistanceWeight * Distance / 100.0) + (MovementWeight * RelativeDirection.Magnitude());
-		double Score = (AngleWeight * Angle) + (DistanceWeight * Distance) + (MovementWeight * RelativeDirection.Magnitude());
-
-		if (Angle <= FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
+		if (double Score = AngleWeight * Angle + (DistanceWeight * Distance) + (MovementWeight * RelativeDirection.Magnitude()); Angle <= Overlay->FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
 			if (Score < BestScore) {
 				BestScore = Score;
-				FRotator CurrentRotation = ValeriaController->GetControlRotation();
-				FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, ActorLocation);
-				FRotator NewRotation = CustomMath::RInterpTo(CurrentRotation, TargetRotation, UGameplayStatics::GetWorldDeltaSeconds(World), Overlay->SmoothingFactor);
 				Overlay->BestTargetActor = Actor;
 				Overlay->BestTargetActorType = ActorType;
 				Overlay->BestTargetLocation = ActorLocation;
@@ -380,17 +583,11 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 				if (shouldTeleport) {
 					// Teleportation logic
 					FVector TargetLocation = Overlay->BestTargetLocation;
-					FVector ActorLocation = PlayerPawn->K2_GetActorLocation();
-
-					FVector Direction = (TargetLocation - ActorLocation).GetNormalized(); // UKismetMathLibrary, calculate cross product
-					FVector UpVector = FVector(0, 0, 1); // Z-axis up vector
-					//FVector SideOffset = UKismetMathLibrary::Cross_VectorVector(Direction, UpVector).GetNormalized() * 100.0f;
 
 					TargetLocation.Z += 150.0f; // Raise by 150 units in the Z direction
-					//FVector NewLocation = TargetLocation + SideOffset;
 
 					FHitResult HitResult;
-					PlayerPawn->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
+					PaliaContext.ValeriaPawn->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
 					Overlay->LastTeleportToTargetTime = now;
 				}
 			}
@@ -401,8 +598,7 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 	if (Overlay->bEnableAimbot && !Overlay->ShowOverlay()) {
 		if (IsKeyHeld(VK_LBUTTON) && BestScore != FLT_MAX) {
 			// Only aimbot when a bow is equipped
-			bool bowEquipped = Character->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos;
-			if (bowEquipped) {
+			if (PaliaContext.ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos) {
 				bool IsAnimal = false;
 				for (FEntry& Entry : Overlay->CachedActors) {
 					if (Entry.shouldAdd && Entry.ActorType == EType::Animal && Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
@@ -416,737 +612,282 @@ void UpdateInteliAim(float FOVRadius, UWorld* World, AValeriaPlayerController* V
 				// Adjust the aim rotation only if the selected best target is an animal
 				if (IsAnimal) {
 					// Apply offset to pitch and yaw directly
-					float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(World);
 					FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(PawnLocation, Overlay->BestTargetLocation);
 					TargetRotation.Pitch += Overlay->AimOffset.X;
 					TargetRotation.Yaw += Overlay->AimOffset.Y;
 
 					// Smooth rotation adjustment
-					float InvertedSmoothing = 100.0f / Overlay->SmoothingFactor;
-					FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
-					// FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, DeltaTime, InvertedSmoothing);
-					ValeriaController->SetControlRotation(NewRotation);
+					FRotator NewRotation = CustomMath::RInterpTo(PawnRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(PaliaContext.World), Overlay->SmoothingFactor);
+					PaliaContext.ValeriaController->SetControlRotation(NewRotation);
 				}
 			}
 		}
 	}
 }
 
-// Creation of the InteliFOV Circle
-void DrawCircle(UCanvas* Canvas, FVector2D Center, float Radius, int32 NumSegments, FLinearColor Color, float Thickness = 1.0f) {
-	// Calculate screen center more accurately
-	FVector2D ScreenCenter(Canvas->ClipX / 2, Canvas->ClipY / 2);
-
-	float Increment = 360.0f / NumSegments;
-	FVector2D LastPos = FVector2D(ScreenCenter.X + Radius, ScreenCenter.Y);
-
-	for (int i = 1; i <= NumSegments; i++) {
-		float Rad = CustomMath::DegreesToRadians(Increment * i);
-		FVector2D NewPos = FVector2D(ScreenCenter.X + Radius * cos(Rad), ScreenCenter.Y + Radius * sin(Rad));
-		Canvas->K2_DrawLine(LastPos, NewPos, Thickness, Color);
-		LastPos = NewPos;
-	}
-}
-
-// Function to clear cache based on the game state
-void ClearActorCache(PaliaOverlay* Overlay, const UWorld* World) {
-	// Clear cache on level change
-	if (Overlay->CurrentLevel != World->PersistentLevel) {
+void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
+	if (!Overlay->bEnableESP || !PaliaContext.Get()) {
 		Overlay->CachedActors.clear();
-		Overlay->CurrentLevel = World->PersistentLevel;
-		Overlay->CurrentMap = UGameplayStatics::GetCurrentLevelName(World, false).ToString();
+		return;
 	}
-}
-
-// Function to manage cache outside of general functions
-void ManageActorCache(PaliaOverlay* Overlay, const UWorld* World) {
-	if (const double WorldTime = UGameplayStatics::GetTimeSeconds(World); abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
-		Overlay->LastCachedTime = WorldTime;
-		Overlay->ProcessActors(Overlay->ActorStep);
-
-		Overlay->ActorStep++;
-		if (Overlay->ActorStep >= static_cast<int>(EType::MAX)) {
-			Overlay->ActorStep = 0;
-		}
-	}
-}
-
-// Function to convert std::vector<FEntry> to TArray<FEntry>
-TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
-	TArray<FEntry> TArrayEntries;
-	for (const auto& Entry : VectorEntries) {
-		TArrayEntries.Add(Entry);
-	}
-	return TArrayEntries;
-}
-
-
-// HACK LOGICS //
-void Func_DoRemoveGates(const PaliaOverlay* Overlay, UWorld* World) {
-	if (!Overlay->bRemoveGates) return;
-	
-	std::vector<UClass*> SearchClasses;
-
-	STATIC_CLASS_MULT("BP_Stables_FrontGate_01_C")
-	STATIC_CLASS_MULT("BP_Stables_FrontGate_02_C")
-
-	for (const std::vector<AActor*> Actors = FindAllActorsOfTypes(World, SearchClasses); AActor* Actor : Actors) {
-		FVector GatePurgatory = {0.0, 0.0, -2000.0};
-		FHitResult HitResult;
-		Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
-	}
-}
-
-void Func_DoInteliAim(const PaliaOverlay* Overlay, UWorld* World, AValeriaPlayerController* const ValeriaController, APawn* PlayerPawn, AValeriaCharacter* Character) {
-	if (!Overlay->bEnableAimbot && !Overlay->bDrawFOVCircle) return;
-
-	UpdateInteliAim(Overlay->FOVRadius, World, ValeriaController, PlayerPawn, Character);
-}
-
-void Func_DoPersistentMovement(const PaliaOverlay* Overlay, const AValeriaCharacter* Character) {
-	if (!Overlay->bEnablePersistantMovement) return;
-	
-	UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
-	if (!MovementComponent) return;
-
-	if (MovementComponent->IsValidLowLevel() && !MovementComponent->IsDefaultObject()) {
-		MovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
-		MovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
-		MovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
-		MovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
-		MovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
-		MovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
-		MovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
-	}
-}
-
-void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD, AValeriaPlayerController* const ValeriaController, APawn* PlayerPawn, AValeriaCharacter* Character) {
-	if (Overlay->bEnableESP) {
-		FVector PawnLocation = PlayerPawn->K2_GetActorLocation();
-
-		// Draw ESP Names Entities
-		for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-			FVector ActorPosition = WorldPosition;
-			if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType == EType::Loot) {
-				if (!Actor) continue;
-				if (!Actor->IsValidLowLevel() || Actor->IsDefaultObject()) continue;
-				ActorPosition = Actor->K2_GetActorLocation();
-			}
-
-			// Shouldn't this be above the ActorPosition.Z change?? (Changed for now)
-			// HACK: Skip actors that return [0,0,0] due to the hack I had to add to K2_GetActorLocation
-			if (ActorPosition.X == 0 && ActorPosition.Y == 0 && ActorPosition.Z == 0) continue;
-			
-			// Adjust Z coordinate for head-level display
-			float HeightAdjustment = 100.0f; // Adjust this value based on typical actor height
-			ActorPosition.Z += HeightAdjustment;
-
-			double Distance = sqrt(pow(PawnLocation.X - ActorPosition.X, 2) + pow(PawnLocation.Y - ActorPosition.Y, 2) + pow(PawnLocation.Z - ActorPosition.Z, 2)) * 0.01;
-
-			if (Distance < 2.0) continue;
-			if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance) continue;
-
-			// Teleport loot to player mod
-			if (Overlay->bEnableLootbagTeleportation && ActorType == EType::Loot) {
-				FHitResult HitResult;
-				Actor->K2_SetActorLocation(PawnLocation, true, &HitResult, true);
-			}
-
-			FVector2D ScreenLocation;
-			if (ValeriaController->ProjectWorldLocationToScreen(ActorPosition, &ScreenLocation, true)) {
-
-				ImU32 Color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF);
-				bool bShouldDraw = false;
-
-				switch (ActorType) {
-				case EType::Forage:
-					if (Overlay->Forageables[Type][Quality]) {
-						bShouldDraw = true;
-						Color = Overlay->ForageableColors[Type];
-					}
-					break;
-				case EType::Ore:
-					if (Overlay->Ores[Type][Variant]) {
-						bShouldDraw = true;
-						Color = Overlay->OreColors[Type];
-					}
-					break;
-				case EType::Players:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::Player)]) {
-						bShouldDraw = true;
-						Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Player)];
-					}
-					break;
-				case EType::Animal:
-					if (Overlay->Animals[Type][Variant]) {
-						bShouldDraw = true;
-						Color = Overlay->AnimalColors[Type][Variant];
-					}
-					break;
-				case EType::Tree:
-					if (Overlay->Trees[Type][Variant]) {
-						bShouldDraw = true;
-						Color = Overlay->TreeColors[Type];
-					}
-					break;
-				case EType::Bug:
-					if (Overlay->Bugs[Type][Variant][Quality]) {
-						bShouldDraw = true;
-						Color = Overlay->BugColors[Type][Variant];
-					}
-					break;
-				case EType::NPCs:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::NPC)]) {
-						bShouldDraw = true;
-						Color = Overlay->SingleColors[static_cast<int>(EOneOffs::NPC)];
-					}
-					break;
-				case EType::Loot:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::Loot)]) {
-						bShouldDraw = true;
-						Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Loot)];
-					}
-					break;
-				case EType::Quest:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::Quest)]) {
-						bShouldDraw = true;
-						Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Quest)];
-					}
-					break;
-				case EType::RummagePiles:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-						if (auto Pile = static_cast<ATimedLootPile*>(Actor)) {
-							if (Pile->CanGather(Character) && Pile->bActivated) {
-								bShouldDraw = true;
-								Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
-							}
-							else if (Overlay->bVisualizeDefault) {
-								bShouldDraw = true;
-								if (Pile->bActivated) {
-									Color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF);
-								}
-								else {
-									Color = IM_COL32(0xFF, 0x00, 0x00, 0xFF);
-								}
-							}
-						}
-					}
-					break;
-				case EType::Stables:
-					if (Overlay->Singles[static_cast<int>(EOneOffs::Stables)]) {
-						bShouldDraw = true;
-						Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Stables)];
-					}
-					break;
-				case EType::Fish:
-					if (Overlay->Fish[Type]) {
-						bShouldDraw = true;
-						Color = Overlay->FishColors[Type];
-					}
-					break;
-				default:
-					break;
-				}
-
-				if (Overlay->bVisualizeDefault && Type == 0) bShouldDraw = true;
-				if (!bShouldDraw) continue;
-				if (!Roboto) {
-					Roboto = reinterpret_cast<UFont*>(UObject::FindObject("Font Roboto.Roboto", EClassCastFlags::None));
-				}
-				if (!Roboto) continue;
-
-				// Construct text string
-				std::string qualityName = (Quality > 0) ? PaliaOverlay::GetQualityName(Quality, ActorType) : "";
-
-				// Prepare text with optional parts depending on the index values
-				std::string text = DisplayName;
-				if (!qualityName.empty()) {
-					text += " [" + qualityName + "]";
-				}
-				text += std::format(" [{:.2f}m]", Distance);
-				std::wstring wideText(text.begin(), text.end());
-
-				double BaseScale = 1.0; // Default scale at a reference distance
-				double ReferenceDistance = 100.0; // Distance at which no scaling is applied
-				double ScalingFactor = 0.005; // Determines how much the scale changes with distance
-
-				double DistanceScale;
-				DistanceScale = BaseScale - ScalingFactor * (Distance - ReferenceDistance);
-				DistanceScale = CustomMath::Clamp(DistanceScale, 0.5, BaseScale); // Clamp the scale to a reasonable range
-
-				const FVector2D TextScale = {DistanceScale, DistanceScale};
-				ImColor IMC(Color);
-				FLinearColor TextColor = { IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w };
-
-				// Setup shadow properties
-				ImColor IMCS(Color);
-				FLinearColor ShadowColor = { IMCS.Value.x, IMCS.Value.y, IMCS.Value.z, IMCS.Value.w };
-
-				// Calculate positions
-				FVector2D TextPosition = ScreenLocation;
-				FVector2D ShadowPosition = {TextPosition.X + 1.0, TextPosition.Y + 1.0};
-
-				// Draw shadow text
-				HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0, { 0,0,0,1 }, FVector2D(1.0f, 1.0f), true, true, true, { 0,0,0,1 });
-
-				// Draw main text
-				HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0,0,0,1 }, FVector2D(1.0f, 1.0f), true, true, true, { 0,0,0,1 });
-			}
-		}
-
-		// Logic for FOV and Targeting Drawing
-		if (Overlay->bDrawFOVCircle) {
-			FVector2D PlayerScreenPosition;
-			FVector2D TargetScreenPosition;
-
-			if (ValeriaController->ProjectWorldLocationToScreen(PawnLocation, &PlayerScreenPosition, true)) {
-				// Calculate the center of the FOV circle based on the player's screen position
-				FVector2D FOVCenter = {HUD->Canvas->ClipX * 0.5f, HUD->Canvas->ClipY * 0.5f};
-				DrawCircle(HUD->Canvas, FOVCenter, Overlay->FOVRadius, 1200, FLinearColor(0.485, 0.485, 0.485, 0.485), 1.0f);
-
-				if (!Overlay->BestTargetLocation.IsZero()) {
-
-					if (ValeriaController->ProjectWorldLocationToScreen(Overlay->BestTargetLocation, &TargetScreenPosition, true)) {
-						if (CustomMath::DistanceBetweenPoints(TargetScreenPosition, FOVCenter) <= Overlay->FOVRadius) {
-							HUD->Canvas->K2_DrawLine(FOVCenter, TargetScreenPosition, 0.5f, FLinearColor(0.485, 0.485, 0.485, 0.485));
-						}
-					}
-				}
-			}
-		}
-	} else {
-		Overlay->CachedActors.clear();
-	}
-}
-
-void Func_DoAutoFishing(const PaliaOverlay* Overlay, AValeriaCharacter* Character) {
-	if (!Overlay->bEnableAutoFishing) return;
-	
-	if (Character && Character->GetEquippedItem().ItemType->IsFishingRod()) {
-		if (!Overlay->bRequireClickFishing || IsKeyHeld(VK_LBUTTON)) {
-			Character->ToolPrimaryActionPressed();
-			Character->ToolPrimaryActionReleased();
-		}
-	}
-}
-
-void Func_DoInstantFishing(const PaliaOverlay* Overlay, AValeriaPlayerController* const ValeriaController, const AValeriaCharacter* Character) {
-	if (!Overlay->bEnableInstantFishing) return;
-	
-	UFishingComponent* FishingComponent = Character->GetFishing();
-	if (!FishingComponent) return;
-
-	const auto FishingState = static_cast<EFishingState_NEW>(FishingComponent->GetFishingState());
-	if (FishingState == EFishingState_NEW::Bite) {
-		FFishingEndContext Context;
-		Context.Result = EFishingMiniGameResult::Success;
-		Context.Perfect = Overlay->bPerfectCatch;
-		Context.DurabilityReduction = 0;
-		Context.SourceWaterBody = nullptr;
-		Context.bUsedMultiplayerHelp = false;
-		Context.StartRodHealth = Overlay->StartRodHealth;
-		Context.EndRodHealth = Overlay->EndRodHealth;
-		Context.StartFishHealth = Overlay->StartFishHealth;
-		Context.EndFishHealth = Overlay->EndFishHealth;
-
-		FishingComponent->RpcServer_EndFishing(Context);
-		FishingComponent->SetFishingState(EFishingState_OLD::None);
-
-		if (Overlay->bDoInstantSellFish) {
-			UVillagerStoreComponent* StoreComponent = Character->StoreComponent;
-			UInventoryComponent* InventoryComponent = Character->GetInventory();
-
-			if (StoreComponent && InventoryComponent) {
-				for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
-					for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
-						FBagSlotLocation Slot{ BagIndex, SlotIndex };
-						FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
-						if (Item.ItemType->Category == EItemCategory::Fish || Item.ItemType->Category == EItemCategory::Junk) {
-							StoreComponent->RpcServer_SellItem(Slot, 10);
-						}
-					}
-				}
-			}
-		}
-		
-		if (Overlay->bDestroyCustomizationFishing) {
-			ValeriaController->DiscardItem(FBagSlotLocation{ .BagIndex = 0, .SlotIndex = 0 }, 1);
-		}
-	}
-
-	//else if (FishingState == EFishingState_NEW::None || FishingState == EFishingState_NEW::EFishingState_MAX) 
-}
-
-void Func_DoNoClip(PaliaOverlay* Overlay, AValeriaPlayerController* const ValeriaController, AValeriaCharacter* Character) {
-	if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
-
-		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
-		if (!MovementComponent) return;
-
-		if (Overlay->bEnableNoclip) {
-			MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
-			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		} else {
-			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
-			Character->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-			Character->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		}
-	}
-
-	Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
-
-	// Logic for Noclip Camera
-	if (Overlay->bEnableNoclip) {
-		if (!IsGameWindowActive()) return;
-		
-		UValeriaCharacterMoveComponent* MovementComponent = Character->GetValeriaCharacterMovementComponent();
-		if (!MovementComponent) return;
-
-		// Calculate forward and right vectors based on the camera's yaw
-		const FRotator& CameraRot = ValeriaController->PlayerCameraManager->GetCameraRotation();
-
-		//float YawInRadians = CustomMath::DegreesToRadians(CameraRot.Yaw);
-
-		FVector CameraForward = UKismetMathLibrary::GetForwardVector(CameraRot);
-		FVector CameraRight = UKismetMathLibrary::GetRightVector(CameraRot);
-		constexpr FVector CameraUp = {0.f, 0.f, 1.f};
-
-		CameraForward.Normalize();
-		CameraRight.Normalize();
-
-		FVector MovementDirection= {0.f, 0.f, 0.f};
-		const float FlySpeed = 800.0f;
-
-		if (IsKeyHeld('W')) {
-			MovementDirection += CameraForward * FlySpeed;
-		}
-		if (IsKeyHeld('S')) {
-			MovementDirection -= CameraForward * FlySpeed;
-		}
-		if (IsKeyHeld('D')) {
-			MovementDirection += CameraRight * FlySpeed;
-		}
-		if (IsKeyHeld('A')) {
-			MovementDirection -= CameraRight * FlySpeed;
-		}
-		if (IsKeyHeld(VK_SPACE)) {
-			MovementDirection += CameraUp * FlySpeed;
-		}
-		if (IsKeyHeld(VK_CONTROL)) {
-			MovementDirection -= CameraUp * FlySpeed;
-		}
-
-		// Normalize the total movement direction
-		MovementDirection.Normalize();
-		MovementDirection *= FlySpeed;
-
-		// Time delta
-		const float DeltaTime = 1.0f / 60.0f;  // Assuming 60 FPS
-
-		const FVector MovementDelta = MovementDirection * DeltaTime;
-
-		// Update character position
-		FHitResult HitResult;
-		Character->K2_SetActorLocation(Character->K2_GetActorLocation() + MovementDelta, false, &HitResult, false);
-	}
-}
-
-void DrawHUD(const AHUD* HUD, UWorld* World, AValeriaPlayerController* const ValeriaController, APawn* PlayerPawn, AValeriaCharacter* Character) {
-	const auto Overlay = dynamic_cast<PaliaOverlay*>(OverlayBase::Instance);
-	
-	// Remove Gates Logic
-	Func_DoRemoveGates(Overlay, World);
 
 	// Manage Cache Logic
-	ManageActorCache(Overlay, World);
-	ClearActorCache(Overlay, World);
-
-	// Persistent Movement Logic
-	Func_DoPersistentMovement(Overlay, Character);
-
-	// Logic for ESP Drawing & FOV Circle/Line
-	Func_DoESP(Overlay, HUD, ValeriaController, PlayerPawn, Character);
-
-	// Logic For InteliTargeting Updates (FOV)
-	Func_DoInteliAim(Overlay, World, ValeriaController, PlayerPawn, Character);
-
-	// Auto Fishing Logic
-	Func_DoAutoFishing(Overlay, Character);
-
-	// Logic for Fishing-Related Actions
-	Func_DoInstantFishing(Overlay, ValeriaController, Character);
-
-	// Logic for Noclip
-	Func_DoNoClip(Overlay, ValeriaController, Character);
+	ManageActorCache(Overlay);
+	ClearActorCache(Overlay);
 	
-	// Housing Place Anywhere Logic
-	if (Overlay->bPlaceAnywhere) {
-		SetCanPlaceHereTrue();
-	}
-}
+	FVector PawnLocation = PaliaContext.ValeriaPawn->K2_GetActorLocation();
 
-void PaliaOverlay::ProcessActors(int step) {
-	CachedActors.erase(
-		std::remove_if(
-			CachedActors.begin(), CachedActors.end(),
-			[step](FEntry Entry) { return (int)Entry.ActorType == step; }),
-		CachedActors.end()
-	);
+	// Draw ESP Names Entities
+	for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->
+	     CachedActors) {
+		FVector ActorPosition = WorldPosition;
+		if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType ==
+			EType::Loot) {
+			if (!Actor)
+				continue;
+			if (!Actor->IsValidLowLevel() || Actor->IsDefaultObject())
+				continue;
+			ActorPosition = Actor->K2_GetActorLocation();
+		}
 
-	auto World = GetWorld();
-
-	auto ActorType = static_cast<EType>(step);
-	std::vector<AActor*> Actors;
-	UClass* SearchClass = nullptr;
-	std::vector<UClass*> SearchClasses;
-
-	switch (ActorType) {
-	case EType::Tree: if (AnyTrue2D(Trees)) { STATIC_CLASS("BP_ValeriaGatherableLoot_Lumber_C") }
-		break;
-	case EType::Ore: if (AnyTrue2D(Ores)) { STATIC_CLASS("BP_ValeriaGatherableLoot_Mining_Base_C") }
-		break;
-	case EType::Bug: if (AnyTrue3D(Bugs)) { STATIC_CLASS("BP_ValeriaBugCatchingCreature_C") }
-		break;
-	case EType::Animal: if (AnyTrue2D(Animals)) { STATIC_CLASS("BP_ValeriaHuntingCreature_C") }
-		break;
-	case EType::Forage: if (AnyTrue2D(Forageables)) { STATIC_CLASS("BP_Valeria_Gatherable_Placed_C") }
-		break;
-	case EType::Loot:
-		if (Singles[static_cast<int>(EOneOffs::Loot)] || bEnableLootbagTeleportation) {
-			STATIC_CLASS("BP_Loot_C")
-		}
-		break;
-	case EType::Players:
-		if (Singles[static_cast<int>(EOneOffs::Player)]) {
-			SearchClass = AValeriaCharacter::StaticClass();
-		}
-		break;
-	case EType::NPCs:
-		if (Singles[static_cast<int>(EOneOffs::NPC)]) {
-			SearchClass = AValeriaVillagerCharacter::StaticClass();
-		}
-		break;
-	case EType::Quest:
-		if (Singles[static_cast<int>(EOneOffs::Quest)]) {
-			STATIC_CLASS_MULT("BP_SimpleInspect_Base_C")
-			STATIC_CLASS_MULT("BP_QuestInspect_Base_C")
-			STATIC_CLASS_MULT("BP_QuestItem_BASE_C")
-		}
-		break;
-	case EType::RummagePiles:
-		if (Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-			STATIC_CLASS_MULT("BP_BeachPile_C")
-			STATIC_CLASS_MULT("BP_ChapaaPile_C")
-		}
-		break;
-	case EType::Stables:
-		if (Singles[static_cast<int>(EOneOffs::Stables)]) {
-			STATIC_CLASS_MULT("BP_Stables_Sign_C")
-		}
-		break;
-	case EType::Fish:
-		if (AnyTrue(Fish)) {
-			STATIC_CLASS_MULT("BP_WaterPlane_Fishing_Base_SQ_C")
-			STATIC_CLASS_MULT("BP_Minigame_Fish_C")
-		}
-		break;
-	default:
-		break;
-	}
-
-	if (SearchClass) {
-		if (ActorType == EType::RummagePiles || ActorType == EType::Stables) {
-			Actors = FindAllActorsOfType(World, SearchClass);
-		}
-		else { Actors = FindActorsOfType(World, SearchClass); }
-	}
-
-	if (!SearchClasses.empty()) {
-		if (ActorType == EType::RummagePiles || ActorType == EType::Stables) {
-			Actors = FindAllActorsOfTypes(World, SearchClasses);
-		}
-		else { Actors = FindActorsOfTypes(World, SearchClasses); }
-	}
-
-	for (AActor* Actor : Actors) {
-		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
-			continue;
-
-		FVector ActorPosition = Actor->K2_GetActorLocation();
+		// NOTE: Shouldn't this be above the ActorPosition.Z change?? (Moved it above for now)
+		// HACK: Skip actors that return [0,0,0] due to the hack I had to add to K2_GetActorLocation
 		if (ActorPosition.X == 0 && ActorPosition.Y == 0 && ActorPosition.Z == 0)
 			continue;
 
-		auto ClassName = Actor->Class->GetName();
+		// Adjust Z coordinate for head-level display
+		float HeightAdjustment = 100.0f; // Adjust this value based on typical actor height
+		ActorPosition.Z += HeightAdjustment;
 
-		int Type = 0;
-		int Quality = 0;
-		int Variant = 0;
+		double Distance = sqrt(
+			pow(PawnLocation.X - ActorPosition.X, 2) + pow(PawnLocation.Y - ActorPosition.Y, 2) + pow(
+				PawnLocation.Z - ActorPosition.Z, 2)) * 0.01;
 
-		bool shouldAdd = false;
+		if (Distance < 2.0)
+			continue;
+		if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance)
+			continue;
 
-		switch (ActorType)
-		{
-		case EType::Tree:
-		{
-			auto Tree = ETreeType::Unknown;
-			Tree = GetFlagSingle(ClassName, TREE_TYPE_MAPPINGS);
-			if (Tree != ETreeType::Unknown) {
-				auto Size = EGatherableSize::Unknown;
-				Size = GetFlagSingle(ClassName, GATHERABLE_SIZE_MAPPINGS);
-				if (Size != EGatherableSize::Unknown) {
-					shouldAdd = true;
-					Type = static_cast<int>(Tree);
-					Variant = static_cast<int>(Size);
+		FVector2D ScreenLocation;
+		if (PaliaContext.ValeriaController->ProjectWorldLocationToScreen(ActorPosition, &ScreenLocation, true)) {
+			ImU32 Color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF);
+			bool bShouldDraw = false;
+
+			switch (ActorType) {
+			case EType::Forage: if (Overlay->Forageables[Type][Quality]) {
+					bShouldDraw = true;
+					Color = Overlay->ForageableColors[Type];
 				}
-			}
-		}
-		break;
-		case EType::Ore:
-		{
-			auto Ore = EOreType::Unknown;
-			Ore = GetFlagSingle(ClassName, MINING_TYPE_MAPPINGS);
-			if (Ore != EOreType::Unknown) {
-				auto Size = EGatherableSize::Unknown;
-				Size = GetFlagSingle(ClassName, GATHERABLE_SIZE_MAPPINGS);
-				if (Ore == EOreType::Clay) Size = EGatherableSize::Large;
-				if (Size != EGatherableSize::Unknown) {
-					shouldAdd = true;
-					Type = static_cast<int>(Ore);
-					Variant = static_cast<int>(Size);
+				break;
+			case EType::Ore: if (Overlay->Ores[Type][Variant]) {
+					bShouldDraw = true;
+					Color = Overlay->OreColors[Type];
 				}
-			}
-		}
-		break;
-		case EType::Bug:
-		{
-			auto Bug = EBugKind::Unknown;
-			Bug = GetFlagSingle(ClassName, CREATURE_BUGKIND_MAPPINGS);
-			if (Bug != EBugKind::Unknown) {
-				auto BVar = EBugQuality::Unknown;
-				BVar = GetFlagSingleEnd(ClassName, CREATURE_BUGQUALITY_MAPPINGS);
-				if (BVar != EBugQuality::Unknown) {
-					shouldAdd = true;
-					Type = static_cast<int>(Bug);
-					Variant = static_cast<int>(BVar);
-					if (ClassName.ends_with("+_C")) {
-						Quality = 1;
+				break;
+			case EType::Players: if (Overlay->Singles[static_cast<int>(EOneOffs::Player)]) {
+					bShouldDraw = true;
+					Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Player)];
+				}
+				break;
+			case EType::Animal: if (Overlay->Animals[Type][Variant]) {
+					bShouldDraw = true;
+					Color = Overlay->AnimalColors[Type][Variant];
+				}
+				break;
+			case EType::Tree: if (Overlay->Trees[Type][Variant]) {
+					bShouldDraw = true;
+					Color = Overlay->TreeColors[Type];
+				}
+				break;
+			case EType::Bug: if (Overlay->Bugs[Type][Variant][Quality]) {
+					bShouldDraw = true;
+					Color = Overlay->BugColors[Type][Variant];
+				}
+				break;
+			case EType::NPCs: if (Overlay->Singles[static_cast<int>(EOneOffs::NPC)]) {
+					bShouldDraw = true;
+					Color = Overlay->SingleColors[static_cast<int>(EOneOffs::NPC)];
+				}
+				break;
+			case EType::Loot: if (Overlay->Singles[static_cast<int>(EOneOffs::Loot)]) {
+					bShouldDraw = true;
+					Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Loot)];
+				}
+				break;
+			case EType::Quest: if (Overlay->Singles[static_cast<int>(EOneOffs::Quest)]) {
+					bShouldDraw = true;
+					Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Quest)];
+				}
+				break;
+			case EType::RummagePiles: if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
+					if (auto Pile = static_cast<ATimedLootPile*>(Actor)) {
+						if (Pile->CanGather(PaliaContext.ValeriaCharacter) && Pile->bActivated) {
+							bShouldDraw = true;
+							Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
+						}
+						else if (Overlay->bVisualizeDefault) {
+							bShouldDraw = true;
+							if (Pile->bActivated) { Color = IM_COL32(0xFF, 0xFF, 0xFF, 0xFF); }
+							else { Color = IM_COL32(0xFF, 0x00, 0x00, 0xFF); }
+						}
 					}
 				}
-			}
-		}
-		break;
-		case EType::Animal:
-		{
-			auto CK = ECreatureKind::Unknown;
-			CK = GetFlagSingle(ClassName, CREATURE_KIND_MAPPINGS);
-			if (CK != ECreatureKind::Unknown) {
-				auto CQ = ECreatureQuality::Unknown;
-				CQ = GetFlagSingleEnd(ClassName, CREATURE_KINDQUALITY_MAPPINGS);
-				if (CQ != ECreatureQuality::Unknown) {
-					shouldAdd = true;
-					Type = static_cast<int>(CK);
-					Variant = static_cast<int>(CQ);
+				break;
+			case EType::Stables: if (Overlay->Singles[static_cast<int>(EOneOffs::Stables)]) {
+					bShouldDraw = true;
+					Color = Overlay->SingleColors[static_cast<int>(EOneOffs::Stables)];
 				}
-			}
-		}
-		break;
-		case EType::Forage:
-		{
-			if (!Actor->bActorEnableCollision) continue;
-			auto Forage = EForageableType::Unknown;
-			Forage = GetFlagSingle(ClassName, FORAGEABLE_TYPE_MAPPINGS);
-			if (Forage != EForageableType::Unknown) {
-				shouldAdd = true;
-				Type = static_cast<int>(Forage);
-				if (ClassName.ends_with("+_C")) {
-					Quality = 1;
+				break;
+			case EType::Fish: if (Overlay->Fish[Type]) {
+					bShouldDraw = true;
+					Color = Overlay->FishColors[Type];
 				}
+				break;
+			default: break;
 			}
-		}
-		break;
-		case EType::Loot:
-			shouldAdd = true;
-			Type = 1; // doesn't matter, but isn't "unknown"
-			break;
-		case EType::Players:
-		{
-			shouldAdd = true;
-			Type = 1; // doesn't matter, but isn't "unknown"
-			auto VActor = static_cast<AValeriaCharacter*>(Actor);
-			ClassName = VActor->CharacterName.ToString();
-		}
-		break;
-		case EType::NPCs:
-			shouldAdd = true;
-			Type = 1; // doesn't matter, but isn't "unknown"
-			break;
-		case EType::Quest:
-			if (!Actor->bActorEnableCollision) continue;
-			shouldAdd = true;
-			Type = 1;
-			break;
-		case EType::RummagePiles:
-			shouldAdd = true;
-			Type = 1;
-			break;
-		case EType::Stables:
-			shouldAdd = true;
-			Type = 1;
-			break;
-		case EType::Fish:
-		{
-			auto Fish = EFishType::Unknown;
-			Fish = GetFlagSingle(ClassName, FISH_TYPE_MAPPINGS);
-			if (Fish != EFishType::Unknown) {
-				shouldAdd = true;
-				Type = static_cast<int>(Fish);
-			}
-		}
-		break;
-		default:
-			break;
-		};
 
-		if (!shouldAdd && !bVisualizeDefault) continue;
-		std::string Name = CLASS_NAME_ALIAS.contains(ClassName) ? CLASS_NAME_ALIAS[ClassName] : ClassName;
-		CachedActors.push_back({Actor, ActorPosition, Name, ActorType, Type, Quality, Variant, shouldAdd});
+			if (Overlay->bVisualizeDefault && Type == 0)
+				bShouldDraw = true;
+			if (!bShouldDraw)
+				continue;
+			if (!Roboto) {
+				Roboto = reinterpret_cast<UFont*>(UObject::FindObject("Font Roboto.Roboto", EClassCastFlags::None));
+			}
+			if (!Roboto)
+				continue;
+
+			// Construct text string
+			std::string qualityName = (Quality > 0) ? PaliaOverlay::GetQualityName(Quality, ActorType) : "";
+
+			// Prepare text with optional parts depending on the index values
+			std::string text = DisplayName;
+			if (!qualityName.empty()) { text += " [" + qualityName + "]"; }
+			text += std::format(" [{:.2f}m]", Distance);
+			std::wstring wideText(text.begin(), text.end());
+
+			double BaseScale = 1.0; // Default scale at a reference distance
+			double ReferenceDistance = 100.0; // Distance at which no scaling is applied
+			double ScalingFactor = 0.005; // Determines how much the scale changes with distance
+
+			double DistanceScale;
+			DistanceScale = BaseScale - ScalingFactor * (Distance - ReferenceDistance);
+			DistanceScale = CustomMath::Clamp(DistanceScale, 0.5, BaseScale); // Clamp the scale to a reasonable range
+
+			const FVector2D TextScale = {DistanceScale, DistanceScale};
+			ImColor IMC(Color);
+			FLinearColor TextColor = {IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w};
+
+			// Setup shadow properties
+			ImColor IMCS(Color);
+			FLinearColor ShadowColor = {IMCS.Value.x, IMCS.Value.y, IMCS.Value.z, IMCS.Value.w};
+
+			// Calculate positions
+			FVector2D TextPosition = ScreenLocation;
+			FVector2D ShadowPosition = {TextPosition.X + 1.0, TextPosition.Y + 1.0};
+
+			// Draw shadow text
+			HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0,
+			                         {0, 0, 0, 1}, FVector2D(1.0f, 1.0f), true, true, true, {0, 0, 0, 1});
+
+			// Draw main text
+			HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0,
+			                         {0, 0, 0, 1}, FVector2D(1.0f, 1.0f), true, true, true, {0, 0, 0, 1});
+		}
+	}
+
+	// Logic for FOV and Targeting Drawing
+	if (Overlay->bDrawFOVCircle) {
+		FVector2D PlayerScreenPosition;
+		FVector2D TargetScreenPosition;
+
+		if (PaliaContext.ValeriaController->ProjectWorldLocationToScreen(PawnLocation, &PlayerScreenPosition, true)) {
+			// Calculate the center of the FOV circle based on the player's screen position
+			FVector2D FOVCenter = {HUD->Canvas->ClipX * 0.5f, HUD->Canvas->ClipY * 0.5f};
+			DrawCircle(HUD->Canvas, Overlay->FOVRadius, 1200, {0.485, 0.485, 0.485, 0.485},1.0f);
+
+			if (Overlay->BestTargetLocation.IsZero()) return;
+			if (!PaliaContext.ValeriaController->ProjectWorldLocationToScreen(Overlay->BestTargetLocation, &TargetScreenPosition, true)) return;
+			if (!(CustomMath::DistanceBetweenPoints(TargetScreenPosition, FOVCenter) <= Overlay->FOVRadius)) return;
+			
+			HUD->Canvas->K2_DrawLine(FOVCenter, TargetScreenPosition, 0.5f, {0.485, 0.485, 0.485, 0.485});
+		}
 	}
 }
 
-static void ProcessEventDetour(const UObject* Class, class UFunction* Function, void* Params) {
+void HookFunction(void* Instance, const int32_t ProcessEventIdx, const void* DetourFunction, const std::string& HookName) {
+	const void** Vtable = *reinterpret_cast<const void***>(Instance);
+	DWORD OldProtection;
+
+	if (!VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection)) {
+		const DWORD errorCode = GetLastError();
+		const std::string errorMessage = "[" + HookName + "] Failed to change memory protection. Error code: " + std::to_string(errorCode);
+		MessageBox(nullptr, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+
+	}
+
+	try {
+		const std::uintptr_t moduleBase = reinterpret_cast<std::uintptr_t>(GetModuleHandle(nullptr));
+		OriginalProcessEvent = reinterpret_cast<void(*)(const UObject*, UFunction*, void*)>(moduleBase + Offsets::ProcessEvent);
+    
+		Vtable[ProcessEventIdx] = DetourFunction;
+		HookedClient = Instance;
+	} catch (...) {
+		const DWORD errorCode = GetLastError();
+		const std::string errorMessage = "[" + HookName + "] Exception occurred. Error code: " + std::to_string(errorCode);
+		MessageBox(nullptr, errorMessage.c_str(), "Error", MB_OK | MB_ICONERROR);
+	}
+}
+
+void ProcessEventDetour(const UObject* Class, UFunction* Function, void* Params) {
 	auto Overlay = dynamic_cast<PaliaOverlay*>(OverlayBase::Instance);
 	auto fn = Function->GetFullName();
 	invocations.insert(fn);
 
-	// Gotta put this in it's own function, and only update it when needed (like in an ingame function e.g: ReceiveDrawHUD)
-	const auto World = GetWorld();
-	if (!World) return;
+	if (PaliaContext.MovementComponent) {
+		HookFunction(PaliaContext.MovementComponent, Offsets::ProcessEventIdx, reinterpret_cast<const void*>(ProcessEventDetour), "MovementComponent");
+	}
 
-	const auto GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-	if (!GameplayStatics) return;
-	
-	const auto GameInstance = World->OwningGameInstance;
-	if (!GameInstance || GameInstance->LocalPlayers.Num() == 0) return;
+	if (PaliaContext.PlacementComponent) {
+		HookFunction(PaliaContext.PlacementComponent, Offsets::ProcessEventIdx, reinterpret_cast<const void*>(ProcessEventDetour), "PlacementComponent");
+	}
 
-	APlayerController* PlayerController = GameInstance->LocalPlayers[0]->PlayerController;
-	if (!PlayerController) return;
-	
-	const auto ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
-	if (!ValeriaController) return;
+	if (PaliaContext.FishingComponent) {
+		HookFunction(PaliaContext.FishingComponent, Offsets::ProcessEventIdx, reinterpret_cast<const void*>(ProcessEventDetour), "FishingComponent");
+	}
 
-	// Prevents crashing, can't get GetValeriaCharacter if you can't get K2_GetPawn?
-	APawn* ValeriaPawn = ValeriaController->K2_GetPawn();
-	if (!ValeriaPawn) return;
-	
-	AValeriaCharacter* ValeriaCharacter = ValeriaController->GetValeriaCharacter();
-	if (!ValeriaCharacter) return;
+	if (PaliaContext.FiringComponent) {
+		HookFunction(PaliaContext.FiringComponent, Offsets::ProcessEventIdx, reinterpret_cast<const void*>(ProcessEventDetour), "FiringComponent");
+	}
 	
 	// Custom Tick-Safe Method for calling functions only allows within player ticks
 	if (fn == "Function Engine.Actor.ReceiveTick") {
 		// Custom tick
+		
 	}
 	else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
-		DrawHUD(reinterpret_cast<const AHUD*>(Class), World, ValeriaController, ValeriaPawn, ValeriaCharacter);
+		// [Logic] Remove Gates
+		Func_DoRemoveGates();
+
+		// [Logic] Teleport Loot To Player
+		Func_DoTeleportLoot(Overlay);
+
+		// [Logic] Persisten Movement
+		Func_DoPersistentMovement(Overlay);
+		
+		// [Logic] Noclip
+		Func_DoNoClip(Overlay);
+
+		// [Logic] Housing Place Anywhere
+		Func_DoPlaceAnywhere(Overlay);
+		
+		// [Logic] Auto Fishing-Related Actions
+		Func_DoFishingActivities(Overlay);
+
+		// [Logic] InteliTargeting Updates (FOV)
+		Func_DoInteliAim(Overlay);
+
+		// [Logic] Draw ESP
+		Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
 	}
 
 	// Capture Current Fishing Location by Event
@@ -1204,18 +945,61 @@ static void ProcessEventDetour(const UObject* Class, class UFunction* Function, 
 
 	// Movement Velocity Logic
 	if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
-		auto MovementParams = static_cast<SDK::Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params);
+		auto MovementParams = static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params);
+
+		if (!PaliaContext.Get()) return;
 		
-		UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+		UValeriaCharacterMoveComponent* MovementComponent = PaliaContext.ValeriaCharacter->GetValeriaCharacterMovementComponent();
 		if (!MovementComponent) return;
 
 		FValeriaClientToServerMoveInfo BypassServerMove;
-		MovementParams->MoveInfo.TargetVelocity = FVector(0, 0, 0);
+		MovementParams->MoveInfo.TargetVelocity = {0, 0, 0};
 	}
 
-	//GetVFunction<void(*)(const UObject*, class UFunction*, void*)>(this, Offsets::ProcessEventIdx)(this, Function, Parms);
-	OriginalProcEvent(Class, Function, Params);
+	OriginalProcessEvent(Class, Function, Params);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void PaliaOverlay::DrawHUD()
 {
@@ -1224,13 +1008,13 @@ void PaliaOverlay::DrawHUD()
 
 	ImGui::SetNextWindowBgAlpha(0.35f);
 	ImGuiStyle& style = ImGui::GetStyle();
-	float prevWindowRounding = style.WindowRounding;
+	const float prevWindowRounding = style.WindowRounding;
 	style.WindowRounding = 5.0f; // Temporary change of style.
 
 	// Calculate watermark text only once, not in the drawing loop.
 	std::string watermarkText = "OriginPalia Menu By Wimberton & The UnknownCheats Community";
 	if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
-		watermarkText = "Waiting for in-game login or loading...";
+		watermarkText = "Waiting for the game to load...";
 	}
 
 	ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - ImGui::CalcTextSize(watermarkText.c_str()).x) * 0.5f, 10.0f));
@@ -1240,118 +1024,22 @@ void PaliaOverlay::DrawHUD()
 
 	style.WindowRounding = prevWindowRounding; // Restore style after the temporary change.
 
-	auto World = GetWorld();
-	if (!World) return; // Check for valid World pointer.
+	if(!PaliaContext.Get()) return;
 
-	auto GameInstance = World->OwningGameInstance;
-	if (!GameInstance) return; // Check for valid GameInstance pointer.
+	
+	
+	// [HOOK] FIRING-COMPONENT
+	// UProjectileFiringComponent* FiringComponent = PaliaContext.ValeriaCharacter->GetFiringComponent();
+	// if (FiringComponent) {
+	// 	if (bEnableSilentAimbot) {
+	// 		HookComponent(FiringComponent, Offsets::ProcessEventIdx, reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent));
+	// 	}
+	// }
 
-	if (GameInstance->LocalPlayers.Num() == 0) return; // Check if there are any local players.
-
-	ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-	if (!LocalPlayer) return; // Ensure the local player is valid.
-
-	APlayerController* PlayerController = LocalPlayer->PlayerController;
-	if (!PlayerController) return; // Ensure there's a valid player controller.
-
-	// HOOKING FISHINGCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
-			if (FishingComponent) {
-				void* Instance = FishingComponent;
-				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-				DWORD OldProtection;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-				int32 Idx = Offsets::ProcessEventIdx;
-				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-				const void* NewProcEvt = ProcessEventDetour;
-				Vtable[Idx] = NewProcEvt;
-				HookedClient = FishingComponent;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-			}
-		}
+	if (HookedClient != PaliaContext.PlayerController->MyHUD && PaliaContext.PlayerController->MyHUD != nullptr) {
+		HookFunction(PaliaContext.PlayerController->MyHUD, Offsets::ProcessEventIdx, reinterpret_cast<const void*>(ProcessEventDetour), "HUD");
 	}
-
-	// HOOKING FIRINGCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			if (bEnableSilentAimbot) {
-				UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent();
-				if (FiringComponent) {
-					void* Instance = FiringComponent;
-					const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-					DWORD OldProtection;
-					VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-					int32 Idx = Offsets::ProcessEventIdx;
-					OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-					const void* NewProcEvt = ProcessEventDetour;
-					Vtable[Idx] = NewProcEvt;
-					HookedClient = FiringComponent;
-					VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-				}
-			}
-		}
-	}
-
-	// HOOKING MOVEMENTCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-			if (MovementComponent) {
-				void* Instance = MovementComponent;
-				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-				DWORD OldProtection;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-				int32 Idx = Offsets::ProcessEventIdx;
-				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-				const void* NewProcEvt = ProcessEventDetour;
-				Vtable[Idx] = NewProcEvt;
-				HookedClient = MovementComponent;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-			}
-		}
-	}
-
-	// HOOKING PLACEMENTCOMPONENT
-	if (PlayerController->Pawn) {
-		AValeriaCharacter* ValeriaCharacter = (static_cast<AValeriaPlayerController*>(PlayerController))->GetValeriaCharacter();
-		if (ValeriaCharacter) {
-			UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
-			if (PlacementComponent) {
-				void* Instance = PlacementComponent;
-				const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-				DWORD OldProtection;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-				int32 Idx = Offsets::ProcessEventIdx;
-				OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-				const void* NewProcEvt = ProcessEventDetour;
-				Vtable[Idx] = NewProcEvt;
-				HookedClient = PlacementComponent;
-				VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-			}
-		}
-	}
-
-	// HOOKING PROCESSEVENT IN AHUD
-	if (HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
-		void* Instance = PlayerController->MyHUD;
-		const void** Vtable = *reinterpret_cast<const void***>(const_cast<void*>(Instance));
-		vmt = Vtable;
-		DWORD OldProtection;
-		VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
-		int32 Idx = Offsets::ProcessEventIdx;
-		// TODO: Use original content of VTable instead of pointer to UObject::ProcessEvent as the ProcessEvent is overriden by AActor::ProcessEvent and executes some delegates - I have yet to see any negative impact
-		// So this works for now and doesn't cause infinite loop (which is caused by me doing something stoopid)
-		OriginalProcEvent = reinterpret_cast<void(*)(const UObject*, class UFunction*, void*)>(uintptr_t(GetModuleHandle(0)) + Offsets::ProcessEvent);
-		const void* NewProcEvt = ProcessEventDetour;
-		Vtable[Idx] = NewProcEvt;
-		HookedClient = PlayerController->MyHUD;
-		VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
-	}
+	
 }
 
 void PaliaOverlay::DrawOverlay()
@@ -2874,8 +2562,8 @@ void PaliaOverlay::DrawOverlay()
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 					if (ImGui::Button("Loot")) {
-						Singles[(int)EOneOffs::Loot] =
-							!Singles[(int)EOneOffs::Loot];
+						Singles[static_cast<int>(EOneOffs::Loot)] =
+							!Singles[static_cast<int>(EOneOffs::Loot)];
 					}
 					ImGui::TableNextColumn();
 					ImGui::Checkbox("##Loot", &Singles[static_cast<int>(EOneOffs::Loot)]);
@@ -2994,591 +2682,498 @@ void PaliaOverlay::DrawOverlay()
 		}
 		// ==================================== 2 Movement & Teleport TAB
 		else if (OpenTab == 2) {
-			auto World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-						if (PlayerController && PlayerController->Pawn) {
-							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-							if (ValeriaCharacter) {
-								AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-								UValeriaCharacterMoveComponent* MovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-								UGameplayStatics* GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
-								// if (!MovementComponent) return;
+			UValeriaCharacterMoveComponent* MovementComponent = nullptr;
 
-								APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
+			if (PaliaContext.Get()) {
+				MovementComponent = PaliaContext.ValeriaCharacter->GetValeriaCharacterMovementComponent();
+			}
 
-								FVector MyLocation = ValeriaCharacter->K2_GetActorLocation();
-								FRotator MyRotation = ValeriaCharacter->K2_GetActorRotation();
-								FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-								FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-								static FVector TeleportLocation;
-								static FRotator TeleportRotate;
+			if (MovementComponent) {
+				static FVector TeleportLocation;
+				static FRotator TeleportRotate;
 
-								const double d20 = 20., d5 = 5., d1 = 1., dhalf = 0.5;
-								const float f1000 = 1000.0f, f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5;
+				constexpr double d5 = 5., d1 = 1.;
+				constexpr float f1000 = 1000.0f, f5 = 5.f, f1 = 1.f;
 
-								// Setting the columns layout
-								ImGui::Columns(2, nullptr, false);
+				// Setting the columns layout
+				ImGui::Columns(2, nullptr, false);
 
-								// Movement settings column
-								if (ImGui::CollapsingHeader("Movement Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-									ImGui::Text("Character: %s - Map: %s", ValeriaCharacter->CharacterName.ToString().c_str(), CurrentMap.c_str());
+				// Movement settings column
+				if (ImGui::CollapsingHeader("Movement Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+					ImGui::Text("Character: %s - Map: %s", PaliaContext.ValeriaCharacter->CharacterName.ToString().c_str(), CurrentMap.c_str());
 
-									ImGui::Spacing();
-									static const char* movementModes[] = { "Walking", "Flying", "Fly No Collision" }; // Dropdown menu options
+					ImGui::Spacing();
+					static const char* movementModes[] = {"Walking", "Flying", "Fly No Collision"};
+					// Dropdown menu options
 
-									ImGui::Checkbox("Enable Noclip", &bEnableNoclip);
+					ImGui::Checkbox("Enable Noclip", &bEnableNoclip);
 
-									// Create a combo box for selecting the movement mode
-									ImGui::Text("Movement Mode");
-									ImGui::SetNextItemWidth(200.0f); // Adjust the width as needed
-									if (ImGui::BeginCombo("##MovementMode", movementModes[currentMovementModeIndex])) {
-										for (int n = 0; n < IM_ARRAYSIZE(movementModes); n++) {
-											const bool isSelected = (currentMovementModeIndex == n);
-											if (ImGui::Selectable(movementModes[n], isSelected)) {
-												currentMovementModeIndex = n;
-											}
-											// Set the initial focus when opening the combo
-											if (isSelected) {
-												ImGui::SetItemDefaultFocus();
-											}
-										}
-										ImGui::EndCombo();
+					// Create a combo box for selecting the movement mode
+					ImGui::Text("Movement Mode");
+					ImGui::SetNextItemWidth(200.0f); // Adjust the width as needed
+					if (ImGui::BeginCombo("##MovementMode", movementModes[currentMovementModeIndex])) {
+						for (int n = 0; n < IM_ARRAYSIZE(movementModes); n++) {
+							const bool isSelected = (currentMovementModeIndex == n);
+							if (ImGui::Selectable(movementModes[n], isSelected)) { currentMovementModeIndex = n; }
+							// Set the initial focus when opening the combo
+							if (isSelected) { ImGui::SetItemDefaultFocus(); }
+						}
+						ImGui::EndCombo();
+					}
+					ImGui::SameLine();
+					// Button to apply the selected movement mode
+					if (ImGui::Button("Set")) {
+						switch (currentMovementModeIndex) {
+						case 0: // Walking
+							MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+							break;
+						case 1: // Swimming
+							MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 4);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+							break;
+						case 2: // Noclip
+							MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody, ECollisionResponse::ECR_Ignore);
+							PaliaContext.ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Destructible, ECollisionResponse::ECR_Ignore);
+							break;
+						default:
+							break;
+						}
+					}
+
+					// Global Game Speed with slider
+					ImGui::Text("Global Game Speed: ");
+					if (ImGui::InputScalar("##GlobalGameSpeed", ImGuiDataType_Float, &CustomGameSpeed, &f1, &f1000, "%.2f", ImGuiInputTextFlags_None)) {
+						static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(PaliaContext.World, CustomGameSpeed);
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##GlobalGameSpeed")) {
+						CustomGameSpeed = GameSpeed;
+						static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(PaliaContext.World, GameSpeed);
+					}
+
+					// Walk Speed
+					ImGui::Text("Walk Speed: ");
+					if (ImGui::InputScalar("##WalkSpeed", ImGuiDataType_Float, &CustomWalkSpeed, &f5)) {
+						MovementComponent->MaxWalkSpeed = CustomWalkSpeed;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##WalkSpeed")) {
+						CustomWalkSpeed = WalkSpeed;
+						MovementComponent->MaxWalkSpeed = WalkSpeed;
+					}
+
+					// Sprint Speed
+					ImGui::Text("Sprint Speed: ");
+					if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &CustomSprintSpeedMultiplier, &f5)) {
+						MovementComponent->SprintSpeedMultiplier = CustomSprintSpeedMultiplier;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##SprintSpeedMultiplier")) {
+						CustomSprintSpeedMultiplier = SprintSpeedMultiplier;
+						MovementComponent->SprintSpeedMultiplier = SprintSpeedMultiplier;
+					}
+
+					// Climbing Speed
+					ImGui::Text("Climbing Speed: ");
+					if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &CustomClimbingSpeed, &f5)) {
+						MovementComponent->ClimbingSpeed = CustomClimbingSpeed;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##ClimbingSpeed")) {
+						CustomClimbingSpeed = ClimbingSpeed;
+						MovementComponent->ClimbingSpeed = ClimbingSpeed;
+					}
+
+					// Gliding Speed
+					ImGui::Text("Gliding Speed: ");
+					if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &CustomGlidingSpeed, &f5)) {
+						MovementComponent->GlidingMaxSpeed = CustomGlidingSpeed;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##GlidingSpeed")) {
+						CustomGlidingSpeed = GlidingSpeed;
+						MovementComponent->GlidingMaxSpeed = GlidingSpeed;
+					}
+
+					// Gliding Fall Speed
+					ImGui::Text("Gliding Fall Speed: ");
+					if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &CustomGlidingFallSpeed, &f5)) {
+						MovementComponent->GlidingFallSpeed = CustomGlidingFallSpeed;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##GlidingFallSpeed")) {
+						CustomGlidingFallSpeed = GlidingFallSpeed;
+						MovementComponent->GlidingFallSpeed = GlidingFallSpeed;
+					}
+
+					// Jump Velocity
+					ImGui::Text("Jump Velocity: ");
+					if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &CustomJumpVelocity, &f5)) {
+						MovementComponent->JumpZVelocity = CustomJumpVelocity;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##JumpVelocity")) {
+						CustomJumpVelocity = JumpVelocity;
+						MovementComponent->JumpZVelocity = JumpVelocity;
+					}
+
+					// Step Height
+					ImGui::Text("Step Height: ");
+					if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &CustomMaxStepHeight, &f5)) {
+						MovementComponent->MaxStepHeight = CustomMaxStepHeight;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("R##MaxStepHeight")) {
+						CustomMaxStepHeight = MaxStepHeight;
+						MovementComponent->MaxStepHeight = MaxStepHeight;
+					}
+				}
+
+				ImGui::NextColumn();
+
+				// Locations and exploits column
+				if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
+					ImGui::Text("Teleport List");
+					ImGui::Text("Double-click a location listing to teleport");
+					ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150));
+					for (auto& [MapName, Type, Name, Location, Rotate] : TeleportLocations) {
+						if (CurrentMap == MapName || MapName == "UserDefined") {
+							if (ImGui::Selectable(Name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+								if (ImGui::IsMouseDoubleClicked(0)) {
+									if (Type == ELocation::Global_Home) {
+										PaliaContext.ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
 									}
-									ImGui::SameLine();
-									// Button to apply the selected movement mode
-									if (ImGui::Button("Set")) {
-										switch (currentMovementModeIndex) {
-										case 0: // Walking
-											MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-											break;
-										case 1: // Swimming
-											MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 4);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-											break;
-										case 2: // Noclip
-											MovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Ignore);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Ignore);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_PhysicsBody, ECollisionResponse::ECR_Ignore);
-											ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Destructible, ECollisionResponse::ECR_Ignore);
-											break;
-										}
-									}
-
-									const float InputWidth = 80.0f;
-
-									// Global Game Speed with slider
-									ImGui::Text("Global Game Speed: ");
-									if (ImGui::InputScalar("##GlobalGameSpeed", ImGuiDataType_Float, &CustomGameSpeed, &f1, &f1000, "%.2f", ImGuiInputTextFlags_None)) {
-										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, CustomGameSpeed);
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("R##GlobalGameSpeed")) {
-										CustomGameSpeed = GameSpeed;
-										static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GameSpeed);
-									}
-
-									// Walk Speed
-									ImGui::Text("Walk Speed: ");
-									if (ImGui::InputScalar("##WalkSpeed", ImGuiDataType_Float, &CustomWalkSpeed, &f5)) {
-										MovementComponent->MaxWalkSpeed = CustomWalkSpeed;
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("R##WalkSpeed")) {
-										CustomWalkSpeed = WalkSpeed;
-										MovementComponent->MaxWalkSpeed = WalkSpeed;
-									}
-
-									// Sprint Speed
-									ImGui::Text("Sprint Speed: ");
-									if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &CustomSprintSpeedMultiplier, &f5)) {
-										MovementComponent->SprintSpeedMultiplier = CustomSprintSpeedMultiplier;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##SprintSpeedMultiplier")) {
-										CustomSprintSpeedMultiplier = SprintSpeedMultiplier;
-										MovementComponent->SprintSpeedMultiplier = SprintSpeedMultiplier;
-									}
-
-									// Climbing Speed
-									ImGui::Text("Climbing Speed: ");
-									if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &CustomClimbingSpeed, &f5)) {
-										MovementComponent->ClimbingSpeed = CustomClimbingSpeed;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##ClimbingSpeed")) {
-										CustomClimbingSpeed = ClimbingSpeed;
-										MovementComponent->ClimbingSpeed = ClimbingSpeed;
-									}
-
-									// Gliding Speed
-									ImGui::Text("Gliding Speed: ");
-									if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &CustomGlidingSpeed, &f5)) {
-										MovementComponent->GlidingMaxSpeed = CustomGlidingSpeed;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##GlidingSpeed")) {
-										CustomGlidingSpeed = GlidingSpeed;
-										MovementComponent->GlidingMaxSpeed = GlidingSpeed;
-									}
-
-									// Gliding Fall Speed
-									ImGui::Text("Gliding Fall Speed: ");
-									if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &CustomGlidingFallSpeed, &f5)) {
-										MovementComponent->GlidingFallSpeed = CustomGlidingFallSpeed;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##GlidingFallSpeed")) {
-										CustomGlidingFallSpeed = GlidingFallSpeed;
-										MovementComponent->GlidingFallSpeed = GlidingFallSpeed;
-									}
-
-									// Jump Velocity
-									ImGui::Text("Jump Velocity: ");
-									if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &CustomJumpVelocity, &f5)) {
-										MovementComponent->JumpZVelocity = CustomJumpVelocity;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##JumpVelocity")) {
-										CustomJumpVelocity = JumpVelocity;
-										MovementComponent->JumpZVelocity = JumpVelocity;
-									}
-
-									// Step Height
-									ImGui::Text("Step Height: ");
-									if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &CustomMaxStepHeight, &f5)) {
-										MovementComponent->MaxStepHeight = CustomMaxStepHeight;
-									}
-									
-									ImGui::SameLine();
-									if (ImGui::Button("R##MaxStepHeight")) {
-										CustomMaxStepHeight = MaxStepHeight;
-										MovementComponent->MaxStepHeight = MaxStepHeight;
-									}
-								}
-
-								ImGui::NextColumn();
-
-								// Locations and exploits column
-								if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
-									ImGui::Text("Teleport List");
-									ImGui::Text("Double-click a location listing to teleport");
-									ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150));
-									for (FLocation& Entry : TeleportLocations) {
-										if (CurrentMap == Entry.MapName || Entry.MapName == "UserDefined") {
-											if (ImGui::Selectable(Entry.Name.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
-												if (ImGui::IsMouseDoubleClicked(0)) {
-													if (Entry.Type == ELocation::Global_Home) {
-														ValeriaCharacter->GetTeleportComponent()->RpcServerTeleport_Home();
-													}
-													else {
-														//ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
-														FHitResult HitResult;
-														ValeriaCharacter->K2_SetActorLocation(Entry.Location, false, &HitResult, true);
-
-														PlayerController->ClientForceGarbageCollection();
-														PlayerController->ClientFlushLevelStreaming();
-													}
-												}
-											}
-										}
-									}
-									ImGui::ListBoxFooter();
-
-									// Buttons for coordinate actions
-									if (ImGui::Button("Add New Location")) {
-										ImGui::OpenPopup("Add New Location");
-									}
-
-									ImGui::Text("Current Coords: %.3f, %.3f, %.3f, %.3f", ValeriaCharacter->K2_GetActorLocation().X, ValeriaCharacter->K2_GetActorLocation().Y, ValeriaCharacter->K2_GetActorLocation().Z, ValeriaCharacter->K2_GetActorRotation().Yaw);
-									ImGui::Spacing();
-
-									// Set the width for the labels and inputs
-									const float labelWidth = 50.0f;
-									const float inputWidth = 200.0f;
-
-									// X Coordinate
-									ImGui::AlignTextToFramePadding();
-									ImGui::Text("X: ");
-									ImGui::SameLine(labelWidth);
-									ImGui::SetNextItemWidth(inputWidth);
-									ImGui::InputScalar("##TeleportLocationX", ImGuiDataType_Double, &TeleportLocation.X, &d5);
-
-									// Y Coordinate
-									ImGui::AlignTextToFramePadding();
-									ImGui::Text("Y: ");
-									ImGui::SameLine(labelWidth);
-									ImGui::SetNextItemWidth(inputWidth);
-									ImGui::InputScalar("##TeleportLocationY", ImGuiDataType_Double, &TeleportLocation.Y, &d5);
-
-									// Z Coordinate
-									ImGui::AlignTextToFramePadding();
-									ImGui::Text("Z: ");
-									ImGui::SameLine(labelWidth);
-									ImGui::SetNextItemWidth(inputWidth);
-									ImGui::InputScalar("##TeleportLocationZ", ImGuiDataType_Double, &TeleportLocation.Z, &d5);
-
-									// Yaw
-									ImGui::AlignTextToFramePadding();
-									ImGui::Text("YAW: ");
-									ImGui::SameLine(labelWidth);
-									ImGui::SetNextItemWidth(inputWidth);
-									ImGui::InputScalar("##TeleportRotateYaw", ImGuiDataType_Double, &TeleportRotate.Yaw, &d1);
-
-									ImGui::Spacing();
-									
-									if (ImGui::Button("Get Current Coordinates")) {
-										TeleportLocation = ValeriaCharacter->K2_GetActorLocation();
-										TeleportRotate = ValeriaCharacter->K2_GetActorRotation();
-									}
-									ImGui::SameLine();
-									if (ImGui::Button("Teleport To Coordinates")) {
-										//ValeriaCharacter->K2_TeleportTo(TeleportLocation, TeleportRotate);
+									else {
+										//ValeriaCharacter->K2_TeleportTo(Entry.Location, Entry.Rotate);
 										FHitResult HitResult;
-										ValeriaCharacter->K2_SetActorLocation(TeleportLocation, false, &HitResult, true);
+										PaliaContext.ValeriaCharacter->K2_SetActorLocation(
+											Location, false, &HitResult, true);
 
-										PlayerController->ClientForceGarbageCollection();
-										PlayerController->ClientFlushLevelStreaming();
+										PaliaContext.PlayerController->ClientForceGarbageCollection();
+										PaliaContext.PlayerController->ClientFlushLevelStreaming();
 									}
-								}
-
-								if (ImGui::CollapsingHeader("Gatherable Items Options")) {
-
-									ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
-									ImGui::Text("Populates from enabled Forageable ESP options.");
-
-									// Automatically sort by name before showing the list
-									std::sort(CachedActors.begin(), CachedActors.end(), [](const FEntry& a, const FEntry& b) { return a.DisplayName < b.DisplayName; });
-
-									if (ImGui::ListBoxHeader("##PickableTeleportList", ImVec2(-1, 150))) {
-										for (FEntry& Entry : CachedActors) {
-											if (Entry.shouldAdd && (Entry.ActorType == EType::Forage || Entry.ActorType == EType::Loot)) {
-
-												// Enabled ESP options only
-												if (Entry.ActorType == EType::Forage && !Forageables[Entry.Type][Entry.Quality]) continue;
-
-												if (Entry.Actor && Entry.Actor->IsValidLowLevel() && !Entry.Actor->IsDefaultObject()) {
-													FVector PickableLocation = Entry.Actor->K2_GetActorLocation();
-													FRotator PickableRotation = Entry.Actor->K2_GetActorRotation();
-
-													if (ImGui::Selectable(Entry.DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
-														if (ImGui::IsMouseDoubleClicked(0)) {
-															PickableLocation.Z += 150; // Raise by 150 units in the Z direction
-
-															FHitResult PickableHitResult;
-															ValeriaCharacter->K2_SetActorLocation(PickableLocation, false, &PickableHitResult, true);
-														}
-													}
-
-												}
-											}
-										}
-										ImGui::ListBoxFooter();
-
-										// future : interact with/without being within interactable location?
-										//			ValeriaCharacter->PrimaryInteractPressed();
-										//			ValeriaCharacter->PrimaryInteractReleased();
-									}
-								}
-
-								// Begin List adding Popup
-								if (ImGui::BeginPopupModal("Add New Location", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-									static int selectedWorld = 0; // 0 for Kilima, 1 for Bahari
-									static char locationName[128] = "";
-
-									// World selection dropdown
-									ImGui::Combo("World", &selectedWorld, "Kilima\0Bahari\0");
-									ImGui::InputText("Location Name", locationName, IM_ARRAYSIZE(locationName));
-
-									// Button to submit the new location
-									if (ImGui::Button("Add to List")) {
-										FVector newLocation = ValeriaCharacter->K2_GetActorLocation();
-										FRotator newRotation = ValeriaCharacter->K2_GetActorRotation();
-										std::string mapRoot = selectedWorld == 0 ? "Village_Root" : "AZ1_01_Root";
-										std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
-										std::string locationNameStr(locationName);
-
-										TeleportLocations.push_back({ mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
-										ImGui::CloseCurrentPopup();
-									}
-									ImGui::EndPopup();
 								}
 							}
 						}
 					}
+					ImGui::ListBoxFooter();
+
+					// Buttons for coordinate actions
+					if (ImGui::Button("Add New Location")) { ImGui::OpenPopup("Add New Location"); }
+
+					auto [PlayerX, PlayerY, PlayerZ] = PaliaContext.ValeriaCharacter->K2_GetActorLocation();
+					auto PlayerYaw = PaliaContext.ValeriaCharacter->K2_GetActorRotation().Yaw;
+					ImGui::Text("Current Coords: %.3f, %.3f, %.3f, %.3f", PlayerX, PlayerY, PlayerZ, PlayerYaw);
+					ImGui::Spacing();
+
+					// Set the width for the labels and inputs
+					constexpr float labelWidth = 50.0f;
+					constexpr float inputWidth = 200.0f;
+
+					// X Coordinate
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("X: ");
+					ImGui::SameLine(labelWidth);
+					ImGui::SetNextItemWidth(inputWidth);
+					ImGui::InputScalar("##TeleportLocationX", ImGuiDataType_Double, &TeleportLocation.X, &d5);
+
+					// Y Coordinate
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Y: ");
+					ImGui::SameLine(labelWidth);
+					ImGui::SetNextItemWidth(inputWidth);
+					ImGui::InputScalar("##TeleportLocationY", ImGuiDataType_Double, &TeleportLocation.Y, &d5);
+
+					// Z Coordinate
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("Z: ");
+					ImGui::SameLine(labelWidth);
+					ImGui::SetNextItemWidth(inputWidth);
+					ImGui::InputScalar("##TeleportLocationZ", ImGuiDataType_Double, &TeleportLocation.Z, &d5);
+
+					// Yaw
+					ImGui::AlignTextToFramePadding();
+					ImGui::Text("YAW: ");
+					ImGui::SameLine(labelWidth);
+					ImGui::SetNextItemWidth(inputWidth);
+					ImGui::InputScalar("##TeleportRotateYaw", ImGuiDataType_Double, &TeleportRotate.Yaw, &d1);
+
+					ImGui::Spacing();
+
+					if (ImGui::Button("Get Current Coordinates")) {
+						TeleportLocation = PaliaContext.ValeriaCharacter->K2_GetActorLocation();
+						TeleportRotate = PaliaContext.ValeriaCharacter->K2_GetActorRotation();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Teleport To Coordinates")) {
+						FHitResult HitResult;
+						PaliaContext.ValeriaCharacter->K2_SetActorLocation(TeleportLocation, false, &HitResult, true);
+
+						// PaliaContext.PlayerController->ClientForceGarbageCollection();
+						// PaliaContext.PlayerController->ClientFlushLevelStreaming();
+					}
+				}
+
+				if (ImGui::CollapsingHeader("Gatherable Items Options")) {
+
+					ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
+					ImGui::Text("Populates from enabled Forageable ESP options.");
+
+					// Automatically sort by name before showing the list
+					std::sort(CachedActors.begin(), CachedActors.end(), [](const FEntry& a, const FEntry& b) { return a.DisplayName < b.DisplayName; });
+
+					if (ImGui::ListBoxHeader("##PickableTeleportList", ImVec2(-1, 150))) {
+						for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : CachedActors) {
+							if (shouldAdd && (ActorType == EType::Forage || ActorType == EType::Loot)) {
+
+								// Enabled ESP options only
+								if (ActorType == EType::Forage && !Forageables[Type][Quality]) continue;
+
+								if (Actor && Actor->IsValidLowLevel() && !Actor->IsDefaultObject()) {
+									FVector PickableLocation = Actor->K2_GetActorLocation();
+
+									if (ImGui::Selectable(DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+										if (ImGui::IsMouseDoubleClicked(0)) {
+											PickableLocation.Z += 150;
+
+											FHitResult PickableHitResult;
+											PaliaContext.ValeriaCharacter->K2_SetActorLocation(PickableLocation, false, &PickableHitResult, true);
+										}
+									}
+								}
+							}
+						}
+						ImGui::ListBoxFooter();
+					}
+				}
+
+				// Begin List adding Popup
+				if (ImGui::BeginPopupModal("Add New Location", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+					static int selectedWorld = 0; // 0 for Kilima, 1 for Bahari
+					static char locationName[128] = "";
+
+					// World selection dropdown
+					ImGui::Combo("World", &selectedWorld, "Kilima\0Bahari\0");
+					ImGui::InputText("Location Name", locationName, IM_ARRAYSIZE(locationName));
+
+					// Button to submit the new location
+					if (ImGui::Button("Add to List")) {
+						FVector newLocation = PaliaContext.ValeriaCharacter->K2_GetActorLocation();
+						FRotator newRotation = PaliaContext.ValeriaCharacter->K2_GetActorRotation();
+						std::string mapRoot = selectedWorld == 0 ? "Village_Root" : "AZ1_01_Root";
+						std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
+						std::string locationNameStr(locationName);
+
+						TeleportLocations.push_back({ mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
+						ImGui::CloseCurrentPopup();
+					}
+					ImGui::EndPopup();
 				}
 			}
 		}
 		// ==================================== 3 Selling & Items TAB
 		else if (OpenTab == 3) {
-			auto World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-						if (PlayerController && PlayerController->Pawn) {
-							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-							if (ValeriaCharacter) {
-								const double d20 = 20., d5 = 5., d1 = 1., dhalf = 0.5, dzero = 0.;
-								const float f20 = 20.f, f5 = 5.f, f1 = 1.f, fhalf = 0.5, fzero = 0.0;
+			if (PaliaContext.Get()) {
+				ImGui::Columns(2, nullptr, false);
 
-								ImGui::Columns(2, nullptr, false);
+				if (ImGui::CollapsingHeader("Selling Settings - Bag 1", ImGuiTreeNodeFlags_DefaultOpen)) {
+					ImGui::Text("Quickly Sell Items - Bag 1");
+					ImGui::Spacing();
+					ImGui::Text("Select the bag, slot, and quantity to sell.");
+					ImGui::Spacing();
+					static int selectedSlot = 0;
+					static int selectedQuantity = 1;
+					static const char* quantities[] = {"1", "10", "50", "999", "Custom"};
+					static char customQuantity[64] = "100";
 
-								if (ImGui::CollapsingHeader("Selling Settings - Bag 1", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									ImGui::Text("Quickly Sell Items - Bag 1");
-									ImGui::Spacing();
-									ImGui::Text("Select the bag, slot, and quantity to sell.");
-									ImGui::Spacing();
-									static int selectedSlot = 0;
-									static int selectedQuantity = 1;
-									static const char* quantities[] = { "1", "10", "50", "999", "Custom" };
-									static char customQuantity[64] = "100";
+					// Slot selection dropdown
+					if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot).c_str())) {
+						for (int i = 0; i < 8; i++) {
+							const bool isSelected = (selectedSlot == i);
+							if (ImGui::Selectable(std::to_string(i + 1).c_str(), isSelected)) {
+								selectedSlot = i;
+							}
+							if (isSelected) {
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
 
-									// Slot selection dropdown
-									if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot).c_str())) {
-										for (int i = 0; i < 8; i++) {
-											const bool isSelected = (selectedSlot == i);
-											if (ImGui::Selectable(std::to_string(i + 1).c_str(), isSelected)) {
-												selectedSlot = i;
-											}
-											if (isSelected) {
-												ImGui::SetItemDefaultFocus();
-											}
-										}
-										ImGui::EndCombo();
-									}
+					// Quantity selection dropdown
+					if (ImGui::BeginCombo("Quantity", quantities[selectedQuantity])) {
+						for (int i = 0; i < IM_ARRAYSIZE(quantities); i++) {
+							const bool isSelected = (selectedQuantity == i);
+							if (ImGui::Selectable(quantities[i], isSelected)) { selectedQuantity = i; }
+							if (isSelected) { ImGui::SetItemDefaultFocus(); }
+						}
+						ImGui::EndCombo();
+					}
 
-									// Quantity selection dropdown
-									if (ImGui::BeginCombo("Quantity", quantities[selectedQuantity])) {
-										for (int i = 0; i < IM_ARRAYSIZE(quantities); i++) {
-											const bool isSelected = (selectedQuantity == i);
-											if (ImGui::Selectable(quantities[i], isSelected)) {
-												selectedQuantity = i;
-											}
-											if (isSelected) {
-												ImGui::SetItemDefaultFocus();
-											}
-										}
-										ImGui::EndCombo();
-									}
+					if (selectedQuantity == 4) {
+						ImGui::InputText("##CustomQuantity", customQuantity, IM_ARRAYSIZE(customQuantity));
+					}
 
-									if (selectedQuantity == 4) {
-										ImGui::InputText("##CustomQuantity", customQuantity, IM_ARRAYSIZE(customQuantity));
-									}
+					if (ImGui::Button("Sell Items")) {
+						FBagSlotLocation bag = {};
+						bag.BagIndex = 0;
+						bag.SlotIndex = selectedSlot;
 
-									if (ImGui::Button("Sell Items")) {
-										FBagSlotLocation bag = {};
-										bag.BagIndex = 0;
-										bag.SlotIndex = selectedSlot;
+						int quantityToSell = selectedQuantity < 4
+							                     ? atoi(quantities[selectedQuantity])
+							                     : atoi(customQuantity);
+						PaliaContext.ValeriaCharacter->StoreComponent->RpcServer_SellItem(bag, quantityToSell);
+					}
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						ImGui::SetTooltip("Visit a storefront first, then the sell button will function.");
+				}
 
-										int quantityToSell = selectedQuantity < 4 ? atoi(quantities[selectedQuantity]) : atoi(customQuantity);
-										ValeriaCharacter->StoreComponent->RpcServer_SellItem(bag, quantityToSell);
-									}
-									if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then the sell button will function.");
-								}
+				ImGui::NextColumn();
 
-								ImGui::NextColumn();
+				if (ImGui::CollapsingHeader("Player Features", ImGuiTreeNodeFlags_DefaultOpen)) {
+					if (ImGui::Button("Toggle Challenge Easy Mode")) {
+						PaliaContext.ValeriaCharacter->ToggleDevChallengeEasyMode();
+						PaliaContext.ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
+						
+						bEasyModeActive = !bEasyModeActive;
+					}
+					if (bEasyModeActive) {
+						ImGui::Text("CHALLENGE EASY MODE ON");
+					}
+					else {
+						ImGui::Text("CHALLENGE EASY MODE OFF");
+					}
+				}
 
-								if (ImGui::CollapsingHeader("Player Features", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									if (ImGui::Button("Toggle Challenge Easy Mode")) {
-										ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
-										bEasyModeActive = !bEasyModeActive;
-									}
-									if (bEasyModeActive) {
-										ImGui::Text("CHALLENGE EASY MODE ON");
-									}
-									else {
-										ImGui::Text("CHALLENGE EASY MODE OFF");
-									}
-								}
+				if (ImGui::CollapsingHeader("Selling Hotkeys - Quickselling")) {
+					ImGui::Text("Quicksell All - Bag 1 Slots");
+					ImGui::Text("Visit a storefront then use the hotkeys to sell your inventory quickly");
+					ImGui::Checkbox("Enable Quicksell Hotkeys", &bEnableQuicksellHotkeys);
+					ImGui::Spacing();
+					ImGui::Text("NUM1 - NUM8 | Sell All Items, Slots 1 through 8");
 
-								if (ImGui::CollapsingHeader("Selling Hotkeys - Quickselling"))
-								{
-									ImGui::Text("Quicksell All - Bag 1 Slots");
-									ImGui::Text("Visit a storefront then use the hotkeys to sell your inventory quickly");
-									ImGui::Checkbox("Enable Quicksell Hotkeys", &bEnableQuicksellHotkeys);
-									ImGui::Spacing();
-									ImGui::Text("NUM1 - NUM8 | Sell All Items, Slots 1 through 8");
+					const int numpadKeys[] = { VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD7, VK_NUMPAD8 };
+					if (bEnableQuicksellHotkeys) {
+						for (int i = 0; i < 8; ++i) {
+							if (IsKeyHeld(numpadKeys[i])) {
+								FBagSlotLocation quicksellBag = {};
+								quicksellBag.BagIndex = 0;
+								quicksellBag.SlotIndex = i + 1;
 
-									const int numpadKeys[] = { VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD7, VK_NUMPAD8 };
-									if (bEnableQuicksellHotkeys) {
-										for (int i = 0; i < 8; ++i) {
-											if (IsKeyHeld(numpadKeys[i])) {
-												FBagSlotLocation quicksellBag = {};
-												quicksellBag.BagIndex = 0;
-												quicksellBag.SlotIndex = i + 1;
-
-												ValeriaCharacter->StoreComponent->RpcServer_SellItem(quicksellBag, 5);
-											}
-										}
-									}
-								}
+								PaliaContext.ValeriaCharacter->StoreComponent->RpcServer_SellItem(quicksellBag, 5);
 							}
 						}
 					}
 				}
+			} else {
+				ImGui::Text("Character component not available.");
 			}
 		}
 		// ==================================== 4 Skills & Tools TAB
 		else if (OpenTab == 4) {
-			auto World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-						if (PlayerController && PlayerController->Pawn) {
-							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-							if (ValeriaCharacter) {
-								//UVAL_CharacterCustomizationComponent* CharacterCustomization = ValeriaCharacter->GetCharacterCustomizationComponent();
-								UGardenPlantingComponent* GardenComponent = ValeriaCharacter->GetGardenPlanting();
-								UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
+			UFishingComponent* FishingComponent = nullptr;
+			auto EquippedTool = ETools::None;
+			
+			if (PaliaContext.Get()) {
+				FishingComponent = PaliaContext.ValeriaCharacter->GetFishing();
+			}
 
-								FValeriaItem Equipped = ValeriaCharacter->GetEquippedItem();
-								ETools EquippedTool = ETools::None;
-								std::string EquippedName = Equipped.ItemType->Name.ToString();
+			ImGui::Columns(2, nullptr, false);
+			
+			if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+				if (PaliaContext.ValeriaCharacter) {
+					FValeriaItem Equipped = PaliaContext.ValeriaCharacter->GetEquippedItem();
+					std::string EquippedName = Equipped.ItemType->Name.ToString();
 
-								if (EquippedName.find("Tool_Axe_") != std::string::npos) {
-									EquippedTool = ETools::Axe;
-								}
-								else if (EquippedName.find("Tool_InsectBallLauncher_") != std::string::npos) {
-									EquippedTool = ETools::Belt;
-								}
-								else if (EquippedName.find("Tool_Bow_") != std::string::npos) {
-									EquippedTool = ETools::Bow;
-								}
-								else if (EquippedName.find("Tool_Rod_") != std::string::npos) {
-									EquippedTool = ETools::FishingRod;
-								}
-								else if (EquippedName.find("Tool_Hoe_") != std::string::npos) {
-									EquippedTool = ETools::Hoe;
-								}
-								else if (EquippedName.find("Tool_Pick") != std::string::npos) {
-									EquippedTool = ETools::Pick;
-								}
-								else if (EquippedName.find("Tool_WateringCan_") != std::string::npos) {
-									EquippedTool = ETools::WateringCan;
-								}
+					if (EquippedName.find("Tool_Axe_") != std::string::npos) { EquippedTool = ETools::Axe; }
+					else if (EquippedName.find("Tool_InsectBallLauncher_") != std::string::npos) { EquippedTool = ETools::Belt; }
+					else if (EquippedName.find("Tool_Bow_") != std::string::npos) { EquippedTool = ETools::Bow; }
+					else if (EquippedName.find("Tool_Rod_") != std::string::npos) { EquippedTool = ETools::FishingRod; }
+					else if (EquippedName.find("Tool_Hoe_") != std::string::npos) { EquippedTool = ETools::Hoe; }
+					else if (EquippedName.find("Tool_Pick") != std::string::npos) { EquippedTool = ETools::Pick; }
+					else if (EquippedName.find("Tool_WateringCan_") != std::string::npos) { EquippedTool = ETools::WateringCan; }
+					
+					ImGui::Text("Equipped Tool : %s", STools[static_cast<int>(EquippedTool)]);
+				} else {
+					ImGui::Text("Character component not available.");
+				}
+			}
+			
+			ImGui::NextColumn();
 
-								ImGui::Columns(2, nullptr, false);
+			if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+				if (FishingComponent) {
+					ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
 
-								if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									if (ValeriaCharacter) {
-										ImGui::Text("Equipped Tool : %s", STools[(int)EquippedTool]);
-									}
-									else { ImGui::Text("No equipment available for viewing");}
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
 
-									//ImGui::Checkbox("Unlock All Outfits", &bTempUnlockAllEntitlements);
-									//if (bTempUnlockAllEntitlements) {
-									//	CharacterCustomization->bTemporarilyAllowAllEntitlements = true;
-									//}
-									//else {
-									//	CharacterCustomization->bTemporarilyAllowAllEntitlements = false;
-									//}
-								}
+					if (EquippedTool == ETools::FishingRod) {
+						ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
+						if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+							ImGui::SetTooltip("Automatically casts the fishing rod.");
 
-								ImGui::NextColumn();
+						if (bEnableAutoFishing) {
+							ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
 
-								if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen))
-								{
-									if (FishingComponent) {
-										ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
-
-										if (EquippedTool == ETools::FishingRod) {
-											ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
-											if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically casts the fishing rod.");
-
-											if (bEnableAutoFishing) {
-												ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
-												if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
-											}
-										}
-										else {
-											ImGui::Spacing();
-											ImGui::Text("Equip your fishing rod to see more auto-fishing options");
-											ImGui::Spacing();
-
-											bEnableAutoFishing = false;
-											bRequireClickFishing = true;
-										}
-
-										ImGui::Checkbox("Always Perfect Catch", &bPerfectCatch);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
-
-										ImGui::Checkbox("Instant Sell Fish (All Slots)", &bDoInstantSellFish);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-
-										ImGui::Checkbox("Discard Other Unsellables (Slot 1)", &bDestroyCustomizationFishing);
-										if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
-
-										ImGui::Spacing();
-										ImGui::Text("Custom Fishing Catch Parameters:");
-										ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
-										ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
-										ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
-										ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
-										ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
-										ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
-										ImGui::SameLine();
-										ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
-									}
-								}
-							}
+							if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+								ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
 						}
+					} else {
+						ImGui::Spacing();
+						ImGui::Text("Equip your fishing rod to see more auto-fishing options");
+						ImGui::Spacing();
+
+						bEnableAutoFishing = false;
+						bRequireClickFishing = true;
 					}
+
+					ImGui::Checkbox("Always Perfect Catch", &bPerfectCatch);
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
+
+					ImGui::Checkbox("Instant Sell Fish (All Slots)", &bDoInstantSellFish);
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
+
+					ImGui::Checkbox("Discard Other Unsellables (Slot 1)", &bDestroyCustomizationFishing);
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
+
+					ImGui::Spacing();
+					ImGui::Text("Custom Fishing Catch Parameters:");
+					ImGui::SliderFloat("Start Rod Health", &StartRodHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("End Rod Health", &EndRodHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("Start Fish Health", &StartFishHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::SliderFloat("End Fish Health", &EndFishHealth, 0.0f, 100.0f, "%.1f");
+					ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
+					ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
+					ImGui::SameLine();
+					ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
+				} else {
+					ImGui::Text("Fishing component not available.");
 				}
 			}
 		}
 		// ==================================== 5 Housing & Decorating TAB
 		else if (OpenTab == 5) {
-			auto World = GetWorld();
-			if (World) {
-				auto GameInstance = World->OwningGameInstance;
-				if (GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-					ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0];
-					if (LocalPlayer) {
-						APlayerController* PlayerController = LocalPlayer->PlayerController;
-						AValeriaPlayerController* ValeriaPlayerController = static_cast<AValeriaPlayerController*>(PlayerController);
-						if (PlayerController && PlayerController->Pawn) {
-							AValeriaCharacter* ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-							if (ValeriaCharacter) {
-								UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+			ImGui::Columns(1, nullptr, false);
+			if (ImGui::CollapsingHeader("Housing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+				UPlacementComponent* PlacementComponent = nullptr;
+				if (PaliaContext.Get()) {
+					PlacementComponent = PaliaContext.ValeriaCharacter->GetPlacement();
+				}
 
-								ImGui::Columns(1, nullptr, false);
-								if (ImGui::CollapsingHeader("Housing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-									if (PlacementComponent) {
-										ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere);
-									}
-									else {
-										ImGui::Text("No Placement Component available.");
-									}
-								}
-							}
-						}
-					}
+				if (PlacementComponent) {
+					ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere);
+				} else {
+					ImGui::Text("Placement component not available.");
 				}
 			}
 		}
@@ -3587,4 +3182,230 @@ void PaliaOverlay::DrawOverlay()
 
 	if (!show)
 		ShowOverlay(false);
+}
+
+void PaliaOverlay::ProcessActors(int step) {
+	std::erase_if(CachedActors, [step](const FEntry& Entry) {
+		return static_cast<int>(Entry.ActorType) == step;
+	});
+
+	auto World = GetWorld();
+
+	auto ActorType = static_cast<EType>(step);
+	std::vector<AActor*> Actors;
+	UClass* SearchClass = nullptr;
+	std::vector<UClass*> SearchClasses;
+
+	switch (ActorType) {
+	case EType::Tree: if (AnyTrue2D(Trees)) { STATIC_CLASS("BP_ValeriaGatherableLoot_Lumber_C") }
+		break;
+	case EType::Ore: if (AnyTrue2D(Ores)) { STATIC_CLASS("BP_ValeriaGatherableLoot_Mining_Base_C") }
+		break;
+	case EType::Bug: if (AnyTrue3D(Bugs)) { STATIC_CLASS("BP_ValeriaBugCatchingCreature_C") }
+		break;
+	case EType::Animal: if (AnyTrue2D(Animals)) { STATIC_CLASS("BP_ValeriaHuntingCreature_C") }
+		break;
+	case EType::Forage: if (AnyTrue2D(Forageables)) { STATIC_CLASS("BP_Valeria_Gatherable_Placed_C") }
+		break;
+	case EType::Loot:
+		if (Singles[static_cast<int>(EOneOffs::Loot)]) {
+			STATIC_CLASS("BP_Loot_C")
+		}
+		break;
+	case EType::Players:
+		if (Singles[static_cast<int>(EOneOffs::Player)]) {
+			SearchClass = AValeriaCharacter::StaticClass();
+		}
+		break;
+	case EType::NPCs:
+		if (Singles[static_cast<int>(EOneOffs::NPC)]) {
+			SearchClass = AValeriaVillagerCharacter::StaticClass();
+		}
+		break;
+	case EType::Quest:
+		if (Singles[static_cast<int>(EOneOffs::Quest)]) {
+			STATIC_CLASS_MULT("BP_SimpleInspect_Base_C")
+			STATIC_CLASS_MULT("BP_QuestInspect_Base_C")
+			STATIC_CLASS_MULT("BP_QuestItem_BASE_C")
+		}
+		break;
+	case EType::RummagePiles:
+		if (Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
+			STATIC_CLASS_MULT("BP_BeachPile_C")
+			STATIC_CLASS_MULT("BP_ChapaaPile_C")
+		}
+		break;
+	case EType::Stables:
+		if (Singles[static_cast<int>(EOneOffs::Stables)]) {
+			STATIC_CLASS_MULT("BP_Stables_Sign_C")
+		}
+		break;
+	case EType::Fish:
+		if (AnyTrue(Fish)) {
+			STATIC_CLASS_MULT("BP_WaterPlane_Fishing_Base_SQ_C")
+			STATIC_CLASS_MULT("BP_Minigame_Fish_C")
+		}
+		break;
+	case EType::Unknown: break;
+	case EType::MAX: break;
+	default: break;
+	}
+
+	if (SearchClass) {
+		if (ActorType == EType::RummagePiles || ActorType == EType::Stables) {
+			Actors = FindAllActorsOfType(World, SearchClass);
+		}
+		else { Actors = FindActorsOfType(World, SearchClass); }
+	}
+
+	if (!SearchClasses.empty()) {
+		if (ActorType == EType::RummagePiles || ActorType == EType::Stables) {
+			Actors = FindAllActorsOfTypes(World, SearchClasses);
+		}
+		else { Actors = FindActorsOfTypes(World, SearchClasses); }
+	}
+
+	for (AActor* Actor : Actors) {
+		if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
+			continue;
+
+		FVector ActorPosition = Actor->K2_GetActorLocation();
+		if (ActorPosition.IsZero()) continue;
+
+		auto ClassName = Actor->Class->GetName();
+
+		int Type = 0;
+		int Quality = 0;
+		int Variant = 0;
+
+		bool shouldAdd = false;
+
+		switch (ActorType)
+		{
+		case EType::Tree:
+		{
+			auto Tree = ETreeType::Unknown;
+			Tree = GetFlagSingle(ClassName, TREE_TYPE_MAPPINGS);
+			if (Tree != ETreeType::Unknown) {
+				auto Size = EGatherableSize::Unknown;
+				Size = GetFlagSingle(ClassName, GATHERABLE_SIZE_MAPPINGS);
+				if (Size != EGatherableSize::Unknown) {
+					shouldAdd = true;
+					Type = static_cast<int>(Tree);
+					Variant = static_cast<int>(Size);
+				}
+			}
+		}
+		break;
+		case EType::Ore:
+		{
+			auto Ore = EOreType::Unknown;
+			Ore = GetFlagSingle(ClassName, MINING_TYPE_MAPPINGS);
+			if (Ore != EOreType::Unknown) {
+				auto Size = EGatherableSize::Unknown;
+				Size = GetFlagSingle(ClassName, GATHERABLE_SIZE_MAPPINGS);
+				if (Ore == EOreType::Clay) Size = EGatherableSize::Large;
+				if (Size != EGatherableSize::Unknown) {
+					shouldAdd = true;
+					Type = static_cast<int>(Ore);
+					Variant = static_cast<int>(Size);
+				}
+			}
+		}
+		break;
+		case EType::Bug:
+		{
+			auto Bug = EBugKind::Unknown;
+			Bug = GetFlagSingle(ClassName, CREATURE_BUGKIND_MAPPINGS);
+			if (Bug != EBugKind::Unknown) {
+				auto BVar = EBugQuality::Unknown;
+				BVar = GetFlagSingleEnd(ClassName, CREATURE_BUGQUALITY_MAPPINGS);
+				if (BVar != EBugQuality::Unknown) {
+					shouldAdd = true;
+					Type = static_cast<int>(Bug);
+					Variant = static_cast<int>(BVar);
+					if (ClassName.ends_with("+_C")) {
+						Quality = 1;
+					}
+				}
+			}
+		}
+		break;
+		case EType::Animal:
+		{
+			auto CK = ECreatureKind::Unknown;
+			CK = GetFlagSingle(ClassName, CREATURE_KIND_MAPPINGS);
+			if (CK != ECreatureKind::Unknown) {
+				auto CQ = ECreatureQuality::Unknown;
+				CQ = GetFlagSingleEnd(ClassName, CREATURE_KINDQUALITY_MAPPINGS);
+				if (CQ != ECreatureQuality::Unknown) {
+					shouldAdd = true;
+					Type = static_cast<int>(CK);
+					Variant = static_cast<int>(CQ);
+				}
+			}
+		}
+		break;
+		case EType::Forage:
+		{
+			if (!Actor->bActorEnableCollision) continue;
+			auto Forage = EForageableType::Unknown;
+			Forage = GetFlagSingle(ClassName, FORAGEABLE_TYPE_MAPPINGS);
+			if (Forage != EForageableType::Unknown) {
+				shouldAdd = true;
+				Type = static_cast<int>(Forage);
+				if (ClassName.ends_with("+_C")) {
+					Quality = 1;
+				}
+			}
+		}
+		break;
+		case EType::Loot:
+			shouldAdd = true;
+			Type = 1; // doesn't matter, but isn't "unknown"
+			break;
+		case EType::Players:
+		{
+			shouldAdd = true;
+			Type = 1; // doesn't matter, but isn't "unknown"
+			auto VActor = static_cast<AValeriaCharacter*>(Actor);
+			ClassName = VActor->CharacterName.ToString();
+		}
+		break;
+		case EType::NPCs:
+			shouldAdd = true;
+			Type = 1; // doesn't matter, but isn't "unknown"
+			break;
+		case EType::Quest:
+			if (!Actor->bActorEnableCollision) continue;
+			shouldAdd = true;
+			Type = 1;
+			break;
+		case EType::RummagePiles:
+			shouldAdd = true;
+			Type = 1;
+			break;
+		case EType::Stables:
+			shouldAdd = true;
+			Type = 1;
+			break;
+		case EType::Fish:
+		{
+			auto Fish = EFishType::Unknown;
+			Fish = GetFlagSingle(ClassName, FISH_TYPE_MAPPINGS);
+			if (Fish != EFishType::Unknown) {
+				shouldAdd = true;
+				Type = static_cast<int>(Fish);
+			}
+		}
+		break;
+		case EType::Unknown: break;
+		case EType::MAX: break;
+		default: break;
+		}
+
+		if (!shouldAdd && !bVisualizeDefault) continue;
+		std::string Name = CLASS_NAME_ALIAS.contains(ClassName) ? CLASS_NAME_ALIAS[ClassName] : ClassName;
+		CachedActors.push_back({Actor, ActorPosition, Name, ActorType, Type, Quality, Variant, shouldAdd});
+	}
 }

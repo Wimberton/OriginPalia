@@ -901,8 +901,8 @@ public:
 	};
 
 	// Forageables[Type][]
-	bool Singles[(int)EOneOffs::MAX] = {};
-	unsigned int SingleColors[(int)EOneOffs::MAX] = {
+	bool Singles[static_cast<int>(EOneOffs::MAX)] = {};
+	unsigned int SingleColors[static_cast<int>(EOneOffs::MAX)] = {
 		IM_COL32(0xFF, 0xFF, 0x00, 0xFF),
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
@@ -912,43 +912,43 @@ public:
 	};
 
 	// Forageables[Type][Starred]
-	bool Forageables[(int)EForageableType::MAX][2] = {};
-	unsigned int ForageableColors[(int)EForageableType::MAX] = {};
+	bool Forageables[static_cast<int>(EForageableType::MAX)][2] = {};
+	unsigned int ForageableColors[static_cast<int>(EForageableType::MAX)] = {};
 
 	int ForageableCommon[4] = {
-		(int)EForageableType::Oyster,
-		(int)EForageableType::Shell,
-		(int)EForageableType::Sundrop,
-		(int)EForageableType::MushroomRed
+		static_cast<int>(EForageableType::Oyster),
+		static_cast<int>(EForageableType::Shell),
+		static_cast<int>(EForageableType::Sundrop),
+		static_cast<int>(EForageableType::MushroomRed)
 	};
 
 	int ForageableUncommon[9] = {
-		(int)EForageableType::Coral,
-		(int)EForageableType::PoisonFlower,
-		(int)EForageableType::WaterFlower,
-		(int)EForageableType::EmeraldCarpet,
-		(int)EForageableType::SpicedSprouts,
-		(int)EForageableType::SweetLeaves,
-		(int)EForageableType::Garlic,
-		(int)EForageableType::Ginger,
-		(int)EForageableType::GreenOnion
+		static_cast<int>(EForageableType::Coral),
+		static_cast<int>(EForageableType::PoisonFlower),
+		static_cast<int>(EForageableType::WaterFlower),
+		static_cast<int>(EForageableType::EmeraldCarpet),
+		static_cast<int>(EForageableType::SpicedSprouts),
+		static_cast<int>(EForageableType::SweetLeaves),
+		static_cast<int>(EForageableType::Garlic),
+		static_cast<int>(EForageableType::Ginger),
+		static_cast<int>(EForageableType::GreenOnion)
 	};
 
 	int ForageableRare[3] = {
-		(int)EForageableType::DragonsBeard,
-		(int)EForageableType::MushroomBlue,
-		(int)EForageableType::HeatRoot
+		static_cast<int>(EForageableType::DragonsBeard),
+		static_cast<int>(EForageableType::MushroomBlue),
+		static_cast<int>(EForageableType::HeatRoot)
 	};
 
 	int ForageableEpic[2] = {
-		(int)EForageableType::Heartdrop,
-		(int)EForageableType::DariCloves
+		static_cast<int>(EForageableType::Heartdrop),
+		static_cast<int>(EForageableType::DariCloves)
 	};
 
 	// Ores[Type][Size]
-	bool Ores[(int)EOreType::MAX][(int)EGatherableSize::MAX] = {};
+	bool Ores[static_cast<int>(EOreType::MAX)][static_cast<int>(EGatherableSize::MAX)] = {};
 
-	unsigned int OreColors[(int)EOreType::MAX] = {
+	unsigned int OreColors[static_cast<int>(EOreType::MAX)] = {
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
 		IM_COL32(0x88, 0x8C, 0x8D, 0xFF), // Stone
 		IM_COL32(0xB8, 0x73, 0x33, 0xFF), // Copper
@@ -960,16 +960,16 @@ public:
 	};
 
 	// Animals[Type][Size]
-	bool Animals[(int)ECreatureKind::MAX][(int)ECreatureQuality::MAX] = {};
-	unsigned int AnimalColors[(int)ECreatureKind::MAX][(int)ECreatureQuality::MAX] = {};
+	bool Animals[static_cast<int>(ECreatureKind::MAX)][static_cast<int>(ECreatureQuality::MAX)] = {};
+	unsigned int AnimalColors[static_cast<int>(ECreatureKind::MAX)][static_cast<int>(ECreatureQuality::MAX)] = {};
 
 	// Bugs[Type][Size][Starred]
-	bool Bugs[(int)EBugKind::MAX][(int)EBugQuality::MAX][2] = {};
-	unsigned int BugColors[(int)EBugKind::MAX][(int)EBugQuality::MAX] = {};
+	bool Bugs[static_cast<int>(EBugKind::MAX)][static_cast<int>(EBugQuality::MAX)][2] = {};
+	unsigned int BugColors[static_cast<int>(EBugKind::MAX)][static_cast<int>(EBugQuality::MAX)] = {};
 
 	// Trees[Type][Size]
-	bool Trees[(int)ETreeType::MAX][(int)EGatherableSize::MAX] = {};
-	unsigned int TreeColors[(int)ETreeType::MAX] = {
+	bool Trees[static_cast<int>(ETreeType::MAX)][static_cast<int>(EGatherableSize::MAX)] = {};
+	unsigned int TreeColors[static_cast<int>(ETreeType::MAX)] = {
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
 		IM_COL32(0x67, 0x00, 0xEA, 0xFF),
 		IM_COL32(0x00, 0xFF, 0x00, 0xFF),
@@ -978,8 +978,8 @@ public:
 	};
 
 	// Trees[Type][Size]
-	bool Fish[(int)EFishType::MAX] = {};
-	unsigned int FishColors[(int)EFishType::MAX] = {
+	bool Fish[static_cast<int>(EFishType::MAX)] = {};
+	unsigned int FishColors[static_cast<int>(EFishType::MAX)] = {
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
 		IM_COL32(0xFF, 0xFF, 0xFF, 0xFF),
@@ -1033,12 +1033,11 @@ public:
 
 	float SmoothingFactor = 90.0f;
 	//FVector AimOffset = FVector(0, 0, 0);
-	FVector AimOffset = FVector(-1.5, -1.35, 0);
+	FVector AimOffset = {-1.5, -1.35, 0 };
 	float CurrentAimTime = 0.f;
 	double SelectionThreshold = 50.0;
 
 	// Movement Booleans
-	bool bEnablePersistantMovement = true; // persistance check in DrawHUD for movement
 	
 	bool bGatherBot = false;
 
@@ -1113,7 +1112,7 @@ public:
 
 	// Fishing Captures
 	FName sOverrideFishingSpot;
-	UValeriaWaterBodyComponent* fWaterBody = (UValeriaWaterBodyComponent*)malloc(sizeof(UValeriaWaterBodyComponent));
+	UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
 	bool bCaptureFishingSpot = false;
 	bool bOverrideFishingSpot = false;
 
