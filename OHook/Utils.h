@@ -202,20 +202,17 @@ inline bool IsGameWindowActive() {
     return _tcscmp(windowClassName, TEXT("UnrealWindow")) == 0;
 }
 
-#define STATIC_CLASS(CName)                   \
-{                                             \
-    static class UClass* Clss = nullptr;      \
-    if (!Clss || !Clss->IsValidLowLevel())    \
-        Clss = UObject::FindClassFast(CName); \
-    SearchClass = Clss;                       \
-}
+union FunctionPointerUnion {
+    const void* ProcessEventPointer;
+    void (*ProcessEventFunction)(const UObject*, UFunction*, void*);
+};
 
-#define STATIC_CLASS_MULT(CName)              \
-{                                             \
-    static class UClass* Clss = nullptr;      \
-    if (!Clss || !Clss->IsValidLowLevel())    \
-        Clss = UObject::FindClassFast(CName); \
-    SearchClasses.push_back(Clss);            \
+#define STATIC_CLASS(CName, SearchContainer)   \
+{                                              \
+    static class UClass* Clss = nullptr;       \
+    if (!Clss || !Clss->IsValidLowLevel())     \
+        Clss = UObject::FindClassFast(CName);  \
+    SearchContainer.push_back(Clss);           \
 }
 
 // Vector math utilities
@@ -266,7 +263,7 @@ namespace CustomMath {
     // Custom arccosine function
     inline float Acos(float value) { return std::acos(Clamp(value, -1.0f, 1.0f)); }
 
-    float DistanceBetweenPoints(const FVector2D& Point1, const FVector2D& Point2) {
+    inline float DistanceBetweenPoints(const FVector2D& Point1, const FVector2D& Point2) {
         return sqrt(pow(Point2.X - Point1.X, 2) + pow(Point2.Y - Point1.Y, 2));
     }
 
@@ -275,7 +272,7 @@ namespace CustomMath {
 
     inline double Fmod(double Value, double Mod) { return std::fmod(Value, Mod); }
 
-    FRotator RInterpTo(const FRotator& Current, const FRotator& Target, double DeltaTime, float InterpSpeed) {
+    inline FRotator RInterpTo(const FRotator& Current, const FRotator& Target, double DeltaTime, float InterpSpeed) {
         // If no interpolation speed, just return the target
         if (InterpSpeed <= 0.0f) { return Target; }
 
