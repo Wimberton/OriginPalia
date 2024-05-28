@@ -1041,8 +1041,8 @@ public:
 
     // Item Booleans
     bool bEasyModeActive = false;
-    bool bSkipGiftingTimers = false;
     bool bEnableLootbagTeleportation = false;
+    bool bEnableWaypointTeleport = false;
     
     // Housing Booleans
     bool bPlaceAnywhere = false;

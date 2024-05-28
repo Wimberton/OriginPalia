@@ -276,7 +276,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
 
                     // Smooth rotation adjustment
                     FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
-                    ValeriaCharacter->K2_SetActorRotation(NewRotation, true);
+                    GetValeriaController()->SetControlRotation(NewRotation);
                 }
             }
         }
@@ -701,9 +701,40 @@ inline void Func_DoTeleportLoot(const PaliaOverlay* Overlay) {
 
             Loc.Z += 130;
             Actor->K2_SetActorLocation(Loc, false, &HitResult, true);
+
+            ValeriaCharacter->PrimaryInteractPressed();
+            ValeriaCharacter->PrimaryInteractReleased();
         }
     }
 }
+
+// inline void Func_DoBreakNearby(const PaliaOverlay* Overlay) {
+//     const auto ValeriaCharacter = GetValeriaCharacter();
+//     if (!ValeriaCharacter)
+//         return;
+//
+//     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
+//         if (ActorType == EType::Ore) {
+//             if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject() || WorldPosition.IsZero())
+//                 continue;
+//
+//             // Don't count itself or us
+//             if (Actor == Overlay->BestTargetActor || Actor == ValeriaCharacter)
+//                 continue;
+//
+//             // Check for actors within 30 meters of this actor
+//             if (WorldPosition.GetDistanceToInMeters(ValeriaCharacter->K2_GetActorLocation()) < 3) {
+//                 Actor->break
+//                 // shouldTeleport = false;
+//                 // break;
+//             }
+//         }
+//     }
+//     
+//     AVAL_BreakableActor BreakableActor;
+//     BreakableActor.TryRegisterHit(ValeriaCharacter);
+// }
+
 
 void DetourManager::SetupDetour(void* Instance, void (*DetourFunc)(const UObject*, const UFunction*, void*)) {
     const void** Vtable = *static_cast<const void***>(Instance);
@@ -752,6 +783,8 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
 
         // [Logic] Auto Fishing-Related Actions
         Func_DoFishingActivities(Overlay);
+
+        //Func_DoBreakNearby(Overlay);
     }
 
     // Fishing Activities
@@ -775,32 +808,34 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
         auto MovementParams = static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params);
 
-        if (const auto ValeriaCharacter = GetValeriaCharacter())
-
+        if (const auto ValeriaCharacter = GetValeriaCharacter()) {
             if (ValeriaCharacter) {
                 UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
                 if (ValeriaMovementComponent) {
                     MovementParams->MoveInfo.TargetVelocity = {0, 0, 0};
                 }
             }
+        }
     }
 
     // Silent Aim Projectile Logic
     if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
         auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
 
-        auto Component = static_cast<UProjectileFiringComponent*>(const_cast<UObject*>(Class));
-        if (Component) {
+        const auto ValeriaCharacter = GetValeriaCharacter();
+
+        UProjectileFiringComponent* FiringComponent = nullptr;
+        if (ValeriaCharacter) {
+            FiringComponent = ValeriaCharacter->GetFiringComponent();
+        }
+
+        if (FiringComponent) {
             if (Overlay->bEnableSilentAimbot && Overlay->BestTargetActor) {
                 FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
-                //FRotator TargetRotation = FireProjectile->SpawnRotation;
-                //FTransform SpawnTransform = PC->K2_GetPawn()->GetTransform();
-                //TArray<AActor*> AOEHitActors;
-
                 FVector HitLocation = TargetLocation;
 
                 // Find the projectile after it's fired and directly set its hit status
-                for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : Component->FiredProjectiles) {
+                for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
                     if (ProjectileId == FireProjectile->ProjectileId) {
                         FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
                         FVector FiringTargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
@@ -818,10 +853,27 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
                         //HitResult.Location = FVector_NetQuantize(NewProjectileLocation);
                         //OriginalProcEvent(Class, Function, Params);
 
-                        Component->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
+                        FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
                     }
                 }
                 //PC->RpcServer_PerformClientAuthoritativeHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, AOEHitActors);
+            }
+        }
+    }
+
+    if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
+        if (Overlay->bEnableWaypointTeleport) {
+            auto ValeriaCharacter = GetValeriaCharacter();
+            if (ValeriaCharacter) {
+                auto SetUserMarkerViaWorldMap = static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params);
+
+                FVector TargetLocation = SetUserMarkerViaWorldMap->MarkerLocation;
+                if (!TargetLocation.IsZero()) {
+                    TargetLocation.Z += 150.0f; // Raise by 150 units in the Z direction
+
+                    FHitResult HitResult;
+                    ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
+                }
             }
         }
     }

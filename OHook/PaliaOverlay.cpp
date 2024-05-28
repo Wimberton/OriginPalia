@@ -1,5 +1,7 @@
 #include "PaliaOverlay.h"
 #include "DetourManager.h"
+#include <SDK/Palia_parameters.hpp>
+
 #include "ImGuiExt.h"
 #include "SDKExt.h"
 #include "Utils.h"
@@ -12,6 +14,35 @@ using namespace SDK;
 
 std::vector<std::string> debugger;
 DetourManager gDetourManager;
+
+namespace {
+    APlayerController* GetPlayerController() {
+        if (const UWorld* World = GetWorld()) {
+            if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+                if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+                    if (APlayerController* PlayerController = LocalPlayer->PlayerController; PlayerController && PlayerController->Pawn) {
+                        return PlayerController;
+                    }
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    AValeriaPlayerController* GetValeriaController() {
+        if (APlayerController* PlayerController = GetPlayerController(); PlayerController) {
+            return static_cast<AValeriaPlayerController*>(PlayerController);
+        }
+        return nullptr;
+    }
+
+    AValeriaCharacter* GetValeriaCharacter() {
+        if (const AValeriaPlayerController* ValeriaController = GetValeriaController(); ValeriaController && ValeriaController->IsValidLowLevel() && !ValeriaController->IsDefaultObject()) {
+            return ValeriaController->GetValeriaCharacter();
+        }
+        return nullptr;
+    }
+}
 
 std::map<int, std::string> PaliaOverlay::CreatureQualityNames = {
     {0, "Unknown"},
@@ -37,7 +68,6 @@ std::map<int, std::string> PaliaOverlay::GatherableSizeNames = {
     {3, "Lg"},
     {4, "Bush"}
 };
-
 
 void PaliaOverlay::SetupColors() {
     // Forageable colors
@@ -104,14 +134,17 @@ void PaliaOverlay::DrawHUD() {
     ImGui::End();
 
     style.WindowRounding = prevWindowRounding; // Restore style after the temporary change.
-    
+
     APlayerController* PlayerController = nullptr;
+    AValeriaPlayerController* ValeriaController = nullptr;
     AValeriaCharacter* ValeriaCharacter = nullptr;
+
     if (UWorld* World = GetWorld()) {
         if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
             if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
                 if (PlayerController = LocalPlayer->PlayerController; PlayerController && PlayerController->Pawn) {
-                    if (AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController); ValeriaController) {
+                    ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+                    if (ValeriaController) {
                         ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
                     }
                 }
@@ -119,29 +152,36 @@ void PaliaOverlay::DrawHUD() {
         }
     }
 
+    if (ValeriaController) {
+        if (UTrackingComponent* TrackingComponent = ValeriaController->GetTrackingComponent(); TrackingComponent != nullptr) {
+            gDetourManager.SetupDetour(TrackingComponent);
+        }
+    }
+
+
     // HOOKS
     if (ValeriaCharacter) {
         // FISHING COMPONENT
-        if(UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing(); FishingComponent != nullptr) {
+        if (UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing(); FishingComponent != nullptr) {
             gDetourManager.SetupDetour(FishingComponent);
         }
 
         // FIRING COMPONENT
-        if(UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent(); FiringComponent != nullptr) {
+        if (UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent(); FiringComponent != nullptr) {
             gDetourManager.SetupDetour(FiringComponent);
         }
-        
+
         // MOVEMENT COMPONENT
-        if(UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent(); ValeriaMovementComponent != nullptr) {
+        if (UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent(); ValeriaMovementComponent != nullptr) {
             gDetourManager.SetupDetour(ValeriaMovementComponent);
         }
 
         // PLACEMENT COMPONENT
-        if(UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement(); PlacementComponent != nullptr) {
+        if (UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement(); PlacementComponent != nullptr) {
             gDetourManager.SetupDetour(PlacementComponent);
         }
     }
-    
+
     // HOOKING PROCESSEVENT IN AHUD
     if (PlayerController && HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
         gDetourManager.SetupDetour(PlayerController->MyHUD);
@@ -1394,7 +1434,7 @@ void PaliaOverlay::DrawOverlay() {
         // ==================================== 1 Aimbots & Fun TAB
         else if (OpenTab == 1) {
             ImGui::Columns(2, nullptr, false);
-            
+
             AValeriaCharacter* ValeriaCharacter = nullptr;
             if (UWorld* World = GetWorld()) {
                 if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
@@ -1458,9 +1498,15 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Teleport to the targeted entity by using your top side mouse button.");
 
-                    ImGui::Checkbox("Avoid Teleporting To Targeted Players", &bAvoidTeleportingToPlayers);
+                    ImGui::Checkbox("Avoid Teleporting To Players", &bAvoidTeleportingToPlayers);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Don't teleport to players.");
 
                     ImGui::Checkbox("Avoid Teleporting To Targeted When Players Are Near", &bDoRadiusPlayersAvoidance);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Don't teleport if a player is detected near your destination.");
+
+                    
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
@@ -1472,9 +1518,12 @@ void PaliaOverlay::DrawOverlay() {
             if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
-
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
+
+                    ImGui::Checkbox("Teleport To Map Waypoint", &bEnableWaypointTeleport);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Automatically teleports you at your world map's waypoint.");
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
@@ -1933,7 +1982,6 @@ void PaliaOverlay::DrawOverlay() {
         else if (OpenTab == 4) {
             ImGui::Columns(2, nullptr, false);
             if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-
                 AValeriaCharacter* ValeriaCharacter = nullptr;
                 if (UWorld* World = GetWorld()) {
                     if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
@@ -1989,7 +2037,7 @@ void PaliaOverlay::DrawOverlay() {
                         ImGui::Checkbox("Disable Fishing Rod Durability Loss", &bNoDurabilityLoss);
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                             ImGui::SetTooltip("Prevent your fishing rod from breaking by not having its durability reduce at all.");
-                        
+
                         ImGui::Checkbox("Always Perfect Catch", &bPerfectCatch);
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                             ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
@@ -2001,7 +2049,7 @@ void PaliaOverlay::DrawOverlay() {
                         ImGui::Checkbox("Discard Other Unsellables (Slot 1)", &bDestroyJunk);
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                             ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
-                        
+
                         ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
                         ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
                         ImGui::SameLine();
@@ -2009,7 +2057,7 @@ void PaliaOverlay::DrawOverlay() {
 
                         ImGui::Spacing();
                         ImGui::Spacing();
-                        
+
                         if (EquippedTool == ETools::FishingRod) {
                             ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
                             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
