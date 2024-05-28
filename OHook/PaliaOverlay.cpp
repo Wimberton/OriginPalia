@@ -1099,7 +1099,7 @@ void PaliaOverlay::ProcessActors(int step) {
 		}
 		break;
 	case EType::Loot:
-		if (Singles[(int)EOneOffs::Loot]) {
+		if (Singles[(int)EOneOffs::Loot] || bEnableLootbagTeleportation) {
 			STATIC_CLASS("BP_Loot_C");
 		}
 		break;
