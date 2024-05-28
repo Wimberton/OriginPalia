@@ -1567,7 +1567,7 @@ void PaliaOverlay::DrawOverlay()
 	ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowBgAlpha(0.98f);
 
-	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.4.1 (Game Version 0.179.1)");
+	std::string WindowTitle = std::string("OriginPalia Menu - V1.7.5 (Game Version 0.180.0)");
 
 	if (ImGui::Begin(WindowTitle.data(), &show, window_flags))
 	{
