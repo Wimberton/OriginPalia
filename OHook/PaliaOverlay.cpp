@@ -15,35 +15,6 @@ using namespace SDK;
 std::vector<std::string> debugger;
 DetourManager gDetourManager;
 
-namespace {
-    APlayerController* GetPlayerController() {
-        if (const UWorld* World = GetWorld()) {
-            if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-                if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
-                    if (APlayerController* PlayerController = LocalPlayer->PlayerController; PlayerController && PlayerController->Pawn) {
-                        return PlayerController;
-                    }
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    AValeriaPlayerController* GetValeriaController() {
-        if (APlayerController* PlayerController = GetPlayerController(); PlayerController) {
-            return static_cast<AValeriaPlayerController*>(PlayerController);
-        }
-        return nullptr;
-    }
-
-    AValeriaCharacter* GetValeriaCharacter() {
-        if (const AValeriaPlayerController* ValeriaController = GetValeriaController(); ValeriaController && ValeriaController->IsValidLowLevel() && !ValeriaController->IsDefaultObject()) {
-            return ValeriaController->GetValeriaCharacter();
-        }
-        return nullptr;
-    }
-}
-
 std::map<int, std::string> PaliaOverlay::CreatureQualityNames = {
     {0, "Unknown"},
     {1, "T1"},
@@ -161,6 +132,16 @@ void PaliaOverlay::DrawHUD() {
 
     // HOOKS
     if (ValeriaCharacter) {
+        // Loot
+        // if (UInteractorComponent* InteractorComponent = ValeriaCharacter->Interactor; InteractorComponent != nullptr) {
+        //     gDetourManager.SetupDetour(InteractorComponent);
+        // }
+
+        // INVENTORY COMPONENT
+        if (UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory(); InventoryComponent != nullptr) {
+            gDetourManager.SetupDetour(InventoryComponent);
+        }
+
         // FISHING COMPONENT
         if (UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing(); FishingComponent != nullptr) {
             gDetourManager.SetupDetour(FishingComponent);
@@ -1505,8 +1486,6 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::Checkbox("Avoid Teleporting To Targeted When Players Are Near", &bDoRadiusPlayersAvoidance);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Don't teleport if a player is detected near your destination.");
-
-                    
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
@@ -1517,9 +1496,11 @@ void PaliaOverlay::DrawOverlay() {
             // Fun Mods - Entities column
             if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
-                    ImGui::Checkbox("Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
+                    static bool teleportLootDisabled = true;
+                    ImGui::PushItemFlag(ImGuiItemFlags_Disabled, teleportLootDisabled);
+                    ImGui::Checkbox("[Disabled] Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
+                    ImGui::PopItemFlag();
+                    //if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
 
                     ImGui::Checkbox("Teleport To Map Waypoint", &bEnableWaypointTeleport);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -1708,9 +1689,9 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-            if (ValeriaCharacter) {
-                // Locations and exploits column
-                if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ValeriaCharacter) {
+                    // Locations and exploits column
                     ImGui::Text("Teleport List");
                     ImGui::Text("Double-click a location listing to teleport");
                     ImGui::ListBoxHeader("##TeleportList", ImVec2(-1, 150));
@@ -1795,9 +1776,13 @@ void PaliaOverlay::DrawOverlay() {
                         // PaliaContext.PlayerController->ClientForceGarbageCollection();
                         // PaliaContext.PlayerController->ClientFlushLevelStreaming();
                     }
+                } else {
+                    ImGui::Text("Waiting for character initialization...");
                 }
+            }
 
-                if (ImGui::CollapsingHeader("Gatherable Items Options")) {
+            if (ImGui::CollapsingHeader("Gatherable Items Options")) {
+                if (ValeriaCharacter) {
                     ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
                     ImGui::Text("Populates from enabled Forageable ESP options.");
 
@@ -1829,32 +1814,32 @@ void PaliaOverlay::DrawOverlay() {
                         }
                         ImGui::ListBoxFooter();
                     }
-                }
 
-                // Begin List adding Popup
-                if (ImGui::BeginPopupModal("Add New Location", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-                    static int selectedWorld = 0; // 0 for Kilima, 1 for Bahari
-                    static char locationName[128] = "";
+                    // Begin List adding Popup
+                    if (ImGui::BeginPopupModal("Add New Location", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                        static int selectedWorld = 0; // 0 for Kilima, 1 for Bahari
+                        static char locationName[128] = "";
 
-                    // World selection dropdown
-                    ImGui::Combo("World", &selectedWorld, "Kilima\0Bahari\0");
-                    ImGui::InputText("Location Name", locationName, IM_ARRAYSIZE(locationName));
+                        // World selection dropdown
+                        ImGui::Combo("World", &selectedWorld, "Kilima\0Bahari\0");
+                        ImGui::InputText("Location Name", locationName, IM_ARRAYSIZE(locationName));
 
-                    // Button to submit the new location
-                    if (ImGui::Button("Add to List")) {
-                        FVector newLocation = ValeriaCharacter->K2_GetActorLocation();
-                        FRotator newRotation = ValeriaCharacter->K2_GetActorRotation();
-                        std::string mapRoot = selectedWorld == 0 ? "Village_Root" : "AZ1_01_Root";
-                        std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
-                        std::string locationNameStr(locationName);
+                        // Button to submit the new location
+                        if (ImGui::Button("Add to List")) {
+                            FVector newLocation = ValeriaCharacter->K2_GetActorLocation();
+                            FRotator newRotation = ValeriaCharacter->K2_GetActorRotation();
+                            std::string mapRoot = selectedWorld == 0 ? "Village_Root" : "AZ1_01_Root";
+                            std::string mapName = selectedWorld == 0 ? "Kilima" : "Bahari";
+                            std::string locationNameStr(locationName);
 
-                        TeleportLocations.push_back({mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
-                        ImGui::CloseCurrentPopup();
+                            TeleportLocations.push_back({mapRoot, ELocation::UserDefined, mapName + " - " + locationNameStr + " [USER]", newLocation, newRotation});
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::EndPopup();
                     }
-                    ImGui::EndPopup();
+                } else {
+                    ImGui::Text("Waiting for character initialization...");
                 }
-            } else {
-                ImGui::Text("Waiting for character initialization...");
             }
         }
         // ==================================== 3 Selling & Items TAB
@@ -1981,23 +1966,24 @@ void PaliaOverlay::DrawOverlay() {
         // ==================================== 4 Skills & Tools TAB
         else if (OpenTab == 4) {
             ImGui::Columns(2, nullptr, false);
-            if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-                AValeriaCharacter* ValeriaCharacter = nullptr;
-                if (UWorld* World = GetWorld()) {
-                    if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-                        if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
-                            if (APlayerController* PlayerController = LocalPlayer->PlayerController) {
-                                if (PlayerController && PlayerController->Pawn) {
-                                    ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-                                }
+
+            AValeriaCharacter* ValeriaCharacter = nullptr;
+            if (UWorld* World = GetWorld()) {
+                if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+                    if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+                        if (APlayerController* PlayerController = LocalPlayer->PlayerController) {
+                            if (PlayerController && PlayerController->Pawn) {
+                                ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
                             }
                         }
                     }
                 }
+            }
 
-                UFishingComponent* FishingComponent = nullptr;
-                auto EquippedTool = ETools::None;
+            UFishingComponent* FishingComponent = nullptr;
+            auto EquippedTool = ETools::None;
 
+            if (ImGui::CollapsingHeader("Skill Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     std::string EquippedName;
                     EquippedName = ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString();
@@ -2025,62 +2011,69 @@ void PaliaOverlay::DrawOverlay() {
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
+            }
+            ImGui::NextColumn();
 
-                ImGui::NextColumn();
+            if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (FishingComponent) {
+                    ImGui::Checkbox("Disable Durability Loss", &bFishingNoDurability);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Prevents your durability from being damaged.");
 
-                if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-                    if (FishingComponent) {
-                        ImGui::Checkbox("Enable Instant Fishing", &bEnableInstantFishing);
+                    ImGui::Checkbox("Enable Multiplayer Help", &bFishingMultiplayerHelp);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Counts as fishing with others for weekly challenges.");
+
+                    ImGui::Checkbox("Always Perfect Catch", &bFishingPerfectCatch);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
+
+                    ImGui::Checkbox("Instant Catch", &bFishingInstantCatch);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Instantly catch fish when your bobber hits the water.");
+
+                    ImGui::Checkbox("Sell All Fish", &bFishingSell);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Visit the fishing store for this feature to work.");
+
+                    ImGui::Checkbox("Discard All Junk", &bFishingDiscard);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Discards Junk from your inventory to free-up space.");
+
+                    ImGui::Checkbox("Keep Waterlogged Chests", &bKeepWaterlogged);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Don't discard Waterlogged Chests.");
+
+                    ImGui::Checkbox("Capture Fishing Pool", &bCaptureFishingSpot);
+                    ImGui::Checkbox("Override Fishing Pool", &bOverrideFishingSpot);
+                    ImGui::SameLine();
+                    ImGui::Text("[Captured: %s]", sOverrideFishingSpot.ToString().c_str());
+
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+
+                    if (EquippedTool == ETools::FishingRod) {
+                        ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
                         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Automatically catch fish when your bobber hits the water.");
+                            ImGui::SetTooltip("Automatically casts the fishing rod.");
 
-                        ImGui::Checkbox("Disable Fishing Rod Durability Loss", &bNoDurabilityLoss);
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Prevent your fishing rod from breaking by not having its durability reduce at all.");
-
-                        ImGui::Checkbox("Always Perfect Catch", &bPerfectCatch);
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
-
-                        ImGui::Checkbox("Instant Sell Fish", &bDoInstantSellFish);
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Visit a storefront first, then enable this fishing feature.");
-
-                        ImGui::Checkbox("Discard Other Unsellables (Slot 1)", &bDestroyJunk);
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Discard all unsellable items such as Waterlogged chests when fishing to save inventory space.");
-
-                        ImGui::Checkbox("Capture fishing spot", &bCaptureFishingSpot);
-                        ImGui::Checkbox("Override fishing spot", &bOverrideFishingSpot);
-                        ImGui::SameLine();
-                        ImGui::Text("%s", sOverrideFishingSpot.ToString().c_str());
-
-                        ImGui::Spacing();
-                        ImGui::Spacing();
-
-                        if (EquippedTool == ETools::FishingRod) {
-                            ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
+                        if (bEnableAutoFishing) {
+                            ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bFishingRequireClick);
                             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                                ImGui::SetTooltip("Automatically casts the fishing rod.");
-
-                            if (bEnableAutoFishing) {
-                                ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
-                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                                    ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
-                            }
-                        } else {
-                            ImGui::Spacing();
-                            ImGui::Text("Equip your fishing rod to see more auto-fishing options");
-                            ImGui::Spacing();
-                            bEnableAutoFishing = false;
-                            bRequireClickFishing = true;
+                                ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
                         }
                     } else {
-                        if (!ValeriaCharacter) {
-                            ImGui::Text("Waiting for character initialization...");
-                        } else {
-                            ImGui::Text("Fishing component not available.");
-                        }
+                        ImGui::Spacing();
+                        ImGui::Text("Equip your fishing rod to see more auto-fishing options");
+                        ImGui::Spacing();
+                        bEnableAutoFishing = false;
+                        bFishingRequireClick = true;
+                    }
+                } else {
+                    if (!ValeriaCharacter) {
+                        ImGui::Text("Waiting for character initialization...");
+                    } else {
+                        ImGui::Text("Fishing component not available.");
                     }
                 }
             }
@@ -2115,14 +2108,23 @@ void PaliaOverlay::DrawOverlay() {
             }
         }
     }
+
     ImGui::End();
 
-    if (!show)
-        ShowOverlay(false);
+    if
+    (
+
+        !
+        show
+    )
+        ShowOverlay(
+
+            false
+        );
 }
 
 void PaliaOverlay::ProcessActors(int step) {
-    std::erase_if(CachedActors, [step](const FEntry& Entry) {
+    std::erase_if(CachedActors, [this, step](const FEntry& Entry) {
         return static_cast<int>(Entry.ActorType) == step;
     });
 
@@ -2165,7 +2167,7 @@ void PaliaOverlay::ProcessActors(int step) {
         }
         break;
     case EType::Loot:
-        if (Singles[static_cast<int>(EOneOffs::Loot)] || bEnableLootbagTeleportation) {
+        if (Singles[static_cast<int>(EOneOffs::Loot)]) {
             STATIC_CLASS("BP_Loot_C", SearchClasses)
         }
         break;
@@ -2222,9 +2224,6 @@ void PaliaOverlay::ProcessActors(int step) {
         if (ClassName.find("_FrontGate_") != std::string::npos) {
             // Destroy and move on, no caching.
             Actor->K2_DestroyActor();
-            //FVector GatePurgatory(50.0f, 50.0f, -3000.0f);
-            //FHitResult HitResult;
-            //Actor->K2_SetActorLocation(GatePurgatory, false, &HitResult, true);
             continue;
         }
 

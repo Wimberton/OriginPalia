@@ -19,7 +19,7 @@
 
 class _StrPrinter : public std::string {
 public:
-    _StrPrinter() {}
+    _StrPrinter() = default;
 
     template <typename T>
     _StrPrinter& operator<<(T&& data) {
@@ -28,7 +28,7 @@ public:
         return *this;
     }
 
-    std::string operator<<(std::ostream& (*f)(std::ostream&)) const { return *this; }
+    std::string operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::string>(*this); }
 
 private:
     std::stringstream _stream;
@@ -38,7 +38,7 @@ private:
 
 class _WStrPrinter : public std::wstring {
 public:
-    _WStrPrinter() {}
+    _WStrPrinter() = default;
 
     template <typename T>
     _WStrPrinter& operator<<(T&& data) {
@@ -100,7 +100,6 @@ inline FString CharToWide(const char* NarrowString) {
     MultiByteToWideChar(CP_ACP, 0, NarrowString, -1, WideString, 1024);
     return FString(WideString);
 }
-
 
 template <typename SearchType>
 SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
@@ -213,6 +212,46 @@ union FunctionPointerUnion {
     if (!Clss || !Clss->IsValidLowLevel())     \
         Clss = UObject::FindClassFast(CName);  \
     SearchContainer.push_back(Clss);           \
+}
+
+inline bool PlayerControllerIsValid(const APlayerController* PlayerController) {
+    return PlayerController && PlayerController->Pawn;
+}
+
+inline bool ValeriaControllerIsValid(const AValeriaPlayerController* ValeriaControllerIsValid) {
+    return ValeriaControllerIsValid && ValeriaControllerIsValid->IsValidLowLevel() && !ValeriaControllerIsValid->IsDefaultObject();
+}
+
+inline APlayerController* GetPlayerController() {
+    if (const UWorld* World = GetWorld()) {
+        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+            if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+                if (PlayerControllerIsValid(LocalPlayer->PlayerController)) {
+                    return LocalPlayer->PlayerController;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+inline AValeriaPlayerController* GetValeriaController() {
+    APlayerController* PlayerController = GetPlayerController();
+    if (PlayerControllerIsValid(PlayerController)) {
+        AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+        if (ValeriaControllerIsValid(ValeriaController)) {
+            return ValeriaController;
+        }
+    }
+    return nullptr;
+}
+
+inline AValeriaCharacter* GetValeriaCharacter() {
+    const AValeriaPlayerController* ValeriaController = GetValeriaController();
+    if (ValeriaControllerIsValid(ValeriaController)) {
+        return ValeriaController->GetValeriaCharacter();
+    }
+    return nullptr;
 }
 
 // Vector math utilities

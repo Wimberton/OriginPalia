@@ -1024,21 +1024,22 @@ public:
     float CustomJumpVelocity = 700.0f; // Custom, Dynamic jump velocity
     float CustomMaxStepHeight = 45.0f; // Custom, Dynamic maximum step height
 
-    // Fishing Booleans
-    bool bEnableAutoFishing = false;
-    bool bRequireClickFishing = true;
-    bool bEnableInstantFishing = false;
-    bool bPerfectCatch = true;
-    bool bDoInstantSellFish = false;
-    bool bDestroyJunk = false;
-
-    // Fishing Captures
+    // Fishing Options
+    bool bFishingNoDurability = true;
+    bool bFishingMultiplayerHelp = false;
+    bool bFishingInstantCatch = false;
+    bool bFishingPerfectCatch = true;
+    bool bFishingSell = false;
+    bool bFishingDiscard = false;
+    bool bKeepWaterlogged = false;
+    
     FName sOverrideFishingSpot;
     UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
-    bool bNoDurabilityLoss = true;
     bool bCaptureFishingSpot = false;
     bool bOverrideFishingSpot = false;
-
+    bool bEnableAutoFishing = false;
+    bool bFishingRequireClick = true;
+    
     // Item Booleans
     bool bEasyModeActive = false;
     bool bEnableLootbagTeleportation = false;
