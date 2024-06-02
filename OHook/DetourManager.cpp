@@ -1,10 +1,13 @@
 ﻿#include "DetourManager.h"
+#include "PaliaOverlay.h"
 #include <SDK/Palia_parameters.hpp>
 
 #include "SDKExt.h"
 #include "Utils.h"
 #include "format"
 #include "functional"
+
+using namespace SDK;
 
 // Cache
 
@@ -29,7 +32,7 @@ void ManageActorCache(PaliaOverlay* Overlay) {
     const auto GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
     if (!GameplayStatics)
         return;
-    
+
     if (const double WorldTime = GameplayStatics->GetTimeSeconds(World); abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
         Overlay->LastCachedTime = WorldTime;
         Overlay->ProcessActors(Overlay->ActorStep);
@@ -612,75 +615,107 @@ inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
 
 // [Fishing]
 
-inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
-    if (!Overlay->bFishingInstantCatch && !Overlay->bEnableAutoFishing)
+void DetourManager::ToggleFishingDelays(const bool RemoveDelays) {
+    UValeriaGameInstance* ValeriaGameInstance = GetValeriaController()->GameInst;
+    if (!ValeriaGameInstance || !ValeriaGameInstance->IsValidLowLevel() || ValeriaGameInstance->IsDefaultObject()) {
+        return;
+    }
+    
+    auto& CastSettings = ValeriaGameInstance->Configs.Globals.Fishing->CastSettings;
+    
+    float newCastDelay = RemoveDelays ? 0.0f : 0.150f;
+    if (std::abs(CastSettings.CastDelay - newCastDelay) < 0.0001f) {
+        return;
+    }
+    
+    auto& FishingSettings = ValeriaGameInstance->Configs.Globals.Fishing;
+    auto& EndSettings = ValeriaGameInstance->Configs.Globals.Fishing->EndSettings;
+    
+    CastSettings.CastDelay = newCastDelay;
+    CastSettings.MaxDistanceToCast = 1500.0f; // Default value
+    CastSettings.MinDistanceToCast = RemoveDelays ? 1500.0f : 500.0f;
+    CastSettings.LaunchOffset = RemoveDelays ? FVector{1500, 0, -300} : FVector{};
+    CastSettings.WindupSpeed = RemoveDelays ? FLT_MAX : 0.350f;
+    
+    FishingSettings->FishingFinishReelInSpeed = RemoveDelays ? FLT_MAX : 1600.0f;
+    FishingSettings->TotalCelebrationDuration = RemoveDelays ? 0.0f : 4.0f;
+    FishingSettings->OnBeginReelingInitialCooldown = RemoveDelays ? 0.0f : 1.0f;
+    
+    EndSettings.MaxTimeOfEndFishingCelebrate = RemoveDelays ? 0.0f : 4.5f;
+    EndSettings.MaxTimeOfEndFishingDefault = RemoveDelays ? 0.0f : 2.0f;
+    EndSettings.MaxTimeOfEndFishingEmptyHanded = RemoveDelays ? 0.0f : 2.2f;
+    EndSettings.MaxTimeOfEndFishingFailure = RemoveDelays ? 0.0f : 1.75f;
+}
+
+inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
+    if (!Overlay->bFishingInstantCatch)
         return;
 
     const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaCharacter)
         return;
 
-    // Soft Pause
-    if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Rod_") == std::string::npos) {
-        return;
-    }
-
-    UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory();
     UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
-
-    if (!InventoryComponent || !FishingComponent)
+    if (!FishingComponent)
         return;
 
-    // Instant fishing
-    if (Overlay->bFishingInstantCatch) {
-        if (static_cast<EFishingState_NEW>(FishingComponent->GetFishingState()) == EFishingState_NEW::Bite) {
-            FFishingEndContext Context;
-            FishingComponent->RpcServer_EndFishing(Context);
-            FishingComponent->SetFishingState(EFishingState_OLD::None);
-        }
-    }
-
-    // Auto fishing
-    if (Overlay->bEnableAutoFishing) {
-        if ((Overlay->bFishingRequireClick && IsKeyHeld(VK_LBUTTON) && !Overlay->ShowOverlay()) || !Overlay->bFishingRequireClick) {
-            if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Rod_") != std::string::npos) {
-                ValeriaCharacter->ToolPrimaryActionPressed();
-                ValeriaCharacter->ToolPrimaryActionReleased();
-            }
-        }
+    if (static_cast<EFishingState_NEW>(FishingComponent->GetFishingState()) == EFishingState_NEW::Bite) {
+        FFishingEndContext Context;
+        FishingComponent->RpcServer_EndFishing(Context);
+        FishingComponent->SetFishingState(EFishingState_OLD::None);
     }
 }
 
-inline void Func_DoFishSellDiscard(const PaliaOverlay* Overlay, const Params::FishingComponent_RpcClient_FishCaught* FishCaught) {
-    if (!Overlay->bFishingSell && !Overlay->bFishingDiscard) {
-        return;
-    }
-
+inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
     const auto ValeriaController = GetValeriaController();
     const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaController || !ValeriaCharacter) {
         return;
     }
 
+    // Auto Fishing
+
+    // This only works when there is no delay to fishing (Animations)
+    // And as this event (function) happens AFTER the fishing already ended
+    // We can just cast again, also above the inventory-loop aspect for faster fishing.
+    if (Overlay->bEnableAutoFishing) {
+        if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Rod_") != std::string::npos) {
+            ValeriaCharacter->ToolPrimaryActionPressed();
+            ValeriaCharacter->ToolPrimaryActionReleased();
+        }
+    }
+
+    // Avoid doing extra work
+    if (!Overlay->bFishingSell && !Overlay->bFishingDiscard && !Overlay->bFishingOpenStoreWaterlogged) {
+        return;
+    }
+
+    UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
     const UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory();
     if (!InventoryComponent) {
         return;
     }
 
-    UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
-
-    // Process items based on their category
+    // Sell / Discard / Storage
     for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
         for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
             FBagSlotLocation Slot{BagIndex, SlotIndex};
             FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
 
             if (Overlay->bFishingSell && Item.ItemType->Category == EItemCategory::Fish && StoreComponent) {
-                StoreComponent->RpcServer_SellItem(Slot, 10);//Item.Amount + 1); // Current + Caught
+                StoreComponent->RpcServer_SellItem(Slot, 10);
             } else if (Overlay->bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
-                ValeriaController->DiscardItem(Slot, Item.Amount); // Lag behind 1 catch for discard safety
-            } else if (!Overlay->bKeepWaterlogged && Item.ItemType->Name.ToString().find("DA_ItemType_Jackpot_Makeshift") != std::string::npos) {
-                ValeriaController->DiscardItem(Slot, Item.Amount); // Lag behind 1 catch for discard safety
+                // Don't ever discard more than the amount of the stack
+                ValeriaController->DiscardItem(Slot, Item.Amount);
+            } else if (Item.ItemType->PersistId == 2810) { // Waterlogged Chest
+                if (!Overlay->bFishingOpenStoreWaterlogged) {
+                    // Don't ever discard more than the amount of the stack
+                    ValeriaController->DiscardItem(Slot, Item.Amount);
+                } else {
+                    ValeriaController->ConsumeItem(Slot);
+                }
+            } else if (Overlay->bFishingOpenStoreWaterlogged && Item.ItemType->Name.ToString().find("DA_ItemType_Decor_Makeshift_") != std::string::npos) {
+                ValeriaController->MoveItemSlotToStorage(Slot, 1, EStoragePoolType::Primary);
             }
         }
     }
@@ -745,15 +780,6 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
 
         // [Logic] Housing Place Anywhere
         Func_DoPlaceAnywhere(Overlay);
-
-        // [Logic] Auto Fishing-Related Actions
-        Func_DoFishingActivities(Overlay);
-    }
-
-    // [Fun] Teleport to Waypoint
-    if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
-        auto SetUserMarkerViaWorldMap = static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params);
-        Func_DoTeleportToWaypoint(Overlay, SetUserMarkerViaWorldMap);
     }
 
     // [Fishing] Fish Pools (Capturing / Overriding)
@@ -762,18 +788,27 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
         Func_DoFishingCaptureOverride(Overlay, SelectLoot);
     }
 
-    // [Fishing] Fishing Ended Detouring (Instant Catch, Always Perfect, No Durability)
+    // [Fun] Teleport to Waypoint
+    if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
+        auto SetUserMarkerViaWorldMap = static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params);
+        Func_DoTeleportToWaypoint(Overlay, SetUserMarkerViaWorldMap);
+    }
+
+    // [Fishing] Instant Catch
+    if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
+        Func_DoInstantCatch(Overlay);
+    }
+
+    // [Fishing] End Fishing Detouring (Instant Catch, Always Perfect, No Durability, Multiplayer Help)
     if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
         auto EndFishing = static_cast<Params::FishingComponent_RpcServer_EndFishing*>(Params);
         EndFishing = EndFishingDetoured(Overlay, EndFishing);
     }
 
-    // [Fishing] Fish Caught (Sell / Discard / Move Items / Auto Fish)
+    // [Fishing] Fish Caught (Auto Fish / Sell / Discard / Store Items)
     if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
-        auto FishCaught = static_cast<Params::FishingComponent_RpcClient_FishCaught*>(Params);
-        Func_DoFishSellDiscard(Overlay, FishCaught);
+        Func_DoFishingActivities(Overlay);
     }
-
 
     // Movement Velocity Logic
     if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
@@ -827,7 +862,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
             }
         }
     }
-    
+
     if (OriginalProcessEvent) {
         OriginalProcessEvent(Class, Function, Params);
     }

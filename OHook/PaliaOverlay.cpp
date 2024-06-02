@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <imgui_internal.h>
 
-using namespace VectorMath;
 using namespace SDK;
 
 std::vector<std::string> debugger;
@@ -129,14 +128,8 @@ void PaliaOverlay::DrawHUD() {
         }
     }
 
-
     // HOOKS
     if (ValeriaCharacter) {
-        // Loot
-        // if (UInteractorComponent* InteractorComponent = ValeriaCharacter->Interactor; InteractorComponent != nullptr) {
-        //     gDetourManager.SetupDetour(InteractorComponent);
-        // }
-
         // INVENTORY COMPONENT
         if (UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory(); InventoryComponent != nullptr) {
             gDetourManager.SetupDetour(InventoryComponent);
@@ -184,7 +177,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia Menu - V0 (Void's Downfall Edition)");
+    const auto WindowTitle = std::string("OriginPalia Menu - V1a (Void's Downfall Edition)");
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
         static int OpenTab = 0;
@@ -1540,7 +1533,7 @@ void PaliaOverlay::DrawOverlay() {
             // Movement settings column
             if (ImGui::CollapsingHeader("Movement Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (MovementComponent) {
-                    ImGui::Text("Character: %s - Map: %s", ValeriaCharacter->CharacterName.ToString().c_str(), CurrentMap.c_str());
+                    ImGui::Text("Map: %s", CurrentMap.c_str());
                     ImGui::Spacing();
                     static const char* movementModes[] = {"Walking", "Flying", "Fly No Collision"};
                     // Dropdown menu options
@@ -2040,9 +2033,9 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Discards Junk from your inventory to free-up space.");
 
-                    ImGui::Checkbox("Keep Waterlogged Chests", &bKeepWaterlogged);
+                    ImGui::Checkbox("Open & Store Makeshift Decor", &bFishingOpenStoreWaterlogged);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Don't discard Waterlogged Chests.");
+                        ImGui::SetTooltip("Opens the waterlogged chests and sends the decor back home.");
 
                     ImGui::Checkbox("Capture Fishing Pool", &bCaptureFishingSpot);
                     ImGui::Checkbox("Override Fishing Pool", &bOverrideFishingSpot);
@@ -2052,23 +2045,21 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::Spacing();
                     ImGui::Spacing();
 
-                    if (EquippedTool == ETools::FishingRod) {
-                        ImGui::Checkbox("Auto Fishing", &bEnableAutoFishing);
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            ImGui::SetTooltip("Automatically casts the fishing rod.");
-
-                        if (bEnableAutoFishing) {
-                            ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bFishingRequireClick);
-                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                                ImGui::SetTooltip("Require left-click to automatically recast your fishing rod.");
-                        }
-                    } else {
-                        ImGui::Spacing();
-                        ImGui::Text("Equip your fishing rod to see more auto-fishing options");
-                        ImGui::Spacing();
+                    if (EquippedTool != ETools::FishingRod) {
+                        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, false);
                         bEnableAutoFishing = false;
-                        bFishingRequireClick = true;
                     }
+                    
+                    ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Cast your fishing rod to start.");
+
+                    if (EquippedTool != ETools::FishingRod) {
+                        ImGui::Spacing();
+                        ImGui::Text("[Equip your fishing rod to enable Auto Fast Fishing]");
+                    }
+
+                    gDetourManager.ToggleFishingDelays(bEnableAutoFishing);
                 } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
@@ -2100,6 +2091,7 @@ void PaliaOverlay::DrawOverlay() {
 
                 if (ValeriaCharacter->GetPlacement()) {
                     ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere);
+                    
                 } else {
                     ImGui::Text("No Placement Component available.");
                 }
@@ -2111,16 +2103,8 @@ void PaliaOverlay::DrawOverlay() {
 
     ImGui::End();
 
-    if
-    (
-
-        !
-        show
-    )
-        ShowOverlay(
-
-            false
-        );
+    if (!show)
+        ShowOverlay(false);
 }
 
 void PaliaOverlay::ProcessActors(int step) {
@@ -2167,7 +2151,7 @@ void PaliaOverlay::ProcessActors(int step) {
         }
         break;
     case EType::Loot:
-        if (Singles[static_cast<int>(EOneOffs::Loot)]) {
+        if (Singles[static_cast<int>(EOneOffs::Loot)] || bEnableLootbagTeleportation) {
             STATIC_CLASS("BP_Loot_C", SearchClasses)
         }
         break;
