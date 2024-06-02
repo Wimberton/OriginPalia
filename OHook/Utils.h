@@ -8,6 +8,7 @@
 #include <map>
 #include <Windows.h>
 #include <ShlObj.h>
+#include <tchar.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -15,50 +16,38 @@
 
 #define IsKeyHeld(key) (GetAsyncKeyState(key) & 0x8000)
 #define StrPrinter ::_StrPrinter()
-class _StrPrinter : public std::string
-{
+
+class _StrPrinter : public std::string {
 public:
-    _StrPrinter()
-    {
-    }
+    _StrPrinter() = default;
 
     template <typename T>
-    _StrPrinter& operator<<(T&& data)
-    {
+    _StrPrinter& operator<<(T&& data) {
         _stream << std::forward<T>(data);
         this->std::string::operator=(_stream.str());
         return *this;
     }
 
-    std::string operator<<(std::ostream& (*f)(std::ostream&)) const
-    {
-        return *this;
-    }
+    std::string operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::string>(*this); }
 
 private:
     std::stringstream _stream;
 };
 
 #define WStrPrinter ::_WStrPrinter()
-class _WStrPrinter : public std::wstring
-{
+
+class _WStrPrinter : public std::wstring {
 public:
-    _WStrPrinter()
-    {
-    }
+    _WStrPrinter() = default;
 
     template <typename T>
-    _WStrPrinter& operator<<(T&& data)
-    {
+    _WStrPrinter& operator<<(T&& data) {
         _stream << std::forward<T>(data);
         this->std::wstring::operator=(_stream.str());
         return *this;
     }
 
-    std::wstring operator<<(std::ostream& (*f)(std::ostream&)) const
-    {
-        return *this;
-    }
+    std::wstring operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::wstring>(*this); }
 
 private:
     std::wstringstream _stream;
@@ -67,31 +56,21 @@ private:
 struct vec3 {
     float x, y, z;
 
-    vec3(float x = 0.0f, float y = 0.0f, float z = 0.0f) : x(x), y(y), z(z) {}
+    explicit vec3(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f) : x(x), y(y), z(z) {}
 
-    FVector ToFVector() const {
-        return FVector(x, y, z);
-    }
+    FVector ToFVector() const { return FVector(x, y, z); }
 
     // Vector addition
-    vec3 operator+(const vec3& other) const {
-        return vec3(x + other.x, y + other.y, z + other.z);
-    }
+    vec3 operator+(const vec3& other) const { return vec3(x + other.x, y + other.y, z + other.z); }
 
     // Vector subtraction
-    vec3 operator-(const vec3& other) const {
-        return vec3(x - other.x, y - other.y, z - other.z);
-    }
+    vec3 operator-(const vec3& other) const { return vec3(x - other.x, y - other.y, z - other.z); }
 
     // Scalar multiplication
-    vec3 operator*(float scalar) const {
-        return vec3(x * scalar, y * scalar, z * scalar);
-    }
+    vec3 operator*(const float scalar) const { return vec3(x * scalar, y * scalar, z * scalar); }
 
     // Dot product
-    float Dot(const vec3& other) const {
-        return x * other.x + y * other.y + z * other.z;
-    }
+    float Dot(const vec3& other) const { return x * other.x + y * other.y + z * other.z; }
 
     // Cross product
     vec3 Cross(const vec3& other) const {
@@ -103,14 +82,10 @@ struct vec3 {
     }
 
     // Size of the vector
-    float Size() const {
-        return std::sqrt(x * x + y * y + z * z);
-    }
+    float Size() const { return std::sqrt(x * x + y * y + z * z); }
 
     // Distance between two vectors
-    float Distance(const vec3& other) const {
-        return (*this - other).Size();
-    }
+    float Distance(const vec3& other) const { return (*this - other).Size(); }
 
     // Convert to string (for debugging)
     std::string ToString() const {
@@ -120,90 +95,225 @@ struct vec3 {
     }
 };
 
-FString CharToWide(const char* NarrowString)
-{
+inline FString CharToWide(const char* NarrowString) {
     wchar_t WideString[1024];
     MultiByteToWideChar(CP_ACP, 0, NarrowString, -1, WideString, 1024);
     return FString(WideString);
 }
 
+template <typename SearchType>
+SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+    SearchType T = static_cast<SearchType>(0);
+    for (auto& Entry : map) {
+        bool bFound = false;
+
+        for (auto& Str : Entry.second) {
+            if (Text.find(Str) != std::string::npos) {
+                T = Entry.first;
+                bFound = true;
+                break;
+            }
+        }
+
+        if (bFound)
+            break;
+    }
+    return T;
+}
+
+template <typename SearchType>
+SearchType GetFlagSingleEnd(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+    SearchType T = static_cast<SearchType>(0);
+    for (auto& Entry : map) {
+        bool bFound = false;
+
+        for (auto& Str : Entry.second) {
+            if (Text.ends_with(Str)) {
+                T = Entry.first;
+                bFound = true;
+                break;
+            }
+        }
+
+        if (bFound)
+            break;
+    }
+    return T;
+}
+
+template <typename SearchType>
+SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+    SearchType T = static_cast<SearchType>(0);
+    for (auto& Entry : map) {
+        for (auto& Str : Entry.second) { if (Text.find(Str) != std::string::npos) { T |= Entry.first; } }
+    }
+    return T;
+}
+
+template <size_t size_x>
+bool AnyTrue(bool (&arr)[size_x]) {
+    for (int x = 0; x < size_x; x++) {
+        if (arr[x])
+            return true;
+    }
+    return false;
+}
+
+template <size_t size_x, size_t size_y>
+bool AnyTrue2D(bool (&arr)[size_x][size_y]) {
+    for (int x = 0; x < size_x; x++) {
+        for (int y = 0; y < size_y; y++) {
+            if (arr[x][y])
+                return true;
+        }
+    }
+    return false;
+}
+
+template <size_t size_x, size_t size_y, size_t size_z>
+bool AnyTrue3D(bool (&arr)[size_x][size_y][size_z]) {
+    for (int x = 0; x < size_x; x++) {
+        for (int y = 0; y < size_y; y++) {
+            for (int z = 0; z < size_z; z++) {
+                if (arr[x][y][z])
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Function to convert std::vector<FEntry> to TArray<FEntry>
+inline TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
+    TArray<FEntry> TArrayEntries;
+    for (const auto& Entry : VectorEntries) { TArrayEntries.Add(Entry); }
+    return TArrayEntries;
+}
+
+inline bool SortByName(const FEntry& a, const FEntry& b) {
+    return a.DisplayName < b.DisplayName;
+}
+
+inline bool IsGameWindowActive() {
+    const HWND foregroundWindow = GetForegroundWindow();
+    TCHAR windowClassName[256];
+    GetClassName(foregroundWindow, windowClassName, sizeof(windowClassName) / sizeof(TCHAR));
+    return _tcscmp(windowClassName, TEXT("UnrealWindow")) == 0;
+}
+
+union FunctionPointerUnion {
+    const void* ProcessEventPointer;
+    void (*ProcessEventFunction)(const UObject*, UFunction*, void*);
+};
+
+#define STATIC_CLASS(CName, SearchContainer)   \
+{                                              \
+    static class UClass* Clss = nullptr;       \
+    if (!Clss || !Clss->IsValidLowLevel())     \
+        Clss = UObject::FindClassFast(CName);  \
+    SearchContainer.push_back(Clss);           \
+}
+
+inline bool PlayerControllerIsValid(const APlayerController* PlayerController) {
+    return PlayerController && PlayerController->Pawn;
+}
+
+inline bool ValeriaControllerIsValid(const AValeriaPlayerController* ValeriaControllerIsValid) {
+    return ValeriaControllerIsValid && ValeriaControllerIsValid->IsValidLowLevel() && !ValeriaControllerIsValid->IsDefaultObject();
+}
+
+inline APlayerController* GetPlayerController() {
+    if (const UWorld* World = GetWorld()) {
+        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+            if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+                if (PlayerControllerIsValid(LocalPlayer->PlayerController)) {
+                    return LocalPlayer->PlayerController;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+inline AValeriaPlayerController* GetValeriaController() {
+    APlayerController* PlayerController = GetPlayerController();
+    if (PlayerControllerIsValid(PlayerController)) {
+        AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+        if (ValeriaControllerIsValid(ValeriaController)) {
+            return ValeriaController;
+        }
+    }
+    return nullptr;
+}
+
+inline AValeriaCharacter* GetValeriaCharacter() {
+    const AValeriaPlayerController* ValeriaController = GetValeriaController();
+    if (ValeriaControllerIsValid(ValeriaController)) {
+        return ValeriaController->GetValeriaCharacter();
+    }
+    return nullptr;
+}
 
 // Vector math utilities
 namespace VectorMath {
-	static FVector GetVectorForward(const FRotator& Rotation) {
-		const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
-		const float PitchRadians = Rotation.Pitch * M_PI / 180.0f;
+    static FVector GetVectorForward(const FRotator& Rotation) {
+        const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+        const float PitchRadians = Rotation.Pitch * M_PI / 180.0f;
 
-		const float CP = std::cos(PitchRadians);
-		const float SP = std::sin(PitchRadians);
-		const float CY = std::cos(YawRadians);
-		const float SY = std::sin(YawRadians);
+        const float CP = std::cos(PitchRadians);
+        const float SP = std::sin(PitchRadians);
+        const float CY = std::cos(YawRadians);
+        const float SY = std::sin(YawRadians);
 
-		return FVector(CP * CY, CP * SY, SP);
-	}
+        return FVector(CP * CY, CP * SY, SP);
+    }
 
-	static FVector GetVectorRight(const FRotator& Rotation) {
-		const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+    static FVector GetVectorRight(const FRotator& Rotation) {
+        const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
 
-		const float CY = std::cos(YawRadians - M_PI / 2);  // Subtract 90 degrees to get the right vector
-		const float SY = std::sin(YawRadians - M_PI / 2);
+        const float CY = std::cos(YawRadians - M_PI / 2); // Subtract 90 degrees to get the right vector
+        const float SY = std::sin(YawRadians - M_PI / 2);
 
-		return FVector(CY, SY, 0.0f);  // Right vector is on the horizontal plane, so Z component is 0
-	}
+        return FVector(CY, SY, 0.0f); // Right vector is on the horizontal plane, so Z component is 0
+    }
 }
 
 namespace CustomMath {
-    
+
     constexpr float PI = 3.14159265358979323846f;
-    
-    template<typename T>
+
+    template <typename T>
     inline T Clamp(const T& value, const T& min, const T& max) {
         return value < min ? min : (value > max ? max : value);
     }
 
-    template<typename T>
-    inline T Abs(const T& value) {
-        return value < 0 ? -value : value;
-    }
+    template <typename T>
+    inline T Abs(const T& value) { return value < 0 ? -value : value; }
 
-    inline float DegreesToRadians(float degrees) {
-        return degrees * (PI / 180.0f);
-    }
+    inline float DegreesToRadians(float degrees) { return degrees * (PI / 180.0f); }
 
     // Custom square root function
-    inline float Sqrt(float value) {
-        return std::sqrt(value);
-    }
+    inline float Sqrt(float value) { return std::sqrt(value); }
 
     // Custom square function
-    template<typename T>
-    inline T Square(const T& value) {
-        return value * value;
-    }
+    template <typename T>
+    inline T Square(const T& value) { return value * value; }
 
     // Custom arccosine function
-    inline float Acos(float value) {
-        return std::acos(Clamp(value, -1.0f, 1.0f));
-    }
+    inline float Acos(float value) { return std::acos(Clamp(value, -1.0f, 1.0f)); }
 
-    float DistanceBetweenPoints(const FVector2D& Point1, const FVector2D& Point2) {
+    inline float DistanceBetweenPoints(const FVector2D& Point1, const FVector2D& Point2) {
         return sqrt(pow(Point2.X - Point1.X, 2) + pow(Point2.Y - Point1.Y, 2));
     }
 
     // Custom radians to degrees function
-    inline float RadiansToDegrees(float radians) {
-        return radians * (180.0f / PI);
-    }
+    inline float RadiansToDegrees(float radians) { return radians * (180.0f / PI); }
 
-    inline double Fmod(double Value, double Mod) {
-        return std::fmod(Value, Mod);
-    }
+    inline double Fmod(double Value, double Mod) { return std::fmod(Value, Mod); }
 
-    FRotator RInterpTo(const FRotator& Current, const FRotator& Target, double DeltaTime, float InterpSpeed) {
+    inline FRotator RInterpTo(const FRotator& Current, const FRotator& Target, double DeltaTime, float InterpSpeed) {
         // If no interpolation speed, just return the target
-        if (InterpSpeed <= 0.0f) {
-            return Target;
-        }
+        if (InterpSpeed <= 0.0f) { return Target; }
 
         // Calculate the difference in each component
         double DeltaPitch = Target.Pitch - Current.Pitch;

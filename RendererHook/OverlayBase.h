@@ -6,6 +6,7 @@ struct ImFont;
 class OverlayBase
 {
 public:
+	virtual ~OverlayBase() = default;
 	static OverlayBase* Instance;
 
 	void HookReady();
