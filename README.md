@@ -13,6 +13,7 @@ A multi-purpose tool for Palia, written in C++. Open source for non-commercial u
 
 <p>OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs.</p>
 <p>Big thanks to @klukule for their Palia ESP DX11 / DX12 source on GitHub. Without that, I wouldn't have taken the time to build something from it.</p>
+<p>Thanks to @VoidPollo for the continued work, restructuring, and mainteinace! A real CHAD in the team! Couldn't do this without you! <3</p>
 
 ## Compatibility
 - Standalone Client Support
