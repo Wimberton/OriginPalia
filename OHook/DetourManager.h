@@ -3,8 +3,10 @@
 
 #pragma once
 
-#include "PaliaOverlay.h"
 #include <unordered_set>
+
+#include <SDK.hpp>
+using namespace SDK;
 
 inline static void (__fastcall *OriginalProcessEvent)(const UObject*, const UFunction*, void*);
 inline static std::unordered_set<std::string> invocations;
@@ -16,12 +18,14 @@ class DetourManager final {
 public:
     DetourManager() = default;
 
+    static void ToggleFishingDelays(bool RemoveDelays);
+
     static inline void ProcessEventDetourCallback(const UObject* Class, const UFunction* Function, void* Params, const DetourManager* manager);
     static inline void ProcessEventDetour(const UObject* Class, const UFunction* Function, void* Params);
     static void SetupDetour(void* Instance, void (*DetourFunc)(const UObject*, const UFunction*, void*));
     static void SetupDetour(void* Instance);
 };
 
-void SetupDetour(void* Instance);
+// void SetupDetour(void* Instance);
 
 #endif

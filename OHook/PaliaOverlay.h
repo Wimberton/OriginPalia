@@ -984,6 +984,7 @@ public:
     bool bEnableESPCulling = true;
 
     // ESP Numericals
+    static float ESPTextScale;
     int CullDistance = 150;
     std::chrono::steady_clock::time_point LastTeleportToTargetTime;
     std::chrono::steady_clock::time_point LastTimeMapTeleport;
@@ -1035,14 +1036,13 @@ public:
     bool bFishingPerfectCatch = true;
     bool bFishingSell = false;
     bool bFishingDiscard = false;
-    bool bKeepWaterlogged = false;
+    bool bFishingOpenStoreWaterlogged = false;
     
     FName sOverrideFishingSpot;
     UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
     bool bCaptureFishingSpot = false;
     bool bOverrideFishingSpot = false;
     bool bEnableAutoFishing = false;
-    bool bFishingRequireClick = true;
     
     // Item Booleans
     bool bEasyModeActive = false;
@@ -1056,12 +1056,14 @@ public:
     bool bEnableQuicksellHotkeys = false;
 
     // DEFAULT VALUES
+
     // // ESP Default values
     bool defaultEnableESP = false;
     bool defaultEnableESPCulling = false;
-    int defaultCullDistance = 500;  // Default culling distance
+    int defaultCullDistance = 500;
     bool defaultDrawFOVCircle = false;
-    float defaultFOVRadius = 100.0f;  // Default radius
+    float defaultFOVRadius = 100.0f; 
+    float defaultESPTextScale = 1.0f;
 
     // Aim Default values
     bool defaultEnableSilentAimbot = false;
@@ -1070,6 +1072,8 @@ public:
     bool defaultAvoidTeleportingToPlayers = false;
     bool defaultEnableLootbagTeleportation = false;
     bool defaultAddAnimalToOrbit = false;
+
+    bool defaultWaypointTeleport = false;
 
     // Skills Default Values
     bool defaultEnableInstantFishing = false;
