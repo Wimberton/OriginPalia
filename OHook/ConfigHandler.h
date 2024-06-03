@@ -3,27 +3,27 @@
 
 #include <string>
 #include <chrono>
-#include <fstream>
-#include <filesystem>
 #include "json.hpp"
-#include "PaliaOverlay.h"
 
-namespace fs = std::filesystem;
+class PaliaOverlay; // Forward declaration
 
 class ConfigHandler {
 public:
-    ConfigHandler(const std::string& configDirectory, const std::string& configFilePath);
-    void SaveConfiguration(PaliaOverlay* Overlay);
-    bool LoadConfiguration(PaliaOverlay* Overlay);
-    void UpdateConfiguration(PaliaOverlay* Overlay);
+    ConfigHandler(std::string configDirectory, std::string configFilePath);
+    void SaveConfiguration();
+    bool LoadConfiguration(PaliaOverlay* overlay);
+    bool HasConfigurationChanged(PaliaOverlay* overlay) const;
+    void UpdateConfiguration(PaliaOverlay* overlay);
 
 private:
     std::string configDirectory;
     std::string configFilePath;
     std::chrono::steady_clock::time_point lastSaveTime;
     std::chrono::seconds saveInterval;
+    nlohmann::json currentConfig;
+    PaliaOverlay* Overlay;
 
-    void EnsureDirectoryExists();
+    void EnsureDirectoryExists() const;
 };
 
-#endif // CONFIG_HANDLER_H
+#endif

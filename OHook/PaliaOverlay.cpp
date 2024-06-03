@@ -1,4 +1,3 @@
-#include "ConfigHandler.h"
 #include "PaliaOverlay.h"
 #include "DetourManager.h"
 #include <SDK/Palia_parameters.hpp>
@@ -7,7 +6,6 @@
 #include "SDKExt.h"
 #include "Utils.h"
 
-#include<iostream>
 #include <fstream>
 #include <sstream>
 #include <filesystem>
@@ -19,6 +17,8 @@ using namespace SDK;
 
 std::vector<std::string> debugger;
 DetourManager gDetourManager;
+
+ConfigHandler configHandler(R"(C:\ProgramData\OriginPalia\config\)", "overlay_config.json");
 
 std::map<int, std::string> PaliaOverlay::CreatureQualityNames = {
     {0, "Unknown"},
@@ -43,9 +43,11 @@ std::map<int, std::string> PaliaOverlay::GatherableSizeNames = {
     {4, "Bush"}
 };
 
-inline ConfigHandler configHandler("C:/ProgramData/OriginPalia/config", "/overlay_config.json");
-
-float PaliaOverlay::ESPTextScale = 1.0f;
+void PaliaOverlay::SetupConfig(PaliaOverlay* Overlay) {
+    if(!configHandler.LoadConfiguration(Overlay)) {
+        configHandler.SaveConfiguration();
+    }
+}
 
 void PaliaOverlay::SetupColors() {
     // Forageable colors
@@ -171,7 +173,7 @@ void PaliaOverlay::DrawHUD() {
     if (PlayerController && HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
         gDetourManager.SetupDetour(PlayerController->MyHUD);
     }
-
+    
     configHandler.UpdateConfiguration(Overlay);
 }
 
@@ -191,7 +193,6 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowBgAlpha(0.98f);
 
     const auto WindowTitle = std::string("OriginPalia Menu V2.2 - Game Version 0.180.0");
-    PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
         static int OpenTab = 0;
@@ -231,24 +232,24 @@ void PaliaOverlay::DrawOverlay() {
 
             // Base ESP controls
             if (ImGui::CollapsingHeader("Visual Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
-                ImGui::Checkbox("Enable ESP", &bEnableESP);
+                ImGui::Checkbox("Enable ESP", &settings.bEnableESP);
                 
-                ImGui::SliderFloat("ESP Text Scale", &ESPTextScale, 0.5f, 3.0f, "%.1f");
+                ImGui::SliderFloat("ESP Text Scale", &settings.ESPTextScale, 0.5f, 3.0f, "%.1f");
                 
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Adjust the scale of ESP text size.");
 
-                ImGui::Checkbox("Limit Distance", &bEnableESPCulling);
+                ImGui::Checkbox("Limit Distance", &settings.bEnableESPCulling);
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
 
-                ImGui::InputInt("Distance", &CullDistance);
+                ImGui::InputInt("Distance", &settings.CullDistance);
 
-                ImGui::Checkbox("Enable InteliAim Circle", &bDrawFOVCircle);
+                ImGui::Checkbox("Enable InteliAim Circle", &settings.bDrawFOVCircle);
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Enable the smart FOV targeting system. Teleport to actors, enable aimbots, and more.");
 
-                ImGui::SliderFloat("InteliAim Radius", &FOVRadius, 10.0f, 600.0f, "%1.0f");
+                ImGui::SliderFloat("InteliAim Radius", &settings.FOVRadius, 10.0f, 600.0f, "%1.0f");
             }
 
             ImGui::NextColumn();
@@ -1421,12 +1422,12 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     if (ImGui::Button("Others")) {
-                        bVisualizeDefault = !bVisualizeDefault;
+                        settings.bVisualizeDefault = !settings.bVisualizeDefault;
                     }
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Shows other gatherables or creatures that were not successfully categorized.");
                     ImGui::TableNextColumn();
-                    ImGui::Checkbox("##Others", &bVisualizeDefault);
+                    ImGui::Checkbox("##Others", &settings.bVisualizeDefault);
                     ImGui::TableNextColumn();
                     ImGui::ColorPicker("##Others", &SingleColors[static_cast<int>(EOneOffs::Others)]);
                 }
@@ -1453,12 +1454,12 @@ void PaliaOverlay::DrawOverlay() {
             // InteliTarget Controls
             if (ImGui::CollapsingHeader("InteliTarget Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
-                    ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot);
-                    ImGui::Checkbox("Enable Legacy Aimbot", &bEnableAimbot);
+                    ImGui::Checkbox("Enable Silent Aimbot", &settings.bEnableSilentAimbot);
+                    ImGui::Checkbox("Enable Legacy Aimbot", &settings.bEnableAimbot);
 
-                    if (bEnableAimbot) {
+                    if (settings.bEnableAimbot) {
                         ImGui::Text("Aim Smoothing:");
-                        ImGui::SliderFloat("Smoothing Factor", &SmoothingFactor, 1.0f, 100.0f, "%1.0f");
+                        ImGui::SliderFloat("Smoothing Factor", &settings.SmoothingFactor, 1.0f, 100.0f, "%1.0f");
                         ImGui::Text("Aim Offset Adjustment (Drag Point):");
                         const auto canvas_size = ImVec2(200, 200); // Canvas size
                         static auto cursor_pos = ImVec2(0, 0); // Start at the center (0, 0 relative to center)
@@ -1493,16 +1494,16 @@ void PaliaOverlay::DrawOverlay() {
                         ImGui::EndChild();
 
                         // Convert cursor_pos to AimOffset affecting Pitch and Yaw
-                        AimOffset = {cursor_pos.x * scaling_factor, cursor_pos.y * scaling_factor, 0.0f};
-                        ImGui::Text("Current Offset: Pitch: %.2f, Yaw: %.2f", AimOffset.X, AimOffset.Y);
+                        settings.AimOffset = {cursor_pos.x * scaling_factor, cursor_pos.y * scaling_factor, 0.0f};
+                        ImGui::Text("Current Offset: Pitch: %.2f, Yaw: %.2f", settings.AimOffset.X, settings.AimOffset.Y);
                     }
-                    ImGui::Checkbox("Teleport to Targeted", &bTeleportToTargeted);
+                    ImGui::Checkbox("Teleport to Targeted", &settings.bTeleportToTargeted);
 
-                    ImGui::Checkbox("Avoid Teleporting To Targeted Players", &bAvoidTeleportingToPlayers);
+                    ImGui::Checkbox("Avoid Teleporting To Targeted Players", &settings.bAvoidTeleportingToPlayers);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Don't teleport to players.");
 
-                    ImGui::Checkbox("Avoid Teleporting To Targeted When Players Are Near", &bDoRadiusPlayersAvoidance);
+                    ImGui::Checkbox("Avoid Teleporting To Targeted When Players Are Near", &settings.bDoRadiusPlayersAvoidance);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Don't teleport if a player is detected near your destination.");
                 } else {
@@ -1517,11 +1518,11 @@ void PaliaOverlay::DrawOverlay() {
                 if (ValeriaCharacter) {
                     static bool teleportLootDisabled = true;
                     ImGui::PushItemFlag(ImGuiItemFlags_Disabled, teleportLootDisabled);
-                    ImGui::Checkbox("[Disabled] Teleport Dropped Loot to Player", &bEnableLootbagTeleportation);
+                    ImGui::Checkbox("[Disabled] Teleport Dropped Loot to Player", &settings.bEnableLootbagTeleportation);
                     ImGui::PopItemFlag();
                     //if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
 
-                    ImGui::Checkbox("Teleport To Map Waypoint", &bEnableWaypointTeleport);
+                    ImGui::Checkbox("Teleport To Map Waypoint", &settings.bEnableWaypointTeleport);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Automatically teleports you at your world map's waypoint.");
                 } else {
@@ -1564,16 +1565,16 @@ void PaliaOverlay::DrawOverlay() {
                     static const char* movementModes[] = {"Walking", "Flying", "Fly No Collision"};
                     // Dropdown menu options
 
-                    ImGui::Checkbox("Enable Noclip", &bEnableNoclip);
+                    ImGui::Checkbox("Enable Noclip", &settings.bEnableNoclip);
 
                     // Create a combo box for selecting the movement mode
                     ImGui::Text("Movement Mode");
                     ImGui::SetNextItemWidth(200.0f); // Adjust the width as needed
-                    if (ImGui::BeginCombo("##MovementMode", movementModes[currentMovementModeIndex])) {
+                    if (ImGui::BeginCombo("##MovementMode", movementModes[settings.currentMovementModeIndex])) {
                         for (int n = 0; n < IM_ARRAYSIZE(movementModes); n++) {
-                            const bool isSelected = (currentMovementModeIndex == n);
+                            const bool isSelected = (settings.currentMovementModeIndex == n);
                             if (ImGui::Selectable(movementModes[n], isSelected)) {
-                                currentMovementModeIndex = n;
+                                settings.currentMovementModeIndex = n;
                             }
                             // Set the initial focus when opening the combo
                             if (isSelected) {
@@ -1585,7 +1586,7 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::SameLine();
                     // Button to apply the selected movement mode
                     if (ImGui::Button("Set")) {
-                        switch (currentMovementModeIndex) {
+                        switch (settings.currentMovementModeIndex) {
                         case 0: // Walking
                             MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
                             ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
@@ -1612,90 +1613,90 @@ void PaliaOverlay::DrawOverlay() {
 
                     // Global Game Speed with slider
                     ImGui::Text("Global Game Speed: ");
-                    if (ImGui::InputScalar("##GlobalGameSpeed", ImGuiDataType_Float, &CustomGameSpeed, &f1, &f1000, "%.2f", ImGuiInputTextFlags_None)) {
-                        static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, CustomGameSpeed);
+                    if (ImGui::InputScalar("##GlobalGameSpeed", ImGuiDataType_Float, &settings.CustomGameSpeed, &f1, &f1000, "%.2f", ImGuiInputTextFlags_None)) {
+                        static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, settings.CustomGameSpeed);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##GlobalGameSpeed")) {
-                        CustomGameSpeed = GameSpeed;
-                        static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, GameSpeed);
+                        settings.CustomGameSpeed = settings.GameSpeed;
+                        static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject)->SetGlobalTimeDilation(World, settings.GameSpeed);
                     }
 
                     // Walk Speed
                     ImGui::Text("Walk Speed: ");
-                    if (ImGui::InputScalar("##WalkSpeed", ImGuiDataType_Float, &CustomWalkSpeed, &f5)) {
-                        MovementComponent->MaxWalkSpeed = CustomWalkSpeed;
+                    if (ImGui::InputScalar("##WalkSpeed", ImGuiDataType_Float, &settings.CustomWalkSpeed, &f5)) {
+                        MovementComponent->MaxWalkSpeed = settings.CustomWalkSpeed;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##WalkSpeed")) {
-                        CustomWalkSpeed = WalkSpeed;
-                        MovementComponent->MaxWalkSpeed = WalkSpeed;
+                        settings.CustomWalkSpeed = settings.WalkSpeed;
+                        MovementComponent->MaxWalkSpeed = settings.WalkSpeed;
                     }
 
                     // Sprint Speed
                     ImGui::Text("Sprint Speed: ");
-                    if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &CustomSprintSpeedMultiplier, &f5)) {
-                        MovementComponent->SprintSpeedMultiplier = CustomSprintSpeedMultiplier;
+                    if (ImGui::InputScalar("##SprintSpeedMultiplier", ImGuiDataType_Float, &settings.CustomSprintSpeedMultiplier, &f5)) {
+                        MovementComponent->SprintSpeedMultiplier = settings.CustomSprintSpeedMultiplier;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##SprintSpeedMultiplier")) {
-                        CustomSprintSpeedMultiplier = SprintSpeedMultiplier;
-                        MovementComponent->SprintSpeedMultiplier = SprintSpeedMultiplier;
+                        settings.CustomSprintSpeedMultiplier = settings.SprintSpeedMultiplier;
+                        MovementComponent->SprintSpeedMultiplier = settings.SprintSpeedMultiplier;
                     }
 
                     // Climbing Speed
                     ImGui::Text("Climbing Speed: ");
-                    if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &CustomClimbingSpeed, &f5)) {
-                        MovementComponent->ClimbingSpeed = CustomClimbingSpeed;
+                    if (ImGui::InputScalar("##ClimbingSpeed", ImGuiDataType_Float, &settings.CustomClimbingSpeed, &f5)) {
+                        MovementComponent->ClimbingSpeed = settings.CustomClimbingSpeed;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##ClimbingSpeed")) {
-                        CustomClimbingSpeed = ClimbingSpeed;
-                        MovementComponent->ClimbingSpeed = ClimbingSpeed;
+                        settings.CustomClimbingSpeed = settings.ClimbingSpeed;
+                        MovementComponent->ClimbingSpeed = settings.ClimbingSpeed;
                     }
 
                     // Gliding Speed
                     ImGui::Text("Gliding Speed: ");
-                    if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &CustomGlidingSpeed, &f5)) {
-                        MovementComponent->GlidingMaxSpeed = CustomGlidingSpeed;
+                    if (ImGui::InputScalar("##GlidingSpeed", ImGuiDataType_Float, &settings.CustomGlidingSpeed, &f5)) {
+                        MovementComponent->GlidingMaxSpeed = settings.CustomGlidingSpeed;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##GlidingSpeed")) {
-                        CustomGlidingSpeed = GlidingSpeed;
-                        MovementComponent->GlidingMaxSpeed = GlidingSpeed;
+                        settings.CustomGlidingSpeed = settings.GlidingSpeed;
+                        MovementComponent->GlidingMaxSpeed = settings.GlidingSpeed;
                     }
 
                     // Gliding Fall Speed
                     ImGui::Text("Gliding Fall Speed: ");
-                    if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &CustomGlidingFallSpeed, &f5)) {
-                        MovementComponent->GlidingFallSpeed = CustomGlidingFallSpeed;
+                    if (ImGui::InputScalar("##GlidingFallSpeed", ImGuiDataType_Float, &settings.CustomGlidingFallSpeed, &f5)) {
+                        MovementComponent->GlidingFallSpeed = settings.CustomGlidingFallSpeed;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##GlidingFallSpeed")) {
-                        CustomGlidingFallSpeed = GlidingFallSpeed;
-                        MovementComponent->GlidingFallSpeed = GlidingFallSpeed;
+                        settings.CustomGlidingFallSpeed = settings.GlidingFallSpeed;
+                        MovementComponent->GlidingFallSpeed = settings.GlidingFallSpeed;
                     }
 
                     // Jump Velocity
                     ImGui::Text("Jump Velocity: ");
-                    if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &CustomJumpVelocity, &f5)) {
-                        MovementComponent->JumpZVelocity = CustomJumpVelocity;
+                    if (ImGui::InputScalar("##JumpVelocity", ImGuiDataType_Float, &settings.CustomJumpVelocity, &f5)) {
+                        MovementComponent->JumpZVelocity = settings.CustomJumpVelocity;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##JumpVelocity")) {
-                        CustomJumpVelocity = JumpVelocity;
-                        MovementComponent->JumpZVelocity = JumpVelocity;
+                        settings.CustomJumpVelocity = settings.JumpVelocity;
+                        MovementComponent->JumpZVelocity = settings.JumpVelocity;
                     }
 
                     // Step Height
                     ImGui::Text("Step Height: ");
-                    if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &CustomMaxStepHeight, &f5)) {
-                        MovementComponent->MaxStepHeight = CustomMaxStepHeight;
+                    if (ImGui::InputScalar("##MaxStepHeight", ImGuiDataType_Float, &settings.CustomMaxStepHeight, &f5)) {
+                        MovementComponent->MaxStepHeight = settings.CustomMaxStepHeight;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("R##MaxStepHeight")) {
-                        CustomMaxStepHeight = MaxStepHeight;
-                        MovementComponent->MaxStepHeight = MaxStepHeight;
+                        settings.CustomMaxStepHeight = settings.MaxStepHeight;
+                        MovementComponent->MaxStepHeight = settings.MaxStepHeight;
                     }
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
@@ -1944,9 +1945,9 @@ void PaliaOverlay::DrawOverlay() {
                 if (ValeriaCharacter) {
                     if (ImGui::Button("Toggle Challenge Easy Mode")) {
                         ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
-                        bEasyModeActive = !bEasyModeActive;
+                        settings.bEasyModeActive = !settings.bEasyModeActive;
                     }
-                    if (bEasyModeActive) {
+                    if (settings.bEasyModeActive) {
                         ImGui::Text("CHALLENGE EASY MODE ON");
                     } else {
                         ImGui::Text("CHALLENGE EASY MODE OFF");
@@ -1960,12 +1961,12 @@ void PaliaOverlay::DrawOverlay() {
                 if (ValeriaCharacter) {
                     ImGui::Text("Quicksell All - Bag 1 Slots");
                     ImGui::Text("Visit a storefront then use the hotkeys to sell your inventory quickly");
-                    ImGui::Checkbox("Enable Quicksell Hotkeys", &bEnableQuicksellHotkeys);
+                    ImGui::Checkbox("Enable Quicksell Hotkeys", &settings.bEnableQuicksellHotkeys);
                     ImGui::Spacing();
                     ImGui::Text("NUM1 - NUM8 | Sell All Items, Slots 1 through 8");
 
                     const int numpadKeys[] = {VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4, VK_NUMPAD5, VK_NUMPAD6, VK_NUMPAD7, VK_NUMPAD8};
-                    if (bEnableQuicksellHotkeys) {
+                    if (settings.bEnableQuicksellHotkeys) {
                         for (int i = 0; i < 8; ++i) {
                             if (IsKeyHeld(numpadKeys[i])) {
                                 FBagSlotLocation quicksellBag = {};
@@ -2034,36 +2035,36 @@ void PaliaOverlay::DrawOverlay() {
 
             if (ImGui::CollapsingHeader("Fishing Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (FishingComponent) {
-                    ImGui::Checkbox("Disable Durability Loss", &bFishingNoDurability);
+                    ImGui::Checkbox("Disable Durability Loss", &settings.bFishingNoDurability);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Prevents your durability from being damaged.");
 
-                    ImGui::Checkbox("Enable Multiplayer Help", &bFishingMultiplayerHelp);
+                    ImGui::Checkbox("Enable Multiplayer Help", &settings.bFishingMultiplayerHelp);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Counts as fishing with others for weekly challenges.");
 
-                    ImGui::Checkbox("Always Perfect Catch", &bFishingPerfectCatch);
+                    ImGui::Checkbox("Always Perfect Catch", &settings.bFishingPerfectCatch);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Choose whether to catch all fish perfectly or not.");
 
-                    ImGui::Checkbox("Instant Catch", &bFishingInstantCatch);
+                    ImGui::Checkbox("Instant Catch", &settings.bFishingInstantCatch);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Instantly catch fish when your bobber hits the water.");
 
-                    ImGui::Checkbox("Sell All Fish", &bFishingSell);
+                    ImGui::Checkbox("Sell All Fish", &settings.bFishingSell);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Visit the fishing store for this feature to work.");
 
-                    ImGui::Checkbox("Discard All Junk", &bFishingDiscard);
+                    ImGui::Checkbox("Discard All Junk", &settings.bFishingDiscard);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Discards Junk from your inventory to free-up space.");
 
-                    ImGui::Checkbox("Open & Store Makeshift Decor", &bFishingOpenStoreWaterlogged);
+                    ImGui::Checkbox("Open & Store Makeshift Decor", &settings.bFishingOpenStoreWaterlogged);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Opens the waterlogged chests and sends the decor back home.");
 
-                    ImGui::Checkbox("Capture Fishing Pool", &bCaptureFishingSpot);
-                    ImGui::Checkbox("Override Fishing Pool", &bOverrideFishingSpot);
+                    ImGui::Checkbox("Capture Fishing Pool", &settings.bCaptureFishingSpot);
+                    ImGui::Checkbox("Override Fishing Pool", &settings.bOverrideFishingSpot);
                     ImGui::SameLine();
                     ImGui::Text("[Captured: %s]", sOverrideFishingSpot.ToString().c_str());
 
@@ -2071,10 +2072,10 @@ void PaliaOverlay::DrawOverlay() {
 
                     if (EquippedTool != ETools::FishingRod) {
                         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, false);
-                        bEnableAutoFishing = false;
+                        settings.bEnableAutoFishing = false;
                     }
 
-                    ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing);
+                    ImGui::Checkbox("Auto Fast Fishing", &settings.bEnableAutoFishing);
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                         ImGui::SetTooltip("Cast your fishing rod to start.");
 
@@ -2083,7 +2084,7 @@ void PaliaOverlay::DrawOverlay() {
                         ImGui::Text("[Equip your fishing rod to enable Auto Fast Fishing]");
                     }
 
-                    gDetourManager.ToggleFishingDelays(bEnableAutoFishing);
+                    gDetourManager.ToggleFishingDelays(settings.bEnableAutoFishing);
                 } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
@@ -2114,7 +2115,7 @@ void PaliaOverlay::DrawOverlay() {
                 //UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
 
                 if (ValeriaCharacter->GetPlacement()) {
-                    ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere);
+                    ImGui::Checkbox("Place Items Anywhere", &settings.bPlaceAnywhere);
                 } else {
                     ImGui::Text("No Placement Component available.");
                 }
@@ -2174,7 +2175,7 @@ void PaliaOverlay::ProcessActors(int step) {
         }
         break;
     case EType::Loot:
-        if (Singles[static_cast<int>(EOneOffs::Loot)] || bEnableLootbagTeleportation) {
+        if (Singles[static_cast<int>(EOneOffs::Loot)] || settings.bEnableLootbagTeleportation) {
             STATIC_CLASS("BP_Loot_C", SearchClasses)
         }
         break;
@@ -2353,7 +2354,7 @@ void PaliaOverlay::ProcessActors(int step) {
             break;
         }
 
-        if (!shouldAdd && !bVisualizeDefault)
+        if (!shouldAdd && !settings.bVisualizeDefault)
             continue;
 
         const std::string Name = CLASS_NAME_ALIAS.contains(ClassName) ? CLASS_NAME_ALIAS[ClassName] : ClassName;

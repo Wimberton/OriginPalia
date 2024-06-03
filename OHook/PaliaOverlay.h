@@ -1,11 +1,15 @@
 ﻿#pragma once
 
+#include "ConfigHandler.h"
+
 #include <OverlayBase.h>
 #include <map>
 #include <imgui.h>
 
+
 #include <SDK.hpp>
 using namespace SDK;
+
 
 #define NO_HOTKEY -1
 
@@ -233,14 +237,15 @@ protected:
     void DrawOverlay() override;
 
 public:
+    void SetupConfig(PaliaOverlay* Overlay);
     void SetupColors();
     void ProcessActors(int);
-    
+
     static std::map<int, std::string> CreatureQualityNames;
     static std::map<int, std::string> BugQualityNames;
     static std::map<int, std::string> GatherableSizeNames;
     static std::map<int, std::string> TypeIcons;
-    
+
     static std::string GetQualityName(const int quality, const EType type) {
         switch (type) {
         case EType::Animal:
@@ -877,7 +882,7 @@ public:
         {EFishType::Node, {"_WaterPlane_"}},
         {EFishType::Hook, {"_Fish_", "_Trash_", "_Fishing"}},
     };
-    
+
     // Forageables[Type][]
     bool Singles[static_cast<int>(EOneOffs::MAX)] = {};
     unsigned int SingleColors[static_cast<int>(EOneOffs::MAX)] = {
@@ -964,125 +969,124 @@ public:
     };
 
     // ==================================== //
-    
+
     bool bWaitingForKeyPress = false;
-    
-    float FOV;
+
     int screenWidth;
     int screenHeight;
-    float FOVRadius = 185.0f;
 
-    // ESP Booleans
-    bool bEnableESP = true;
-    bool bEnableAimbot = false;
-    bool bEnableSilentAimbot = false;
-    bool bDrawFOVCircle = true;
-    bool bTeleportToTargeted = true;
-    bool bAvoidTeleportingToPlayers = true;
-    bool bDoRadiusPlayersAvoidance = true;
-    bool bVisualizeDefault = false;
-    bool bEnableESPCulling = true;
-
-    // ESP Numericals
-    static float ESPTextScale;
-    int CullDistance = 150;
     std::chrono::steady_clock::time_point LastTeleportToTargetTime;
     std::chrono::steady_clock::time_point LastTimeMapTeleport;
-    int TeleportHotkey = VK_XBUTTON1;
 
-    float SmoothingFactor = 90.0f;
-    FVector AimOffset = {-1.5, -1.35, 0};
-    
-    float CurrentAimTime = 0.f;
-    double SelectionThreshold = 50.0;
-
-    // Movement Booleans
-    bool bEnableNoclip = false;
-    bool bPreviousNoclipState = false;
-
-    // Movement Numericals
-    int currentMovementModeIndex = 0;
-    int globalGameSpeedIndex = 0;
-
-    // Movement Floats
-    float velocitySpeedMultiplier = 0.0f;
-    float GlobalGameSpeed = 1.0f;
-    float NoClipFlySpeed = 600.0f;
-
-    // These will be used for resetting back to default values
-    float WalkSpeed = 565.0f; // Default walk speed
-    float GameSpeed = 1.0f; // Default game speed
-    float SprintSpeedMultiplier = 1.65f; // Default sprint speed multiplier
-    float ClimbingSpeed = 80.0f; // Default climbing speed
-    float GlidingSpeed = 900.0f; // Default gliding speed
-    float GlidingFallSpeed = 250.0f; // Default gliding fall speed
-    float JumpVelocity = 700.0f; // Default jump velocity
-    float MaxStepHeight = 45.0f; // Default maximum step height
-
-    // These will be set using the configs, can be changed
-    float CustomWalkSpeed = 565.0f; // Custom, Dynamic walk speed
-    float CustomGameSpeed = 1.0f; // Custom, Dynamic game speed
-    float CustomSprintSpeedMultiplier = 1.65f; // Custom, Dynamic sprint speed multiplier
-    float CustomClimbingSpeed = 80.0f; // Custom, Dynamic climbing speed
-    float CustomGlidingSpeed = 900.0f; // Custom, Dynamic gliding speed
-    float CustomGlidingFallSpeed = 250.0f; // Custom, Dynamic gliding fall speed
-    float CustomJumpVelocity = 700.0f; // Custom, Dynamic jump velocity
-    float CustomMaxStepHeight = 45.0f; // Custom, Dynamic maximum step height
-
-    // Fishing Options
-    bool bFishingNoDurability = true;
-    bool bFishingMultiplayerHelp = false;
-    bool bFishingInstantCatch = false;
-    bool bFishingPerfectCatch = true;
-    bool bFishingSell = false;
-    bool bFishingDiscard = false;
-    bool bFishingOpenStoreWaterlogged = false;
-    
     FName sOverrideFishingSpot;
     UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
-    bool bCaptureFishingSpot = false;
-    bool bOverrideFishingSpot = false;
-    bool bEnableAutoFishing = false;
     
-    // Item Booleans
-    bool bEasyModeActive = false;
-    bool bEnableLootbagTeleportation = false;
-    bool bEnableWaypointTeleport = false;
-    
-    // Housing Booleans
-    bool bPlaceAnywhere = false;
+    struct Settings {
+        struct FVector {
+            float X, Y, Z;
 
-    // Quicksell Hotkeys
-    bool bEnableQuicksellHotkeys = false;
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(FVector, X, Y, Z)
+        };
+        
+        // Settings
+        float FOV = 90.0f;
+        float FOVRadius = 185.0f;
 
-    // DEFAULT VALUES
+        // ESP Booleans
+        bool bEnableESP = true;
+        bool bEnableAimbot = false;
+        bool bEnableSilentAimbot = false;
+        bool bDrawFOVCircle = true;
+        bool bTeleportToTargeted = true;
+        bool bAvoidTeleportingToPlayers = true;
+        bool bDoRadiusPlayersAvoidance = true;
+        bool bVisualizeDefault = false;
+        bool bEnableESPCulling = true;
 
-    // // // ESP Default values
-    // bool defaultEnableESP = false;
-    // bool defaultEnableESPCulling = false;
-    // int defaultCullDistance = 500;
-    // bool defaultDrawFOVCircle = false;
-    // float defaultFOVRadius = 100.0f; 
-    // float defaultESPTextScale = 1.0f;
-    //
-    // // Aim Default values
-    // bool defaultEnableSilentAimbot = false;
-    // bool defaultEnableAimbot = false;
-    // bool defaultTeleportToTargeted = false;
-    // bool defaultAvoidTeleportingToPlayers = false;
-    // bool defaultEnableLootbagTeleportation = false;
-    // bool defaultAddAnimalToOrbit = false;
-    //
-    // bool defaultWaypointTeleport = false;
-    //
-    // // Skills Default Values
-    // bool defaultEnableInstantFishing = false;
-    // bool defaultPerfectCatch = false;
-    // bool defaultDoInstantSellFish = false;
-    // bool defaultDestroyCustomizationFishing = false;
-    // bool defaultCaptureFishingSpot = false;
-    // bool defaultOverrideFishingSpot = false;
-    //
-    // // Housing Default Values
-    // bool defaultPlaceAnywhere = false;
+        // ESP Numericals
+        float ESPTextScale = 1.0f; // Default value
+        int CullDistance = 150;
+        int TeleportHotkey = 0x05; // Default value
+
+        float SmoothingFactor = 90.0f;
+        FVector AimOffset = {-1.5f, -1.35f, 0.0f};
+
+        float CurrentAimTime = 0.0f;
+        double SelectionThreshold = 50.0;
+
+        // Movement Booleans
+        bool bEnableNoclip = false;
+        bool bPreviousNoclipState = false;
+
+        // Movement Numericals
+        int currentMovementModeIndex = 0;
+        int globalGameSpeedIndex = 0;
+
+        // Movement Floats
+        float velocitySpeedMultiplier = 0.0f;
+        float GlobalGameSpeed = 1.0f;
+        float NoClipFlySpeed = 600.0f;
+
+        // Defaults
+        float WalkSpeed = 565.0f;
+        float GameSpeed = 1.0f;
+        float SprintSpeedMultiplier = 1.65f;
+        float ClimbingSpeed = 80.0f;
+        float GlidingSpeed = 900.0f;
+        float GlidingFallSpeed = 250.0f;
+        float JumpVelocity = 700.0f;
+        float MaxStepHeight = 45.0f;
+
+        // Custom, Dynamic settings
+        float CustomWalkSpeed = 565.0f;
+        float CustomGameSpeed = 1.0f;
+        float CustomSprintSpeedMultiplier = 1.65f;
+        float CustomClimbingSpeed = 80.0f;
+        float CustomGlidingSpeed = 900.0f;
+        float CustomGlidingFallSpeed = 250.0f;
+        float CustomJumpVelocity = 700.0f;
+        float CustomMaxStepHeight = 45.0f;
+
+        // Fishing Options
+        bool bFishingNoDurability = true;
+        bool bFishingMultiplayerHelp = false;
+        bool bFishingInstantCatch = false;
+        bool bFishingPerfectCatch = true;
+        bool bFishingSell = false;
+        bool bFishingDiscard = false;
+        bool bFishingOpenStoreWaterlogged = false;
+        bool bCaptureFishingSpot = false;
+        bool bOverrideFishingSpot = false;
+        bool bEnableAutoFishing = false;
+
+        // Item Booleans
+        bool bEasyModeActive = false;
+        bool bEnableLootbagTeleportation = false;
+        bool bEnableWaypointTeleport = false;
+
+        // Housing Booleans
+        bool bPlaceAnywhere = false;
+
+        // Quicksell Hotkeys
+        bool bEnableQuicksellHotkeys = false;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+            Settings,
+            FOV, FOVRadius, bEnableESP, bEnableAimbot, bEnableSilentAimbot, bDrawFOVCircle,
+            bTeleportToTargeted, bAvoidTeleportingToPlayers, bDoRadiusPlayersAvoidance,
+            bVisualizeDefault, bEnableESPCulling, ESPTextScale, CullDistance, TeleportHotkey,
+            SmoothingFactor, AimOffset, CurrentAimTime, SelectionThreshold, bEnableNoclip,
+            bPreviousNoclipState, currentMovementModeIndex, globalGameSpeedIndex, velocitySpeedMultiplier,
+            GlobalGameSpeed, NoClipFlySpeed, WalkSpeed, GameSpeed, SprintSpeedMultiplier,
+            ClimbingSpeed, GlidingSpeed, GlidingFallSpeed, JumpVelocity, MaxStepHeight,
+            CustomWalkSpeed, CustomGameSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed,
+            CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight,
+            bFishingNoDurability, bFishingMultiplayerHelp, bFishingInstantCatch, bFishingPerfectCatch,
+            bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bCaptureFishingSpot,
+            bOverrideFishingSpot, bEnableAutoFishing, bEasyModeActive, bEnableLootbagTeleportation,
+            bEnableWaypointTeleport, bPlaceAnywhere, bEnableQuicksellHotkeys
+        )
+    };
+
+    Settings settings;
 };

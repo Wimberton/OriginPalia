@@ -47,7 +47,7 @@ void ManageActorCache(PaliaOverlay* Overlay) {
 // [Fun]
 
 inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestScore) {
-    if (Overlay->bTeleportToTargeted) {
+    if (Overlay->settings.bTeleportToTargeted) {
         const auto now = std::chrono::steady_clock::now();
         if (IsKeyHeld(VK_XBUTTON2) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
             if (duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 2) {
@@ -59,12 +59,12 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
                 bool shouldTeleport = true;
 
                 // Avoid teleporting to players
-                if (Overlay->bAvoidTeleportingToPlayers && Overlay->BestTargetActorType == EType::Players) {
+                if (Overlay->settings.bAvoidTeleportingToPlayers && Overlay->BestTargetActorType == EType::Players) {
                     shouldTeleport = false;
                 }
 
                 // Avoid teleporting to targeted if there are nerby players
-                if (Overlay->bDoRadiusPlayersAvoidance && shouldTeleport) {
+                if (Overlay->settings.bDoRadiusPlayersAvoidance && shouldTeleport) {
                     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
                         if (ActorType == EType::Players) {
                             if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject() || WorldPosition.IsZero())
@@ -98,7 +98,7 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
 }
 
 inline void Func_DoTeleportToWaypoint(const PaliaOverlay* Overlay, const Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap* SetUserMarkerViaWorldMap) {
-    if (Overlay->bEnableWaypointTeleport) {
+    if (Overlay->settings.bEnableWaypointTeleport) {
         const auto ValeriaCharacter = GetValeriaCharacter();
         if (ValeriaCharacter) {
             FVector TargetLocation = SetUserMarkerViaWorldMap->MarkerLocation;
@@ -128,7 +128,7 @@ inline void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegme
 }
 
 inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
-    if (!Overlay->bEnableAimbot && !Overlay->bDrawFOVCircle)
+    if (!Overlay->settings.bEnableAimbot && !Overlay->settings.bDrawFOVCircle)
         return;
 
     UWorld* World = GetWorld();
@@ -176,7 +176,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
             break;
         case EType::RummagePiles:
             if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-                if (Overlay->bVisualizeDefault) {
+                if (Overlay->settings.bVisualizeDefault) {
                     bShouldConsider = true;
                     break;
                 }
@@ -220,7 +220,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
 
         if (Distance < 2.0)
             continue;
-        if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance)
+        if (Overlay->settings.bEnableESPCulling && Distance > Overlay->settings.CullDistance)
             continue;
 
         // Weighting factors for different factors
@@ -251,7 +251,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
         }
 
         // Calculate score based on weighted sum of factors
-        if (double Score = AngleWeight * Angle + DistanceWeight * Distance + MovementWeight * RelativeDirection.Magnitude(); Angle <= Overlay->FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
+        if (double Score = AngleWeight * Angle + DistanceWeight * Distance + MovementWeight * RelativeDirection.Magnitude(); Angle <= Overlay->settings.FOVRadius / 2.0 && Score < Overlay->settings.SelectionThreshold) {
             if (Score < BestScore) {
                 BestScore = Score;
                 Overlay->BestTargetActor = Actor;
@@ -265,7 +265,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
     Func_DoTeleportToTargeted(Overlay, BestScore);
 
     // Don't aimbot while the overlay is showing
-    if (Overlay->bEnableAimbot && !Overlay->ShowOverlay()) {
+    if (Overlay->settings.bEnableAimbot && !Overlay->ShowOverlay()) {
         if (IsKeyHeld(VK_LBUTTON) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
             // Only aimbot when a bow is equipped
             if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos) {
@@ -282,11 +282,11 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
                 if (IsAnimal) {
                     // Apply offset to pitch and yaw directly
                     FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(CharacterLocation, Overlay->BestTargetLocation);
-                    TargetRotation.Pitch += Overlay->AimOffset.X;
-                    TargetRotation.Yaw += Overlay->AimOffset.Y;
+                    TargetRotation.Pitch += Overlay->settings.AimOffset.X;
+                    TargetRotation.Yaw += Overlay->settings.AimOffset.Y;
 
                     // Smooth rotation adjustment
-                    FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
+                    FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->settings.SmoothingFactor);
                     PlayerController->SetControlRotation(NewRotation);
                 }
             }
@@ -295,7 +295,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
 }
 
 inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
-    if (!Overlay->bEnableESP) {
+    if (!Overlay->settings.bEnableESP) {
         Overlay->CachedActors.clear();
         return;
     }
@@ -329,7 +329,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
         if (Distance < 2.0)
             continue;
-        if (Overlay->bEnableESPCulling && Distance > Overlay->CullDistance)
+        if (Overlay->settings.bEnableESPCulling && Distance > Overlay->settings.CullDistance)
             continue;
 
         FVector2D ScreenLocation;
@@ -400,7 +400,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                             bShouldDraw = true;
                             Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
                         }
-                        else if (Overlay->bVisualizeDefault) {
+                        else if (Overlay->settings.bVisualizeDefault) {
                             bShouldDraw = true;
                             Color = Pile->bActivated ? IM_COL32(0xFF, 0xFF, 0xFF, 0xFF) : IM_COL32(0xFF, 0x00, 0x00, 0xFF);
                         }
@@ -423,7 +423,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             }
 
-            if (Overlay->bVisualizeDefault && Type == 0)
+            if (Overlay->settings.bVisualizeDefault && Type == 0)
                 bShouldDraw = true;
 
             if (!bShouldDraw)
@@ -455,7 +455,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             DistanceScale = BaseScale - ScalingFactor * (Distance - ReferenceDistance);
             DistanceScale = CustomMath::Clamp(DistanceScale, 0.5, BaseScale); // Clamp the scale to a reasonable range
 
-            const FVector2D TextScale = { DistanceScale * PaliaOverlay::ESPTextScale, DistanceScale * PaliaOverlay::ESPTextScale };
+            const FVector2D TextScale = { DistanceScale, DistanceScale };
             ImColor IMC(Color);
             FLinearColor TextColor = { IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w };
 
@@ -476,20 +476,20 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     }
 
     // Logic for FOV and Targeting Drawing
-    if (Overlay->bDrawFOVCircle) {
+    if (Overlay->settings.bDrawFOVCircle) {
         FVector2D PlayerScreenPosition;
         FVector2D TargetScreenPosition;
 
         if (PlayerController->ProjectWorldLocationToScreen(PawnLocation, &PlayerScreenPosition, true)) {
             // Calculate the center of the FOV circle based on the player's screen position
             FVector2D FOVCenter = { HUD->Canvas->ClipX * 0.5f, HUD->Canvas->ClipY * 0.5f };
-            DrawCircle(HUD->Canvas, Overlay->FOVRadius, 1200, { 0.485f, 0.485f, 0.485f, 0.485f }, 1.0f);
+            DrawCircle(HUD->Canvas, Overlay->settings.FOVRadius, 1200, { 0.485f, 0.485f, 0.485f, 0.485f }, 1.0f);
 
             if (Overlay->BestTargetLocation.IsZero())
                 return;
             if (!PlayerController->ProjectWorldLocationToScreen(Overlay->BestTargetLocation, &TargetScreenPosition, true))
                 return;
-            if (!(CustomMath::DistanceBetweenPoints(TargetScreenPosition, FOVCenter) <= Overlay->FOVRadius))
+            if (!(CustomMath::DistanceBetweenPoints(TargetScreenPosition, FOVCenter) <= Overlay->settings.FOVRadius))
                 return;
 
             HUD->Canvas->K2_DrawLine(FOVCenter, TargetScreenPosition, 0.5f, { 0.485f, 0.485f, 0.485f, 0.485f });
@@ -500,7 +500,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 // [Movement]
 
 inline void Func_DoNoClip(PaliaOverlay* Overlay) {
-    if (!Overlay->bEnableNoclip && Overlay->bEnableNoclip == Overlay->bPreviousNoclipState)
+    if (!Overlay->settings.bEnableNoclip && Overlay->settings.bEnableNoclip == Overlay->settings.bPreviousNoclipState)
         return;
 
     const auto ValeriaCharacter = GetValeriaCharacter();
@@ -511,8 +511,8 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
     if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
         return;
 
-    if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
-        if (Overlay->bEnableNoclip) {
+    if (Overlay->settings.bEnableNoclip != Overlay->settings.bPreviousNoclipState) {
+        if (Overlay->settings.bEnableNoclip) {
             ValeriaMovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
             ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
         }
@@ -522,11 +522,11 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
             ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
         }
 
-        Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
+        Overlay->settings.bPreviousNoclipState = Overlay->settings.bEnableNoclip;
     }
 
     // Logic for Noclip Camera
-    if (Overlay->bEnableNoclip) {
+    if (Overlay->settings.bEnableNoclip) {
         if (Overlay->ShowOverlay() || !IsGameWindowActive())
             return;
 
@@ -590,19 +590,19 @@ inline void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
     if (!ValeriaMovementComponent)
         return;
 
-    ValeriaMovementComponent->MaxWalkSpeed = Overlay->CustomWalkSpeed;
-    ValeriaMovementComponent->SprintSpeedMultiplier = Overlay->CustomSprintSpeedMultiplier;
-    ValeriaMovementComponent->ClimbingSpeed = Overlay->CustomClimbingSpeed;
-    ValeriaMovementComponent->GlidingMaxSpeed = Overlay->CustomGlidingSpeed;
-    ValeriaMovementComponent->GlidingFallSpeed = Overlay->CustomGlidingFallSpeed;
-    ValeriaMovementComponent->JumpZVelocity = Overlay->CustomJumpVelocity;
-    ValeriaMovementComponent->MaxStepHeight = Overlay->CustomMaxStepHeight;
+    ValeriaMovementComponent->MaxWalkSpeed = Overlay->settings.CustomWalkSpeed;
+    ValeriaMovementComponent->SprintSpeedMultiplier = Overlay->settings.CustomSprintSpeedMultiplier;
+    ValeriaMovementComponent->ClimbingSpeed = Overlay->settings.CustomClimbingSpeed;
+    ValeriaMovementComponent->GlidingMaxSpeed = Overlay->settings.CustomGlidingSpeed;
+    ValeriaMovementComponent->GlidingFallSpeed = Overlay->settings.CustomGlidingFallSpeed;
+    ValeriaMovementComponent->JumpZVelocity = Overlay->settings.CustomJumpVelocity;
+    ValeriaMovementComponent->MaxStepHeight = Overlay->settings.CustomMaxStepHeight;
 }
 
 // [Placement]
 
 inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
-    if (!Overlay->bPlaceAnywhere)
+    if (!Overlay->settings.bPlaceAnywhere)
         return;
 
     const auto ValeriaCharacter = GetValeriaCharacter();
@@ -650,7 +650,7 @@ void DetourManager::ToggleFishingDelays(const bool RemoveDelays) {
 }
 
 inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
-    if (!Overlay->bFishingInstantCatch)
+    if (!Overlay->settings.bFishingInstantCatch)
         return;
 
     const auto ValeriaCharacter = GetValeriaCharacter();
@@ -680,7 +680,7 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
     // This only works when there is no delay to fishing (Animations)
     // And as this event (function) happens AFTER the fishing already ended
     // We can just cast again, also above the inventory-loop aspect for faster fishing.
-    if (Overlay->bEnableAutoFishing) {
+    if (Overlay->settings.bEnableAutoFishing) {
         if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Rod_") != std::string::npos) {
             ValeriaCharacter->ToolPrimaryActionPressed();
             ValeriaCharacter->ToolPrimaryActionReleased();
@@ -688,7 +688,7 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
     }
 
     // Avoid doing extra work
-    if (!Overlay->bFishingSell && !Overlay->bFishingDiscard && !Overlay->bFishingOpenStoreWaterlogged) {
+    if (!Overlay->settings.bFishingSell && !Overlay->settings.bFishingDiscard && !Overlay->settings.bFishingOpenStoreWaterlogged) {
         return;
     }
 
@@ -704,15 +704,15 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
             FBagSlotLocation Slot{ BagIndex, SlotIndex };
             FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
 
-            if (Overlay->bFishingSell && Item.ItemType->Category == EItemCategory::Fish && StoreComponent) {
+            if (Overlay->settings.bFishingSell && Item.ItemType->Category == EItemCategory::Fish && StoreComponent) {
                 StoreComponent->RpcServer_SellItem(Slot, 10);
             }
-            else if (Overlay->bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
+            else if (Overlay->settings.bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
                 // Don't ever discard more than the amount of the stack
                 ValeriaController->DiscardItem(Slot, Item.Amount);
             }
             else if (Item.ItemType->PersistId == 2810) { // Waterlogged Chest
-                if (!Overlay->bFishingOpenStoreWaterlogged) {
+                if (!Overlay->settings.bFishingOpenStoreWaterlogged) {
                     // Don't ever discard more than the amount of the stack
                     ValeriaController->DiscardItem(Slot, Item.Amount);
                 }
@@ -720,7 +720,7 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
                     ValeriaController->ConsumeItem(Slot);
                 }
             }
-            else if (Overlay->bFishingOpenStoreWaterlogged && Item.ItemType->Name.ToString().find("DA_ItemType_Decor_Makeshift_") != std::string::npos) {
+            else if (Overlay->settings.bFishingOpenStoreWaterlogged && Item.ItemType->Name.ToString().find("DA_ItemType_Decor_Makeshift_") != std::string::npos) {
                 ValeriaController->MoveItemSlotToStorage(Slot, 1, EStoragePoolType::Primary);
             }
         }
@@ -728,11 +728,11 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
 }
 
 inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_SelectLoot* SelectLoot) {
-    if (Overlay->bCaptureFishingSpot) {
+    if (Overlay->settings.bCaptureFishingSpot) {
         memcpy(&Overlay->sOverrideFishingSpot, &SelectLoot->RPCLootParams.WaterType_Deprecated, sizeof(FName));
-        Overlay->bCaptureFishingSpot = false;
+        Overlay->settings.bCaptureFishingSpot = false;
     }
-    if (Overlay->bOverrideFishingSpot) {
+    if (Overlay->settings.bOverrideFishingSpot) {
         memcpy(&SelectLoot->RPCLootParams.WaterType_Deprecated, &Overlay->sOverrideFishingSpot, sizeof(FName));
     }
 }
@@ -740,20 +740,20 @@ inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::Fishing
 Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_EndFishing* EndFishing) {
     Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured = EndFishing;
 
-    if (Overlay->bFishingInstantCatch) {
+    if (Overlay->settings.bFishingInstantCatch) {
         EndFishingDetoured->Context.Result = EFishingMiniGameResult::Success;
     }
 
-    if (Overlay->bFishingPerfectCatch) {
-        EndFishingDetoured->Context.Perfect = Overlay->bFishingPerfectCatch;
+    if (Overlay->settings.bFishingPerfectCatch) {
+        EndFishingDetoured->Context.Perfect = Overlay->settings.bFishingPerfectCatch;
     }
 
-    if (Overlay->bFishingNoDurability) {
+    if (Overlay->settings.bFishingNoDurability) {
         EndFishingDetoured->Context.DurabilityReduction = 0;
     }
 
     EndFishing->Context.SourceWaterBody = Overlay->fWaterBody && Overlay->fWaterBody->IsValidLowLevel() ? Overlay->fWaterBody : nullptr;
-    EndFishing->Context.bUsedMultiplayerHelp = Overlay->bFishingMultiplayerHelp;
+    EndFishing->Context.bUsedMultiplayerHelp = Overlay->settings.bFishingMultiplayerHelp;
     EndFishing->Context.StartRodHealth = 100.0f;
     EndFishing->Context.EndRodHealth = 100.0f;
     EndFishing->Context.StartFishHealth = 100.0f;
@@ -843,7 +843,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
         }
 
         if (FiringComponent) {
-            if (Overlay->bEnableSilentAimbot && Overlay->BestTargetActor) {
+            if (Overlay->settings.bEnableSilentAimbot && Overlay->BestTargetActor) {
                 FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
                 FVector HitLocation = TargetLocation;
 
