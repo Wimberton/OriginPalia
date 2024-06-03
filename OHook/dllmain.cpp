@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <iostream>
 
+#include "ConfigHandler.h"
 #include "../PaliaSDK/SDK.hpp"
 #include "PaliaOverlay.h"
 
@@ -15,6 +16,8 @@ BOOL APIENTRY DllMain(const HMODULE hModule, const DWORD ul_reason_for_call) {
 
     return TRUE;
 }
+
+inline ConfigHandler configHandler("C:/ProgramData/OriginPalia/config", "/overlay_config.json");
 
 DWORD WINAPI MainThread(const LPVOID lpReserved) {
     // Steam Support
@@ -42,6 +45,11 @@ DWORD WINAPI MainThread(const LPVOID lpReserved) {
 
     const auto Overlay = new PaliaOverlay();
     OverlayBase::Instance = Overlay;
+
+    if (!configHandler.LoadConfiguration(Overlay)) {
+        configHandler.SaveConfiguration(Overlay);
+    }
+    
     Overlay->SetupColors();
     Overlay->SetupOverlay();
 

@@ -1057,32 +1057,32 @@ public:
 
     // DEFAULT VALUES
 
-    // // ESP Default values
-    bool defaultEnableESP = false;
-    bool defaultEnableESPCulling = false;
-    int defaultCullDistance = 500;
-    bool defaultDrawFOVCircle = false;
-    float defaultFOVRadius = 100.0f; 
-    float defaultESPTextScale = 1.0f;
-
-    // Aim Default values
-    bool defaultEnableSilentAimbot = false;
-    bool defaultEnableAimbot = false;
-    bool defaultTeleportToTargeted = false;
-    bool defaultAvoidTeleportingToPlayers = false;
-    bool defaultEnableLootbagTeleportation = false;
-    bool defaultAddAnimalToOrbit = false;
-
-    bool defaultWaypointTeleport = false;
-
-    // Skills Default Values
-    bool defaultEnableInstantFishing = false;
-    bool defaultPerfectCatch = false;
-    bool defaultDoInstantSellFish = false;
-    bool defaultDestroyCustomizationFishing = false;
-    bool defaultCaptureFishingSpot = false;
-    bool defaultOverrideFishingSpot = false;
-
-    // Housing Default Values
-    bool defaultPlaceAnywhere = false;
+    // // // ESP Default values
+    // bool defaultEnableESP = false;
+    // bool defaultEnableESPCulling = false;
+    // int defaultCullDistance = 500;
+    // bool defaultDrawFOVCircle = false;
+    // float defaultFOVRadius = 100.0f; 
+    // float defaultESPTextScale = 1.0f;
+    //
+    // // Aim Default values
+    // bool defaultEnableSilentAimbot = false;
+    // bool defaultEnableAimbot = false;
+    // bool defaultTeleportToTargeted = false;
+    // bool defaultAvoidTeleportingToPlayers = false;
+    // bool defaultEnableLootbagTeleportation = false;
+    // bool defaultAddAnimalToOrbit = false;
+    //
+    // bool defaultWaypointTeleport = false;
+    //
+    // // Skills Default Values
+    // bool defaultEnableInstantFishing = false;
+    // bool defaultPerfectCatch = false;
+    // bool defaultDoInstantSellFish = false;
+    // bool defaultDestroyCustomizationFishing = false;
+    // bool defaultCaptureFishingSpot = false;
+    // bool defaultOverrideFishingSpot = false;
+    //
+    // // Housing Default Values
+    // bool defaultPlaceAnywhere = false;
 };
