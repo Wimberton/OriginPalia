@@ -2502,7 +2502,7 @@ void PaliaOverlay::ProcessActors(int step) {
             continue;
 
         const FVector ActorPosition = Actor->K2_GetActorLocation();
-        if (ActorPosition.IsZero() || ActorPosition == FVector{ 2, 0, -9900 })
+        if (ActorPosition.IsZero() || ActorPosition == FVector{2, 0, -9900})
             continue;
 
         int Type = 0;
