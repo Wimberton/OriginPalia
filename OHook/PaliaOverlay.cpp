@@ -2335,7 +2335,7 @@ void PaliaOverlay::DrawOverlay() {
                         bEnableAutoFishing = false;
                     }
 
-                    if (EquippedTool != ETools::FishingRod && ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing)) {
+                    if (EquippedTool == ETools::FishingRod && ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing)) {
                         SaveConfiguration(bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bCaptureFishingSpot, bOverrideFishingSpot, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere);
                     }
 
