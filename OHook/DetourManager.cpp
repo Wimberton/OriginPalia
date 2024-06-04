@@ -449,7 +449,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
             double BaseScale = 1.0; // Default scale at a reference distance
             double ReferenceDistance = 100.0; // Distance at which no scaling is applied
-            double ScalingFactor = 0.005; // Determines how much the scale changes with distance
+            double ScalingFactor = 0; // Determines how much the scale changes with distance
 
             double DistanceScale;
             DistanceScale = BaseScale - ScalingFactor * (Distance - ReferenceDistance);
@@ -617,14 +617,19 @@ inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
 
 // [Fishing]
 
-void DetourManager::ToggleFishingDelays(const bool RemoveDelays) {
-    UValeriaGameInstance* ValeriaGameInstance = GetValeriaController()->GameInst;
+inline void ToggleFishingDelays(const bool RemoveDelays) {
+    const auto ValeriaController = GetValeriaController();
+    if (!ValeriaController) {
+        return;
+    }
+    UValeriaGameInstance* ValeriaGameInstance = ValeriaController->GameInst;
     if (!ValeriaGameInstance || !ValeriaGameInstance->IsValidLowLevel() || ValeriaGameInstance->IsDefaultObject()) {
         return;
     }
 
     auto& CastSettings = ValeriaGameInstance->Configs.Globals.Fishing->CastSettings;
 
+    // Avoid continuously setting values if already set properly
     float newCastDelay = RemoveDelays ? 0.0f : 0.150f;
     if (std::abs(CastSettings.CastDelay - newCastDelay) < 0.0001f) {
         return;
@@ -634,11 +639,12 @@ void DetourManager::ToggleFishingDelays(const bool RemoveDelays) {
     auto& EndSettings = ValeriaGameInstance->Configs.Globals.Fishing->EndSettings;
 
     CastSettings.CastDelay = newCastDelay;
-    CastSettings.MaxDistanceToCast = 1500.0f; // Default value
+    CastSettings.MaxDistanceToCast = 1500.0f;
     CastSettings.MinDistanceToCast = RemoveDelays ? 1500.0f : 500.0f;
     CastSettings.LaunchOffset = RemoveDelays ? FVector{ 1500, 0, -300 } : FVector{};
     CastSettings.WindupSpeed = RemoveDelays ? FLT_MAX : 0.350f;
 
+    FishingSettings->AfterFinishDestroyBobberWhenAtDistanceToRod = RemoveDelays ? FLT_MAX : 50.0;
     FishingSettings->FishingFinishReelInSpeed = RemoveDelays ? FLT_MAX : 1600.0f;
     FishingSettings->TotalCelebrationDuration = RemoveDelays ? 0.0f : 4.0f;
     FishingSettings->OnBeginReelingInitialCooldown = RemoveDelays ? 0.0f : 1.0f;
@@ -647,6 +653,36 @@ void DetourManager::ToggleFishingDelays(const bool RemoveDelays) {
     EndSettings.MaxTimeOfEndFishingDefault = RemoveDelays ? 0.0f : 2.0f;
     EndSettings.MaxTimeOfEndFishingEmptyHanded = RemoveDelays ? 0.0f : 2.2f;
     EndSettings.MaxTimeOfEndFishingFailure = RemoveDelays ? 0.0f : 1.75f;
+}
+
+inline void Func_DoFastAutoFishing(const PaliaOverlay* Overlay) {
+    // Toggle values (Safe to leave looped)
+    ToggleFishingDelays(Overlay->bEnableAutoFishing);
+
+    if (!Overlay->bEnableAutoFishing) {
+        return;
+    }
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter || !ValeriaCharacter->GetEquippedItem().ItemType->IsFishingRod()) {
+        return;
+    }
+
+    if (Overlay->bRequireClickFishing ? (!Overlay->ShowOverlay() && IsGameWindowActive() && IsKeyHeld(VK_LBUTTON)) : true) {
+        // Instant Catch
+        auto FishingComponent = ValeriaCharacter->GetFishing();
+        if (FishingComponent) {
+            if (static_cast<EFishingState_NEW>(FishingComponent->GetFishingState()) == EFishingState_NEW::Bite) {
+                FFishingEndContext Context;
+                FishingComponent->RpcServer_EndFishing(Context);
+                FishingComponent->SetFishingState(EFishingState_OLD::None);
+            }
+        }
+
+        // Cast the rod
+        ValeriaCharacter->ToolPrimaryActionPressed();
+        ValeriaCharacter->ToolPrimaryActionReleased();
+    }
 }
 
 inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
@@ -667,24 +703,12 @@ inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
         FishingComponent->SetFishingState(EFishingState_OLD::None);
     }
 }
-
-inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
+int fishingFlushCounter = 0;
+inline void Func_DoFishingCleanup(const PaliaOverlay* Overlay) {
     const auto ValeriaController = GetValeriaController();
     const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaController || !ValeriaCharacter) {
         return;
-    }
-
-    // Auto Fishing
-
-    // This only works when there is no delay to fishing (Animations)
-    // And as this event (function) happens AFTER the fishing already ended
-    // We can just cast again, also above the inventory-loop aspect for faster fishing.
-    if (Overlay->bEnableAutoFishing) {
-        if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Rod_") != std::string::npos) {
-            ValeriaCharacter->ToolPrimaryActionPressed();
-            ValeriaCharacter->ToolPrimaryActionReleased();
-        }
     }
 
     // Avoid doing extra work
@@ -725,6 +749,15 @@ inline void Func_DoFishingActivities(const PaliaOverlay* Overlay) {
             }
         }
     }
+    fishingFlushCounter++;
+    if (fishingFlushCounter >= 30) {
+        if (APlayerController* PlayerController = GetPlayerController()) {
+            PlayerController->ClientFlushLevelStreaming();
+            PlayerController->ClientForceGarbageCollection();
+
+            fishingFlushCounter = 0;
+        }
+    }
 }
 
 inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_SelectLoot* SelectLoot) {
@@ -738,27 +771,59 @@ inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::Fishing
 }
 
 Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_EndFishing* EndFishing) {
-    Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured = EndFishing;
-
-    if (Overlay->bFishingInstantCatch) {
-        EndFishingDetoured->Context.Result = EFishingMiniGameResult::Success;
-    }
-
-    if (Overlay->bFishingPerfectCatch) {
-        EndFishingDetoured->Context.Perfect = Overlay->bFishingPerfectCatch;
+    if (Overlay->bFishingInstantCatch || Overlay->bEnableAutoFishing) {
+        EndFishing->Context.Result = EFishingMiniGameResult::Success;
     }
 
     if (Overlay->bFishingNoDurability) {
-        EndFishingDetoured->Context.DurabilityReduction = 0;
+        EndFishing->Context.DurabilityReduction = 0;
     }
 
-    EndFishing->Context.SourceWaterBody = Overlay->fWaterBody && Overlay->fWaterBody->IsValidLowLevel() ? Overlay->fWaterBody : nullptr;
+    EndFishing->Context.Perfect = Overlay->bFishingPerfectCatch ? true : Overlay->bFishingInstantCatch ? false : EndFishing->Context.Perfect;
+    EndFishing->Context.SourceWaterBody = nullptr;
     EndFishing->Context.bUsedMultiplayerHelp = Overlay->bFishingMultiplayerHelp;
     EndFishing->Context.StartRodHealth = 100.0f;
     EndFishing->Context.EndRodHealth = 100.0f;
     EndFishing->Context.StartFishHealth = 100.0f;
     EndFishing->Context.EndFishHealth = 100.0f;
-    return EndFishingDetoured;
+    return EndFishing;
+}
+
+// [Firing]
+
+inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
+    auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
+    const auto ValeriaCharacter = GetValeriaCharacter();
+
+    if (!ValeriaCharacter)
+        return;
+
+    auto FiringComponent = ValeriaCharacter->GetFiringComponent();
+    if (!FiringComponent)
+        return;
+
+    if (Overlay->bEnableSilentAimbot && Overlay->BestTargetActor) {
+        FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
+        FVector HitLocation = TargetLocation;
+
+        for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
+            if (ProjectileId == FireProjectile->ProjectileId) {
+                FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
+                FVector FiringTargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
+
+                FVector DirectionToTarget = (FiringTargetLocation - ProjectileLocation).GetNormalized();
+                float DistanceBeforeTarget = 500.0f; // Adjust this distance as needed
+                FVector NewProjectileLocation = FiringTargetLocation - (DirectionToTarget * DistanceBeforeTarget);
+
+                HasHit = true;
+                FHitResult HitResult;
+                ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
+                HitResult.Location = { NewProjectileLocation };
+
+                FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
+            }
+        }
+    }
 }
 
 // Detouring
@@ -768,106 +833,53 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     const auto fn = Function->GetFullName();
     invocations.insert(fn);
 
-    // Custom Tick-Safe Method for calling functions only allows within player ticks
+    //
     if (fn == "Function Engine.Actor.ReceiveTick") {
-        // Custom tick
+        Func_DoFastAutoFishing(Overlay);
+        Func_DoPersistentMovement(Overlay);
+        Func_DoNoClip(Overlay);
+        Func_DoPlaceAnywhere(Overlay);
+
+        // 
     }
     else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
-        // [Logic] Draw ESP
         Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
-
-        // [Logic] InteliTargeting Updates (FOV)
         Func_DoInteliAim(Overlay);
 
-        // [Logic] Persisten Movement
-        Func_DoPersistentMovement(Overlay);
-
-        // [Logic] Noclip
-        Func_DoNoClip(Overlay);
-
-        // [Logic] Housing Place Anywhere
-        Func_DoPlaceAnywhere(Overlay);
+        // Fishing Capture/Override
     }
+    else if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
+        Func_DoFishingCaptureOverride(Overlay, static_cast<Params::FishingComponent_RpcServer_SelectLoot*>(Params));
 
-    // [Fishing] Fish Pools (Capturing / Overriding)
-    if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
-        auto SelectLoot = static_cast<Params::FishingComponent_RpcServer_SelectLoot*>(Params);
-        Func_DoFishingCaptureOverride(Overlay, SelectLoot);
+        // Fishing Instant Catch
     }
-
-    // [Fun] Teleport to Waypoint
-    if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
-        auto SetUserMarkerViaWorldMap = static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params);
-        Func_DoTeleportToWaypoint(Overlay, SetUserMarkerViaWorldMap);
-    }
-
-    // [Fishing] Instant Catch
-    if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
+    else if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
         Func_DoInstantCatch(Overlay);
+
+        // Fishing End (Perfect/Durability/PlayerHelp)
     }
+    else if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
+        EndFishingDetoured(Overlay, static_cast<Params::FishingComponent_RpcServer_EndFishing*>(Params));
 
-    // [Fishing] End Fishing Detouring (Instant Catch, Always Perfect, No Durability, Multiplayer Help)
-    if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
-        auto EndFishing = static_cast<Params::FishingComponent_RpcServer_EndFishing*>(Params);
-        EndFishing = EndFishingDetoured(Overlay, EndFishing);
+        // Fishing Cleanup (Sell/Discard/Move)
     }
+    else if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
+        Func_DoFishingCleanup(Overlay);
 
-    // [Fishing] Fish Caught (Auto Fish / Sell / Discard / Store Items)
-    if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
-        Func_DoFishingActivities(Overlay);
+        // Teleport To Waypoint
     }
+    else if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
+        Func_DoTeleportToWaypoint(Overlay, static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params));
 
-    // Movement Velocity Logic
-    if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
-        auto MovementParams = static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params);
-
-        if (const auto ValeriaCharacter = GetValeriaCharacter()) {
-            if (ValeriaCharacter) {
-                UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-                if (ValeriaMovementComponent) {
-                    MovementParams->MoveInfo.TargetVelocity = { 0, 0, 0 };
-                }
-            }
-        }
+        // Silent Aim
     }
+    else if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
+        Func_DoSilentAim(Overlay, Params);
 
-    // Silent Aim Projectile Logic
-    if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
-        auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
-
-        const auto ValeriaCharacter = GetValeriaCharacter();
-
-        UProjectileFiringComponent* FiringComponent = nullptr;
-        if (ValeriaCharacter) {
-            FiringComponent = ValeriaCharacter->GetFiringComponent();
-        }
-
-        if (FiringComponent) {
-            if (Overlay->bEnableSilentAimbot && Overlay->BestTargetActor) {
-                FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
-                FVector HitLocation = TargetLocation;
-
-                // Find the projectile after it's fired and directly set its hit status
-                for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
-                    if (ProjectileId == FireProjectile->ProjectileId) {
-                        FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
-                        FVector FiringTargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
-
-                        // Calculate a point slightly in front of the target location
-                        FVector DirectionToTarget = (FiringTargetLocation - ProjectileLocation).GetNormalized();
-                        float DistanceBeforeTarget = 500.0f; // Adjust this distance as needed
-                        FVector NewProjectileLocation = FiringTargetLocation - (DirectionToTarget * DistanceBeforeTarget);
-
-                        HasHit = true;
-                        FHitResult HitResult;
-                        ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
-                        HitResult.Location = { NewProjectileLocation };
-
-                        FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
-                    }
-                }
-            }
-        }
+        // ??
+    }
+    else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
+        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = { 0, 0, 0 };
     }
 
     if (OriginalProcessEvent) {

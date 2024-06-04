@@ -965,14 +965,17 @@ public:
 
     // ==================================== //
     
+    int TeleportHotkey = VK_XBUTTON1;
+    int defaultTeleportHotkey = VK_XBUTTON1;
     bool bWaitingForKeyPress = false;
-    
+
     float FOV;
     int screenWidth;
     int screenHeight;
     float FOVRadius = 185.0f;
 
     // ESP Booleans
+
     bool bEnableESP = true;
     bool bEnableAimbot = false;
     bool bEnableSilentAimbot = false;
@@ -983,12 +986,242 @@ public:
     bool bVisualizeDefault = false;
     bool bEnableESPCulling = true;
 
+    // ESP Animals
+
+    bool bEnableSernuk = false;
+    bool bEnableElderSernuk = false;
+    bool bEnableProudhornSernuk = false;
+    bool bEnableChapaa = false;
+    bool bEnableStripedChapaa = false;
+    bool bEnableAzureChapaa = false;
+    bool bEnableMinigameChapaa = false;
+    bool bEnableMuujin = false;
+    bool bEnableBandedMuujin = false;
+    bool bEnableBluebristleMuujin = false;
+
+    // ESP Ores
+
+    bool bEnableClayLg = false;
+
+    bool bEnableStoneSm = false;
+    bool bEnableStoneMed = false;
+    bool bEnableStoneLg = false;
+
+    bool bEnableCopperSm = false;
+    bool bEnableCopperMed = false;
+    bool bEnableCopperLg = false;
+
+    bool bEnableIronSm = false;
+    bool bEnableIronMed = false;
+    bool bEnableIronLg = false;
+
+    bool bEnablePaliumSm = false;
+    bool bEnablePaliumMed = false;
+    bool bEnablePaliumLg = false;
+
+    // ESP Forage Types
+
+    bool bEnableCoral = false;
+    bool bEnableOyster = false;
+    bool bEnableShell = false;
+
+    bool bEnablePoisonFlower = false;
+    bool bEnablePoisonFlowerP = false;
+
+    bool bEnableWaterFlower = false;
+    bool bEnableWaterFlowerP = false;
+
+    bool bEnableHeartdrop = false;
+    bool bEnableHeartdropP = false;
+
+    bool bEnableSundrop = false;
+    bool bEnableSundropP = false;
+
+    bool bEnableDragonsBeard = false;
+    bool bEnableDragonsBeardP = false;
+
+    bool bEnableEmeraldCarpet = false;
+    bool bEnableEmeraldCarpetP = false;
+
+    bool bEnableMushroomBlue = false;
+    bool bEnableMushroomBlueP = false;
+
+    bool bEnableMushroomRed = false;
+    bool bEnableMushroomRedP = false;
+
+    bool bEnableDariCloves = false;
+    bool bEnableDariClovesP = false;
+
+    bool bEnableHeatRoot = false;
+    bool bEnableHeatRootP = false;
+
+    bool bEnableSpicedSprouts = false;
+    bool bEnableSpicedSproutsP = false;
+
+    bool bEnableSweetLeaves = false;
+    bool bEnableSweetLeavesP = false;
+
+    bool bEnableGarlic = false;
+    bool bEnableGarlicP = false;
+
+    bool bEnableGinger = false;
+    bool bEnableGingerP = false;
+
+    bool bEnableGreenOnion = false;
+    bool bEnableGreenOnionP = false;
+
+    // ESP Bug Types
+
+    bool bEnableBeeU = false;
+    bool bEnableBeeUP = false;
+
+    bool bEnableBeeR = false;
+    bool bEnableBeeRP = false;
+
+    bool bEnableBeetleC = false;
+    bool bEnableBeetleCP = false;
+
+    bool bEnableBeetleU = false;
+    bool bEnableBeetleUP = false;
+
+    bool bEnableBeetleR = false;
+    bool bEnableBeetleRP = false;
+
+    bool bEnableBeetleE = false;
+    bool bEnableBeetleEP = false;
+
+    bool bEnableButterflyC = false;
+    bool bEnableButterflyCP = false;
+
+    bool bEnableButterflyU = false;
+    bool bEnableButterflyUP = false;
+
+    bool bEnableButterflyR = false;
+    bool bEnableButterflyRP = false;
+
+    bool bEnableButterflyE = false;
+    bool bEnableButterflyEP = false;
+
+    bool bEnableCicadaC = false;
+    bool bEnableCicadaCP = false;
+
+    bool bEnableCicadaU = false;
+    bool bEnableCicadaUP = false;
+
+    bool bEnableCicadaR = false;
+    bool bEnableCicadaRP = false;
+
+    bool bEnableCrabC = false;
+    bool bEnableCrabCP = false;
+
+    bool bEnableCrabU = false;
+    bool bEnableCrabUP = false;
+
+    bool bEnableCrabR = false;
+    bool bEnableCrabRP = false;
+
+    bool bEnableCricketC = false;
+    bool bEnableCricketCP = false;
+
+    bool bEnableCricketU = false;
+    bool bEnableCricketUP = false;
+
+    bool bEnableCricketR = false;
+    bool bEnableCricketRP = false;
+
+    bool bEnableDragonflyC = false;
+    bool bEnableDragonflyCP = false;
+
+    bool bEnableDragonflyU = false;
+    bool bEnableDragonflyUP = false;
+
+    bool bEnableDragonflyR = false;
+    bool bEnableDragonflyRP = false;
+
+    bool bEnableDragonflyE = false;
+    bool bEnableDragonflyEP = false;
+
+    bool bEnableGlowbugC = false;
+    bool bEnableGlowbugCP = false;
+
+    bool bEnableGlowbugU = false;
+    bool bEnableGlowbugUP = false;
+
+    bool bEnableLadybugC = false;
+    bool bEnableLadybugCP = false;
+
+    bool bEnableLadybugU = false;
+    bool bEnableLadybugUP = false;
+
+    bool bEnableMantisU = false;
+    bool bEnableMantisUP = false;
+
+    bool bEnableMantisR = false;
+    bool bEnableMantisRP = false;
+
+    bool bEnableMantisR2 = false;
+    bool bEnableMantisR2P = false;
+
+    bool bEnableMantisE = false;
+    bool bEnableMantisEP = false;
+
+    bool bEnableMothC = false;
+    bool bEnableMothCP = false;
+
+    bool bEnableMothU = false;
+    bool bEnableMothUP = false;
+
+    bool bEnableMothR = false;
+    bool bEnableMothRP = false;
+
+    bool bEnablePedeU = false;
+    bool bEnablePedeUP = false;
+
+    bool bEnablePedeR = false;
+    bool bEnablePedeRP = false;
+
+    bool bEnablePedeR2 = false;
+    bool bEnablePedeR2P = false;
+
+    bool bEnableSnailU = false;
+    bool bEnableSnailUP = false;
+
+    bool bEnableSnailR = false;
+    bool bEnableSnailRP = false;
+
+    // ESP Trees
+
+    bool bEnableBushSm = false;
+
+    bool bEnableSapwoodSm = false;
+    bool bEnableSapwoodMed = false;
+    bool bEnableSapwoodLg = false;
+
+    bool bEnableHeartwoodSm = false;
+    bool bEnableHeartwoodMed = false;
+    bool bEnableHeartwoodLg = false;
+
+    bool bEnableFlowSm = false;
+    bool bEnableFlowMed = false;
+    bool bEnableFlowLg = false;
+
+    // ESP Player & Entities
+
+    bool bEnablePlayers = false;
+    bool bEnableNPC = false;
+    bool bEnableFish = false;
+    bool bEnablePools = false;
+    bool bEnableLoot = false;
+    bool bEnableQuest = false;
+    bool bEnableRummagePiles = false;
+    bool bEnableStables = false;
+    bool bEnableOthers = false;
+
     // ESP Numericals
     static float ESPTextScale;
     int CullDistance = 150;
     std::chrono::steady_clock::time_point LastTeleportToTargetTime;
     std::chrono::steady_clock::time_point LastTimeMapTeleport;
-    int TeleportHotkey = VK_XBUTTON1;
 
     float SmoothingFactor = 90.0f;
     FVector AimOffset = {-1.5, -1.35, 0};
@@ -1039,10 +1272,10 @@ public:
     bool bFishingOpenStoreWaterlogged = false;
     
     FName sOverrideFishingSpot;
-    UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
     bool bCaptureFishingSpot = false;
     bool bOverrideFishingSpot = false;
     bool bEnableAutoFishing = false;
+    bool bRequireClickFishing = true;
     
     // Item Booleans
     bool bEasyModeActive = false;
@@ -1051,21 +1284,205 @@ public:
     
     // Housing Booleans
     bool bPlaceAnywhere = false;
+    bool bManualPositionAdjustment = false;
 
     // Quicksell Hotkeys
     bool bEnableQuicksellHotkeys = false;
 
-    // DEFAULT VALUES
-
-    // // ESP Default values
+    // ESP Default Values
     bool defaultEnableESP = false;
     bool defaultEnableESPCulling = false;
-    int defaultCullDistance = 500;
     bool defaultDrawFOVCircle = false;
+
+    int defaultCullDistance = 500;
     float defaultFOVRadius = 100.0f; 
     float defaultESPTextScale = 1.0f;
 
-    // Aim Default values
+    bool defaultbFishingNoDurability = true;
+    bool defaultbFishingMultiplayerHelp = false;
+    bool defaultbFishingInstantCatch = false;
+    bool defaultbFishingPerfectCatch = true;
+    bool defaultbFishingSell = false;
+    bool defaultbFishingDiscard = false;
+    bool defaultbFishingOpenStoreWaterlogged = false;
+    bool defaultbRequireClickFishing = false;
+
+    bool defaultbEnableSernuk = false;
+    bool defaultbEnableElderSernuk = false;
+    bool defaultbEnableProudhornSernuk = false;
+    bool defaultbEnableChapaa = false;
+    bool defaultbEnableStripedChapaa = false;
+    bool defaultbEnableAzureChapaa = false;
+    bool defaultbEnableMinigameChapaa = false;
+    bool defaultbEnableMuujin = false;
+    bool defaultbEnableBandedMuujin = false;
+    bool defaultbEnableBluebristleMuujin = false;
+
+    bool defaultbEnableClayLg = false;
+    bool defaultbEnableStoneSm = false;
+    bool defaultbEnableStoneMed = false;
+    bool defaultbEnableStoneLg = false;
+    bool defaultbEnableCopperSm = false;
+    bool defaultbEnableCopperMed = false;
+    bool defaultbEnableCopperLg = false;
+    bool defaultbEnableIronSm = false;
+    bool defaultbEnableIronMed = false;
+    bool defaultbEnableIronLg = false;
+    bool defaultbEnablePaliumSm = false;
+    bool defaultbEnablePaliumMed = false;
+    bool defaultbEnablePaliumLg = false;
+
+    bool defaultbEnableCoral = false;
+    bool defaultbEnableOyster = false;
+    bool defaultbEnableShell = false;
+
+    bool defaultbEnablePoisonFlower = false;
+    bool defaultbEnablePoisonFlowerP = false;
+    bool defaultbEnableWaterFlower = false;
+    bool defaultbEnableWaterFlowerP = false;
+    bool defaultbEnableHeartdrop = false;
+    bool defaultbEnableHeartdropP = false;
+    bool defaultbEnableSundrop = false;
+    bool defaultbEnableSundropP = false;
+
+    bool defaultbEnableDragonsBeard = false;
+    bool defaultbEnableDragonsBeardP = false;
+    bool defaultbEnableEmeraldCarpet = false;
+    bool defaultbEnableEmeraldCarpetP = false;
+
+    bool defaultbEnableMushroomBlue = false;
+    bool defaultbEnableMushroomBlueP = false;
+    bool defaultbEnableMushroomRed = false;
+    bool defaultbEnableMushroomRedP = false;
+
+    bool defaultbEnableDariCloves = false;
+    bool defaultbEnableDariClovesP = false;
+    bool defaultbEnableHeatRoot = false;
+    bool defaultbEnableHeatRootP = false;
+    bool defaultbEnableSpicedSprouts = false;
+    bool defaultbEnableSpicedSproutsP = false;
+    bool defaultbEnableSweetLeaves = false;
+    bool defaultbEnableSweetLeavesP = false;
+
+    bool defaultbEnableGarlic = false;
+    bool defaultbEnableGarlicP = false;
+    bool defaultbEnableGinger = false;
+    bool defaultbEnableGingerP = false;
+    bool defaultbEnableGreenOnion = false;
+    bool defaultbEnableGreenOnionP = false;
+
+    bool defaultbEnableBeeU = false;
+    bool defaultbEnableBeeUP = false;
+    bool defaultbEnableBeeR = false;
+    bool defaultbEnableBeeRP = false;
+
+    bool defaultbEnableBeetleC = false;
+    bool defaultbEnableBeetleCP = false;
+    bool defaultbEnableBeetleU = false;
+    bool defaultbEnableBeetleUP = false;
+    bool defaultbEnableBeetleR = false;
+    bool defaultbEnableBeetleRP = false;
+    bool defaultbEnableBeetleE = false;
+    bool defaultbEnableBeetleEP = false;
+    bool defaultbEnableButterflyC = false;
+    bool defaultbEnableButterflyCP = false;
+    bool defaultbEnableButterflyU = false;
+    bool defaultbEnableButterflyUP = false;
+    bool defaultbEnableButterflyR = false;
+    bool defaultbEnableButterflyRP = false;
+    bool defaultbEnableButterflyE = false;
+    bool defaultbEnableButterflyEP = false;
+
+    bool defaultbEnableCicadaC = false;
+    bool defaultbEnableCicadaCP = false;
+    bool defaultbEnableCicadaU = false;
+    bool defaultbEnableCicadaUP = false;
+    bool defaultbEnableCicadaR = false;
+    bool defaultbEnableCicadaRP = false;
+
+    bool defaultbEnableCrabC = false;
+    bool defaultbEnableCrabCP = false;
+    bool defaultbEnableCrabU = false;
+    bool defaultbEnableCrabUP = false;
+    bool defaultbEnableCrabR = false;
+    bool defaultbEnableCrabRP = false;
+
+    bool defaultbEnableCricketC = false;
+    bool defaultbEnableCricketCP = false;
+    bool defaultbEnableCricketU = false;
+    bool defaultbEnableCricketUP = false;
+    bool defaultbEnableCricketR = false;
+    bool defaultbEnableCricketRP = false;
+
+    bool defaultbEnableDragonflyC = false;
+    bool defaultbEnableDragonflyCP = false;
+    bool defaultbEnableDragonflyU = false;
+    bool defaultbEnableDragonflyUP = false;
+    bool defaultbEnableDragonflyR = false;
+    bool defaultbEnableDragonflyRP = false;
+    bool defaultbEnableDragonflyE = false;
+    bool defaultbEnableDragonflyEP = false;
+
+    bool defaultbEnableGlowbugC = false;
+    bool defaultbEnableGlowbugCP = false;
+    bool defaultbEnableGlowbugU = false;
+    bool defaultbEnableGlowbugUP = false;
+
+    bool defaultbEnableLadybugC = false;
+    bool defaultbEnableLadybugCP = false;
+    bool defaultbEnableLadybugU = false;
+    bool defaultbEnableLadybugUP = false;
+
+    bool defaultbEnableMantisU = false;
+    bool defaultbEnableMantisUP = false;
+    bool defaultbEnableMantisR = false;
+    bool defaultbEnableMantisRP = false;
+    bool defaultbEnableMantisR2 = false;
+    bool defaultbEnableMantisR2P = false;
+    bool defaultbEnableMantisE = false;
+    bool defaultbEnableMantisEP = false;
+
+    bool defaultbEnableMothC = false;
+    bool defaultbEnableMothCP = false;
+    bool defaultbEnableMothU = false;
+    bool defaultbEnableMothUP = false;
+    bool defaultbEnableMothR = false;
+    bool defaultbEnableMothRP = false;
+
+    bool defaultbEnablePedeU = false;
+    bool defaultbEnablePedeUP = false;
+    bool defaultbEnablePedeR = false;
+    bool defaultbEnablePedeRP = false;
+    bool defaultbEnablePedeR2 = false;
+    bool defaultbEnablePedeR2P = false;
+
+    bool defaultbEnableSnailU = false;
+    bool defaultbEnableSnailUP = false;
+    bool defaultbEnableSnailR = false;
+    bool defaultbEnableSnailRP = false;
+
+    bool defaultbEnableBushSm = false;
+    bool defaultbEnableSapwoodSm = false;
+    bool defaultbEnableSapwoodMed = false;
+    bool defaultbEnableSapwoodLg = false;
+    bool defaultbEnableHeartwoodSm = false;
+    bool defaultbEnableHeartwoodMed = false;
+    bool defaultbEnableHeartwoodLg = false;
+    bool defaultbEnableFlowSm = false;
+    bool defaultbEnableFlowMed = false;
+    bool defaultbEnableFlowLg = false;
+
+    bool defaultbEnablePlayers = false;
+    bool defaultbEnableNPC = false;
+    bool defaultbEnableFish = false;
+    bool defaultbEnablePools = false;
+    bool defaultbEnableLoot = false;
+    bool defaultbEnableQuest = false;
+    bool defaultbEnableRummagePiles = false;
+    bool defaultbEnableStables = false;
+    bool defaultbEnableOthers = false;
+
+    // Aim Default Values
     bool defaultEnableSilentAimbot = false;
     bool defaultEnableAimbot = false;
     bool defaultTeleportToTargeted = false;
@@ -1074,14 +1491,6 @@ public:
     bool defaultAddAnimalToOrbit = false;
 
     bool defaultWaypointTeleport = false;
-
-    // Skills Default Values
-    bool defaultEnableInstantFishing = false;
-    bool defaultPerfectCatch = false;
-    bool defaultDoInstantSellFish = false;
-    bool defaultDestroyCustomizationFishing = false;
-    bool defaultCaptureFishingSpot = false;
-    bool defaultOverrideFishingSpot = false;
 
     // Housing Default Values
     bool defaultPlaceAnywhere = false;
