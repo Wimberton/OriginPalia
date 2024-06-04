@@ -2329,22 +2329,27 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::Text("[Captured: %s]", sOverrideFishingSpot.ToString().c_str());
 
                     ImGui::Spacing();
-
+                    
                     if (EquippedTool != ETools::FishingRod) {
                         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, false);
                         bEnableAutoFishing = false;
+                        bRequireClickFishing = true;
                     }
+                    
+                    if (EquippedTool == ETools::FishingRod) {
+                        ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing);
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                            ImGui::SetTooltip("Automatically catches fish fast.");
 
-                    if (EquippedTool == ETools::FishingRod && ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing)) {
-                        SaveConfiguration(bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bCaptureFishingSpot, bOverrideFishingSpot, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere);
-                    }
-
-                    if (EquippedTool != ETools::FishingRod) {
+                        if (bEnableAutoFishing) {
+                            ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing);
+                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                                ImGui::SetTooltip("Require left-click to automatically catch fish.");
+                        }
+                    } else {
                         ImGui::Spacing();
                         ImGui::Text("[Equip your fishing rod to show Fast Fishing Options]");
                     }
-
-                    gDetourManager.ToggleFishingDelays(bEnableAutoFishing);
                 } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");

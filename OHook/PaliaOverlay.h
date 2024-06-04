@@ -1039,10 +1039,10 @@ public:
     bool bFishingOpenStoreWaterlogged = false;
     
     FName sOverrideFishingSpot;
-    UValeriaWaterBodyComponent* fWaterBody = static_cast<UValeriaWaterBodyComponent*>(malloc(sizeof(UValeriaWaterBodyComponent)));
     bool bCaptureFishingSpot = false;
     bool bOverrideFishingSpot = false;
     bool bEnableAutoFishing = false;
+    bool bRequireClickFishing = true;
     
     // Item Booleans
     bool bEasyModeActive = false;
