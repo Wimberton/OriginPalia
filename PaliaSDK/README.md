@@ -30,14 +30,20 @@ Simply move the entire PaliaSDK folder into the project to use the dumped SDK fi
 If your offsets are stored as constant expressions, browse to the `WBP_Cooking_Minigames_PF_parameters.hpp` file and change the following variables to the new ones.
 
 `constexpr int32 GObjects          = 0x089FD0C0;` to `inline int32 GObjects          = 0x089FD0C0;`
+
 `constexpr int32 AppendString      = 0x00CFE170;` to `inline int32 AppendString      = 0x00CFE170;`
+
 `constexpr int32 GNames            = 0x08956700;` to `inline int32 GNames            = 0x08956700;`
+
 `constexpr int32 GWorld            = 0x08B6DAF8;` to `inline int32 GWorld            = 0x08B6DAF8;`
+
 `constexpr int32 ProcessEvent      = 0x00ED7AA0;` to `inline int32 ProcessEvent      = 0x00ED7AA0;`
+
 `constexpr int32 ProcessEventIdx   = 0x0000004D;` to `inline int32 ProcessEventIdx   = 0x0000004D;`
 
 If your variable names are incorrect, browse to the `WBP_Cooking_Minigames_PF_parameters.hpp` file and change the following variables to the new ones.
 
 `Temp_real_Variable_1` to `Temp_real_Variable_1_3`
+
 `Temp_real_Variable_2` to `Temp_real_Variable_2_3`
 
