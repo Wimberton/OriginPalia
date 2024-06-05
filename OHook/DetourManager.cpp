@@ -833,51 +833,43 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     const auto fn = Function->GetFullName();
     invocations.insert(fn);
 
-    //
+    // PlayerTick
     if (fn == "Function Engine.Actor.ReceiveTick") {
         Func_DoFastAutoFishing(Overlay);
         Func_DoPersistentMovement(Overlay);
         Func_DoNoClip(Overlay);
-        Func_DoPlaceAnywhere(Overlay);
-
-        // 
     }
+    // HUD
     else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
         Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
         Func_DoInteliAim(Overlay);
-
-        // Fishing Capture/Override
+        Func_DoPlaceAnywhere(Overlay);
     }
+    // Fishing Capture/Override
     else if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
         Func_DoFishingCaptureOverride(Overlay, static_cast<Params::FishingComponent_RpcServer_SelectLoot*>(Params));
-
-        // Fishing Instant Catch
     }
+    // Fishing Instant Catch
     else if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
         Func_DoInstantCatch(Overlay);
-
-        // Fishing End (Perfect/Durability/PlayerHelp)
     }
+    // Fishing End (Perfect/Durability/PlayerHelp)
     else if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
         EndFishingDetoured(Overlay, static_cast<Params::FishingComponent_RpcServer_EndFishing*>(Params));
-
-        // Fishing Cleanup (Sell/Discard/Move)
     }
+    // Fishing Cleanup (Sell/Discard/Move)
     else if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
         Func_DoFishingCleanup(Overlay);
-
-        // Teleport To Waypoint
     }
+    // Teleport To Waypoint
     else if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
         Func_DoTeleportToWaypoint(Overlay, static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params));
-
-        // Silent Aim
     }
+    // Silent Aim
     else if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
         Func_DoSilentAim(Overlay, Params);
-
-        // ??
     }
+    // ??
     else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
         static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = { 0, 0, 0 };
     }

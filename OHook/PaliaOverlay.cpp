@@ -1069,7 +1069,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.5.1 - Game Version 0.180.0");
+    const auto WindowTitle = std::string("OriginPalia V2.6.1 - Game Version 0.180.0");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
@@ -3520,6 +3520,12 @@ void PaliaOverlay::DrawOverlay() {
                     }
                     ImGui::SameLine();
                     ImGui::Text("[Captured: %s]", sOverrideFishingSpot.ToString().c_str());
+
+                    if (ImGui::Combo("Fishing spots", &bSelectedFishingSpot, bFishingSpots, IM_ARRAYSIZE(bFishingSpots))) {
+                        if (bSelectedFishingSpot > 0) {
+                            sOverrideFishingSpot = SDK::UKismetStringLibrary::Conv_StringToName(bFishingSpotsFString[bSelectedFishingSpot - 1]);
+                        }
+                    }
                 } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
