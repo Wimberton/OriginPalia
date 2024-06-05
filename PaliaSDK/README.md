@@ -2,8 +2,6 @@
 You must dump the SDK yourself using Unreal Engine SDK dumpers such as Dumper-7.
 Simply place the SDK folder and files into this folder, build, and enjoy!
 
-NOTE: __Replace the Offsets from constexpr to inline for steam/standlone change support__
-
 Void from the OriginSoftware commuinity has released a Dumper DLL to use for easy dumping!
 If you'd like to use this edition, please download Dumper 7 from the link below
 
