@@ -1276,6 +1276,10 @@ public:
     bool bOverrideFishingSpot = false;
     bool bEnableAutoFishing = false;
     bool bRequireClickFishing = true;
+    int bSelectedFishingSpot = 0;
+    const char* bFishingSpots[14]{ "-","RiverVillage","RiverVillage_SQ","PondVillage","PondVillage_SQ","LakeVillage","LakeVillage_SQ","OceanAZ1","OceanAZ1_SQ","RiverAZ1","RiverAZ1_SQ","CaveAZ1","CaveAZ1_SQ","test" };
+    const FString bFishingSpotsFString[13]{ L"RiverVillage",L"RiverVillage_SQ",L"PondVillage",L"PondVillage_SQ",L"LakeVillage",L"LakeVillage_SQ",L"OceanAZ1",L"OceanAZ1_SQ",L"RiverAZ1",L"RiverAZ1_SQ",L"CaveAZ1",L"CaveAZ1_SQ",L"test" };
+
     
     // Item Booleans
     bool bEasyModeActive = false;
