@@ -729,6 +729,11 @@ inline void Func_DoFishingCleanup(const PaliaOverlay* Overlay) {
             FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
 
             if (Overlay->bFishingSell && Item.ItemType->Category == EItemCategory::Fish && StoreComponent) {
+                if (!StoreComponent->StoreCanBuyItem(Slot)) {
+                    StoreComponent->Client_SetVillagerStore(2);
+                    StoreComponent->Client_OpenStore();
+                }
+
                 StoreComponent->RpcServer_SellItem(Slot, 10);
             }
             else if (Overlay->bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
