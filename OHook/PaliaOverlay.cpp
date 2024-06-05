@@ -38,35 +38,19 @@ void SaveConfiguration(bool bEnableSilentAimbot, bool bEnableAimbot, bool bTelep
 
     std::ofstream configFile(configFilePath);
     if (configFile.is_open()) {
-        configFile << R"(
-    ____       _       _       ____        ___        
-   / __ \_____(_)___ _(_)___  / __ \____ _/ (_)___    
-  / / / / ___/ / __ `/ / __ \/ /_/ / __ `/ / / __ `\  
- / /_/ / /  / / /_/ / / / / / ____/ /_/ / / / /_/ /  
- \____/_/  /_/\__, /_/_/ /_/_/    \__,_/_/_/\__,_/   
-             /____/     User Config File             
-                  https://discord.gg/yS9uWFedBA      
-)";
         configFile << "{\n";
-        configFile << "    \"General\": {\n";
         configFile << "    \"Enable ESP\": " << (bEnableESP ? "true" : "false") << ",\n";
         configFile << "    \"ESP Text Scale\": " << ESPTextScale << ",\n";
         configFile << "    \"Limit Distance\": " << (bEnableESPCulling ? "true" : "false") << ",\n";
         configFile << "    \"Distance\": " << CullDistance << ",\n";
         configFile << "    \"Enable InteliAim Circle\": " << (bDrawFOVCircle ? "true" : "false") << ",\n";
         configFile << "    \"InteliAim Radius\": " << FOVRadius << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"Aimbot\": {\n";
         configFile << "    \"Enable Silent Aimbot\": " << (bEnableSilentAimbot ? "true" : "false") << ",\n";
         configFile << "    \"Enable Legacy Aimbot\": " << (bEnableAimbot ? "true" : "false") << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"Teleportation\": {\n";
         configFile << "    \"Teleport to Targeted\": " << (bTeleportToTargeted ? "true" : "false") << ",\n";
         configFile << "    \"Teleport to Waypoint\": " << (bEnableWaypointTeleport ? "true" : "false") << ",\n";
         configFile << "    \"Avoid Teleporting To Targeted Players\": " << (bAvoidTeleportingToPlayers ? "true" : "false") << ",\n";
         configFile << "    \"Teleport Dropped Loot to Player\": " << (bEnableLootbagTeleportation ? "true" : "false") << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"Fishing\": {\n";
         configFile << "    \"No Fishing Rod Durability\": " << (bFishingNoDurability ? "true" : "false") << ",\n";
         configFile << "    \"Enable Fishing Multiplayer Help\": " << (bFishingMultiplayerHelp ? "true" : "false") << ",\n";
         configFile << "    \"Enable Fishing Perfect Catch\": " << (bFishingPerfectCatch ? "true" : "false") << ",\n";
@@ -75,8 +59,6 @@ void SaveConfiguration(bool bEnableSilentAimbot, bool bEnableAimbot, bool bTelep
         configFile << "    \"Enable Discarding Fishing Junk\": " << (bFishingDiscard ? "true" : "false") << ",\n";
         configFile << "    \"Fishing Open Store Waterlogged\": " << (bFishingOpenStoreWaterlogged ? "true" : "false") << ",\n";
         configFile << "    \"Require Click Fishing\": " << (bRequireClickFishing ? "true" : "false") << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"Custom Speeds\": {\n";
         configFile << "    \"Custom Walk Speed\": " << CustomWalkSpeed << ",\n";
         configFile << "    \"Custom Sprint Speed Multiplier\": " << CustomSprintSpeedMultiplier << ",\n";
         configFile << "    \"Custom Climbing Speed\": " << CustomClimbingSpeed << ",\n";
@@ -84,11 +66,7 @@ void SaveConfiguration(bool bEnableSilentAimbot, bool bEnableAimbot, bool bTelep
         configFile << "    \"Custom Gliding Fall Speed\": " << CustomGlidingFallSpeed << ",\n";
         configFile << "    \"Custom Jump Velocity\": " << CustomJumpVelocity << ",\n";
         configFile << "    \"Custom Max Step Height\": " << CustomMaxStepHeight << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"Gameplay Features\": {\n";
         configFile << "    \"Place Items Anywhere\": " << (bPlaceAnywhere ? "true" : "false") << ",\n";
-        configFile << "    },\n";
-        configFile << "    \"ESP Visibility\": {\n";
         configFile << "    \"Enable Sernuk\": " << (bEnableSernuk ? "true" : "false") << ",\n";
         configFile << "    \"Enable Elder Sernuk\": " << (bEnableElderSernuk ? "true" : "false") << ",\n";
         configFile << "    \"Enable Proudhorn Sernuk\": " << (bEnableProudhornSernuk ? "true" : "false") << ",\n";
@@ -242,7 +220,6 @@ void SaveConfiguration(bool bEnableSilentAimbot, bool bEnableAimbot, bool bTelep
         configFile << "    \"Enable Rummage Piles\": " << (bEnableRummagePiles ? "true" : "false") << ",\n";
         configFile << "    \"Enable Stables\": " << (bEnableStables ? "true" : "false") << ",\n";
         configFile << "    \"Enable Others\": " << (bEnableOthers ? "true" : "false") << "\n";
-        configFile << "    },\n";
         configFile << "}";
         configFile.close();
     }
@@ -1092,7 +1069,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.5 - Game Version 0.180.0");
+    const auto WindowTitle = std::string("OriginPalia V2.5.1 - Game Version 0.180.0");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {

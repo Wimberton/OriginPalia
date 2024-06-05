@@ -1219,7 +1219,7 @@ public:
 
     // ESP Numericals
     static float ESPTextScale;
-    int CullDistance = 150;
+    int CullDistance = 200;
     std::chrono::steady_clock::time_point LastTeleportToTargetTime;
     std::chrono::steady_clock::time_point LastTimeMapTeleport;
 
@@ -1294,7 +1294,7 @@ public:
     bool defaultEnableESPCulling = false;
     bool defaultDrawFOVCircle = false;
 
-    int defaultCullDistance = 500;
+    int defaultCullDistance = 200;
     float defaultFOVRadius = 100.0f; 
     float defaultESPTextScale = 1.0f;
 
