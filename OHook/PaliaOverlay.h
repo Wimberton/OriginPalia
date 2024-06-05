@@ -973,6 +973,10 @@ public:
     int screenWidth;
     int screenHeight;
     float FOVRadius = 185.0f;
+    bool bEnableAntiAfk = false;
+
+    // Crafting Cooking Booleans
+    bool bEnableInstantCraftingCooking = false;
 
     // ESP Booleans
 
@@ -1277,9 +1281,8 @@ public:
     bool bEnableAutoFishing = false;
     bool bRequireClickFishing = true;
     int bSelectedFishingSpot = 0;
-    const char* bFishingSpots[14]{ "-","RiverVillage","RiverVillage_SQ","PondVillage","PondVillage_SQ","LakeVillage","LakeVillage_SQ","OceanAZ1","OceanAZ1_SQ","RiverAZ1","RiverAZ1_SQ","CaveAZ1","CaveAZ1_SQ","test" };
+    const char* bFishingSpots[14] = {"- none -","River Village","River Village *","Pond Village","Pond Village *","Lake Village","Lake Village *","Ocean AZ1","Ocean AZ1 *","River AZ1","River AZ1 *","Cave AZ1","Cave AZ1 *","100G Pool"};
     const FString bFishingSpotsFString[13]{ L"RiverVillage",L"RiverVillage_SQ",L"PondVillage",L"PondVillage_SQ",L"LakeVillage",L"LakeVillage_SQ",L"OceanAZ1",L"OceanAZ1_SQ",L"RiverAZ1",L"RiverAZ1_SQ",L"CaveAZ1",L"CaveAZ1_SQ",L"test" };
-
     
     // Item Booleans
     bool bEasyModeActive = false;
@@ -1301,6 +1304,8 @@ public:
     int defaultCullDistance = 200;
     float defaultFOVRadius = 100.0f; 
     float defaultESPTextScale = 1.0f;
+
+    bool defaultbEnableAntiAfk = false;
 
     bool defaultbFishingNoDurability = true;
     bool defaultbFishingMultiplayerHelp = false;

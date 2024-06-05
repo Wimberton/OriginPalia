@@ -110,6 +110,25 @@ inline void Func_DoTeleportToWaypoint(const PaliaOverlay* Overlay, const Params:
     }
 }
 
+std::chrono::steady_clock::time_point lastExecutionTime = std::chrono::steady_clock::now();
+inline void Func_DoAntiAfk(const PaliaOverlay* Overlay) {
+    if (Overlay->bEnableAntiAfk) {
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastExecutionTime);
+
+        if (elapsedTime.count() >= 1) {
+            const auto ValeriaController = GetValeriaController();
+            if (ValeriaController) {
+                ValeriaController->Client_InactivityHeartbeat();
+                ValeriaController->RpcServer_NotifyInactivityInterrupted();
+
+                // Update the last execution time
+                lastExecutionTime = currentTime;
+            }
+        }
+    }
+}
+
 // [HUD]
 
 inline void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegments, const FLinearColor Color, const float Thickness = 1.0f) {
@@ -843,6 +862,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
         Func_DoFastAutoFishing(Overlay);
         Func_DoPersistentMovement(Overlay);
         Func_DoNoClip(Overlay);
+        Func_DoAntiAfk(Overlay);
     }
     // HUD
     else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
