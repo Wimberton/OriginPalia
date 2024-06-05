@@ -871,7 +871,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // ??
     else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
-        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = { 0, 0, 0 };
+        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = {0, 0, 0};
     }
 
     if (OriginalProcessEvent) {
