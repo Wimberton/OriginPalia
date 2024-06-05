@@ -3343,6 +3343,7 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::Columns(2, nullptr, false);
 
             AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
 
             if (ImGui::CollapsingHeader("Selling Settings - Bag 1", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
@@ -3392,14 +3393,17 @@ void PaliaOverlay::DrawOverlay() {
                         bag.BagIndex = 0;
                         bag.SlotIndex = selectedSlot;
 
+                        if (!StoreComponent->StoreCanBuyItem(bag)) {
+                            StoreComponent->Client_SetVillagerStore(2);
+                            StoreComponent->Client_OpenStore();
+                        }
+
                         const int quantityToSell = selectedQuantity < 4
                                                        ? atoi(quantities[selectedQuantity])
                                                        : atoi(customQuantity);
 
                         ValeriaCharacter->StoreComponent->RpcServer_SellItem(bag, quantityToSell);
                     }
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Visit a storefront first, then the sell button will function.");
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
