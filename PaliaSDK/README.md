@@ -18,12 +18,12 @@ Dumped files will be default stored in `C:\Dumper-7\`
 
 ### Files & Folders To Move
 Simply move the entire PaliaSDK folder into the project to use the dumped SDK files. Below is a list of the files and folders for your reference
-- PaliaSDK\
--- SDK\
--- NameCollisions.inl
--- PropertyFixup.hpp
--- SDK.hpp
--- UnrealContainers.hpp
+PaliaSDK\
+- SDK\
+-  NameCollisions.inl
+-  PropertyFixup.hpp
+-  SDK.hpp
+-  UnrealContainers.hpp
 
 
 ## Step 3. Fixing Variables
