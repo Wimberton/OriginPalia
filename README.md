@@ -1,8 +1,12 @@
 # OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="64" height="auto"></a>
 [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
+
 ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
+
 ♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/DLL%E2%80%90Changelogs)
+
 ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
+
 ♥ [Discord Server](https://discord.gg/yS9uWFedBA)
 <p align="left">
   <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
