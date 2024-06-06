@@ -1314,7 +1314,7 @@ public:
     bool defaultbFishingSell = false;
     bool defaultbFishingDiscard = false;
     bool defaultbFishingOpenStoreWaterlogged = false;
-    bool defaultbRequireClickFishing = false;
+    bool defaultbRequireClickFishing = true;
 
     bool defaultbEnableSernuk = false;
     bool defaultbEnableElderSernuk = false;
