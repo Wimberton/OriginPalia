@@ -25,7 +25,7 @@ PaliaSDK\
 
 
 ## Step 3. Fixing Variables
-If your offsets are stored as constant expressions, browse to the `WBP_Cooking_Minigames_PF_parameters.hpp` file and change the following variables to the new ones.
+If your offsets are stored as constant expressions, browse to the `Basic.hpp` file and change the following variables to the new ones.
 
 `constexpr int32 GObjects          = 0x089FD0C0;` to `inline int32 GObjects          = 0x089FD0C0;`
 
