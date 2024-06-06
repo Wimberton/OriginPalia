@@ -1072,7 +1072,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.6.4 - Game Version 0.180.0");
+    const auto WindowTitle = std::string("OriginPalia V2.6.5 - Game Version 0.180.0");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
@@ -1112,7 +1112,7 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::Columns(3, nullptr, false);
 
             // Base ESP controls
-            if (ImGui::CollapsingHeader("Visual Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Visual Settings - General##VisualSettingsGeneralHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ImGui::Checkbox("Enable ESP", &bEnableESP)) {
                     SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
                 }
@@ -1146,7 +1146,7 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-            if (ImGui::CollapsingHeader("Animals")) {
+            if (ImGui::CollapsingHeader("Animals##AnimalsSettingsHeader")) {
                 ImGui::BeginTable("Animals", 3);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -1273,7 +1273,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
                 ImGui::EndTable();
             }
-            if (ImGui::CollapsingHeader("Ores")) {
+            if (ImGui::CollapsingHeader("Ores##OresSettingsHeader")) {
                 ImGui::BeginTable("Ores", 5);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -1395,7 +1395,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
                 ImGui::EndTable();
             }
-            if (ImGui::CollapsingHeader("Forageables")) {
+            if (ImGui::CollapsingHeader("Forageables##ForageablesSettingsHeader")) {
                 ImGui::Text("Enable all:");
                 ImGui::SameLine();
 
@@ -1818,7 +1818,7 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-            if (ImGui::CollapsingHeader("Bugs")) {
+            if (ImGui::CollapsingHeader("Bugs##BugsSettingsHeader")) {
                 ImGui::Text("Enable all:");
                 ImGui::SameLine();
                 if (ImGui::Button("Common##Bugs")) {
@@ -2697,7 +2697,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
                 ImGui::EndTable();
             }
-            if (ImGui::CollapsingHeader("Trees")) {
+            if (ImGui::CollapsingHeader("Trees##TreesSettingHeader")) {
                 ImGui::BeginTable("Trees", 5);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -2790,7 +2790,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
                 ImGui::EndTable();
             }
-            if (ImGui::CollapsingHeader("Player & Entities")) {
+            if (ImGui::CollapsingHeader("Player & Entities##PlayerEntitiesSettingHeader")) {
                 ImGui::BeginTable("Odds", 3);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -2903,7 +2903,7 @@ void PaliaOverlay::DrawOverlay() {
             AValeriaCharacter* ValeriaCharacter = GetValeriaData();
 
             // InteliTarget Controls
-            if (ImGui::CollapsingHeader("InteliTarget Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("InteliTarget Settings - General##InteliTargetSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     if (ImGui::Checkbox("Enable Silent Aimbot", &bEnableSilentAimbot)) {
                         SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
@@ -2976,7 +2976,7 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::NextColumn();
 
             // Fun Mods - Entities column
-            if (ImGui::CollapsingHeader("Fun Mods - Entities", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Fun Mods - General##FunModsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     static bool teleportLootDisabled = true;
                     ImGui::PushItemFlag(ImGuiItemFlags_Disabled, teleportLootDisabled);
@@ -2985,6 +2985,10 @@ void PaliaOverlay::DrawOverlay() {
                     }
                     ImGui::PopItemFlag();
                     //if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleport dropped loot to your current location.");
+
+                    if (ImGui::Checkbox("Anti AFK", &bEnableAntiAfk)) {
+                        SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
+                    }
 
                     if (ImGui::Checkbox("Teleport To Map Waypoint", &bEnableWaypointTeleport)) {
                         SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
@@ -3024,7 +3028,7 @@ void PaliaOverlay::DrawOverlay() {
             }
 
             // Movement settings column
-            if (ImGui::CollapsingHeader("Movement Settings - General", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Movement Settings - General##MovementGeneralSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (MovementComponent) {
                     ImGui::Text("Map: %s", CurrentMap.c_str());
                     ImGui::Spacing();
@@ -3178,9 +3182,11 @@ void PaliaOverlay::DrawOverlay() {
                         MovementComponent->MaxStepHeight = MaxStepHeight;
                         SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
                     }
+                } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
-                    } else {
+                    }
+                    else {
                         ImGui::Text("Movement component not available.");
                     }
                 }
@@ -3188,7 +3194,7 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-            if (ImGui::CollapsingHeader("Locations & Coordinates", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Locations & Coordinates - General##LocationSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     // Locations and exploits column
                     ImGui::Text("Teleport List");
@@ -3275,7 +3281,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
             }
 
-            if (ImGui::CollapsingHeader("Gatherable Items Options")) {
+            if (ImGui::CollapsingHeader("Gatherable Items - General##GatherableSettingsHeader")) {
                 if (ValeriaCharacter) {
                     ImGui::Text("Pickable List. Double-click a pickable to teleport to it.");
                     ImGui::Text("Populates from enabled Forageable ESP options.");
@@ -3318,10 +3324,11 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::Columns(2, nullptr, false);
 
             AValeriaCharacter* ValeriaCharacter = GetValeriaData();
-            UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
 
-            if (ImGui::CollapsingHeader("Selling Settings - Bag 1", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Selling Settings - Bag 1##SellingSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
+                    UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
+
                     ImGui::Text("Quickly Sell Items - Bag 1");
                     ImGui::Spacing();
                     ImGui::Text("Select the bag, slot, and quantity to sell.");
@@ -3386,7 +3393,7 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-            if (ImGui::CollapsingHeader("Player Features", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Player Features - General##PlayerSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     if (ImGui::Button("Toggle Challenge Easy Mode")) {
                         ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
@@ -3408,15 +3415,16 @@ void PaliaOverlay::DrawOverlay() {
 
             AValeriaCharacter* ValeriaCharacter = GetValeriaData();
             UFishingComponent* FishingComponent = nullptr;
-            UCrafterComponent* CraftingComponent = nullptr;
-
             auto EquippedTool = ETools::None;
 
-            if (ImGui::CollapsingHeader("Skill Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (EquippedTool != ETools::FishingRod) {bRequireClickFishing = true;}
+            if (ValeriaCharacter) {FishingComponent = ValeriaCharacter->GetFishing();}
+
+            if (ImGui::CollapsingHeader("Skill Settings - General##SkillsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
                     std::string EquippedName;
                     EquippedName = ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString();
-                    FishingComponent = ValeriaCharacter->GetFishing();
+                    //FishingComponent = ValeriaCharacter->GetFishing();
                     
                     if (EquippedName.find("Tool_Axe_") != std::string::npos) {
                         EquippedTool = ETools::Axe;
@@ -3437,21 +3445,15 @@ void PaliaOverlay::DrawOverlay() {
                     }
 
                     ImGui::Text("Equipped Tool : %s", STools[static_cast<int>(EquippedTool)]);
-                    if (ImGui::Checkbox("Anti AFK", &bEnableAntiAfk)) {
-                        SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
-                    }
 
                 } else {
                     ImGui::Text("Waiting for character initialization...");
                 }
             }
+
             ImGui::NextColumn();
 
-            if (EquippedTool != ETools::FishingRod) {
-                bRequireClickFishing = true;
-            }
-            
-            if (ImGui::CollapsingHeader("Fishing Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+            if (ImGui::CollapsingHeader("Fishing Settings - General##FishingHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (FishingComponent) {
                     if (ImGui::Checkbox("Disable Durability Loss", &bFishingNoDurability)) {
                         SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
@@ -3482,9 +3484,7 @@ void PaliaOverlay::DrawOverlay() {
                     }
 
                     if (EquippedTool == ETools::FishingRod) {
-                        if (ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing)) {
-                            SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
-                        }
+                        ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing);
                         if (ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &bRequireClickFishing)) {
                             SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
                         }
@@ -3495,13 +3495,9 @@ void PaliaOverlay::DrawOverlay() {
                         ImGui::Spacing();
                     }
 
-                    // if (ImGui::Checkbox("Capture Fishing Pool", &bCaptureFishingSpot)) {
-                    //     SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
-                    // }
-
                     ImGui::Checkbox("Force Fishing Pool", &bOverrideFishingSpot);
                     ImGui::SameLine();
-                    ImGui::SetNextItemWidth(150);
+                    ImGui::SetNextItemWidth(200.0f);
                     if (ImGui::Combo("##FishingSpotsCombo", &bSelectedFishingSpot, bFishingSpots, IM_ARRAYSIZE(bFishingSpots))) {
                         if (bSelectedFishingSpot > 0) {
                             sOverrideFishingSpot = SDK::UKismetStringLibrary::Conv_StringToName(bFishingSpotsFString[bSelectedFishingSpot - 1]);
@@ -3512,12 +3508,11 @@ void PaliaOverlay::DrawOverlay() {
                             bOverrideFishingSpot = false;
                         }
                     }
-                    ImGui::SameLine();
-                    // ImGui::Text("[Using: %s]", sOverrideFishingSpot.ToString().c_str());
                 } else {
                     if (!ValeriaCharacter) {
                         ImGui::Text("Waiting for character initialization...");
-                    } else {
+                    }
+                    else {
                         ImGui::Text("Fishing component not available.");
                     }
                 }
@@ -3529,20 +3524,23 @@ void PaliaOverlay::DrawOverlay() {
 
             AValeriaCharacter* ValeriaCharacter = GetValeriaData();
 
-            if (ValeriaCharacter) {
-                //UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+            if (ImGui::CollapsingHeader("Housing Base Settings##HousingBaseSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ValeriaCharacter) {
+                    //UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+                    if (ValeriaCharacter->GetPlacement()) {
+                        if (ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere)) {
+                            SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
+                        }
+                        // ImGui::Checkbox("Manual Position Adjustment", &bManualPositionAdjustment);
 
-                if (ValeriaCharacter->GetPlacement()) {
-                    if (ImGui::Checkbox("Place Items Anywhere", &bPlaceAnywhere)) {
-                        SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
                     }
-                    // ImGui::Checkbox("Manual Position Adjustment", &bManualPositionAdjustment);
-
-                } else {
-                    ImGui::Text("No Placement Component available.");
+                    else {
+                        ImGui::Text("No Placement Component available.");
+                    }
                 }
-            } else {
-                ImGui::Text("Waiting for character initialization...");
+                else {
+                    ImGui::Text("Waiting for character initialization...");
+                }
             }
         }
     }

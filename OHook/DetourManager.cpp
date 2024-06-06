@@ -50,7 +50,7 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
     if (Overlay->bTeleportToTargeted) {
         const auto now = std::chrono::steady_clock::now();
         if (IsKeyHeld(VK_XBUTTON2) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
-            if (duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 2) {
+            if (duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 1) {
                 const auto ValeriaCharacter = GetValeriaCharacter();
 
                 if (!ValeriaCharacter)
@@ -323,6 +323,10 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     ClearActorCache(Overlay);
     ManageActorCache(Overlay);
 
+    AValeriaCharacter* VC = GetValeriaCharacter();
+    if (!VC)
+        return;
+
     APlayerController* PlayerController = GetPlayerController();
     if (!PlayerController)
         return;
@@ -335,8 +339,9 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
         if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType == EType::Loot) {
             if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
                 continue;
-
             if (ActorLocation = Actor->K2_GetActorLocation(); ActorLocation.IsZero())
+                continue;
+            if (Actor == VC)
                 continue;
         }
 
