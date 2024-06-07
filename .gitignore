@@ -14,6 +14,7 @@ PaliaSDK/SDK.hpp
 PaliaSDK/UnrealContainers.hpp
 PaliaSDK/SDK/*
 out/
+build/
 lib/
 icons/
 
