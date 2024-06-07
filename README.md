@@ -55,7 +55,7 @@ Quality tiers such as Sernuk, Chapaa, and Muujin, including special categories l
 ### Bugs ESP
 Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, Beetles, Butterflies, Cicadas, Crabs, Crickets, Dragonflies, Glowbugs, Ladybugs, Mantises, Moths, Pedes, and Snails.
 
-### **Selling & Items:
+### Selling & Items:
 - Quick Sell Items interface *(sell preset or custom amounts of items from your inventory slots)*
 
 ### Aimbots & Fun:
