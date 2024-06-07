@@ -1299,6 +1299,9 @@ public:
     // Quicksell Hotkeys
     bool bEnableQuicksellHotkeys = false;
 
+    // Minigame Skip
+    bool bEnableMinigameSkip = false;
+
     // Window Size Default Values
     int defaultWindowSizeX = 1450.0f;
     int defaultWindowSizeY = 950.0f;
@@ -1510,4 +1513,7 @@ public:
 
     // Housing Default Values
     bool defaultPlaceAnywhere = false;
+
+    // Minigame Skip Default Values
+    bool defaultMinigameSkip = false;
 };
