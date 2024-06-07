@@ -339,7 +339,9 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
         if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType == EType::Loot) {
             if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
                 continue;
-            if (ActorLocation = Actor->K2_GetActorLocation(); ActorLocation.IsZero())
+            if (Actor->RootComponent != nullptr)
+                ActorLocation = Actor->RootComponent->RelativeLocation;
+            if (ActorLocation.IsZero())
                 continue;
             if (Actor == VC)
                 continue;
