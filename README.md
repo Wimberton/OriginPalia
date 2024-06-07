@@ -28,7 +28,6 @@ Thanks to @VoidPollo for the continued work, restructuring, and mainteinace! A r
 
 <img align="right" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
 
-## Building
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
 More information can be found at: [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK)
 ### Dependencies (included):
