@@ -1132,6 +1132,7 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::EndTabBar();
         }
 
+
         // ==================================== 0 Visuals & ESPs TAB
         if (OpenTab == 0) {
             ImGui::Columns(3, nullptr, false);

@@ -1300,8 +1300,8 @@ public:
     bool bEnableQuicksellHotkeys = false;
 
     // Window Size Default Values
-    float defaultWindowSizeX = 1450.0f;
-    float defaultWindowSizeY = 950.0f;
+    int defaultWindowSizeX = 1450.0f;
+    int defaultWindowSizeY = 950.0f;
 
     // ESP Default Values
     bool defaultEnableESP = false;
