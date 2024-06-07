@@ -19,7 +19,7 @@ OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, S
 
 Big thanks to @klukule for their [Palia ESP DX11 / DX12 source on GitHub](https://github.com/klukule/PaliaHook). Without that, I wouldn't have taken the time to build something from it.
 
-Thanks to @VoidPollo for the continued work, restructuring, and mainteinace! A real CHAD in the team! Couldn't do this without you!
+Thanks to @VoidPollo for the continued work, restructuring, and maintenance! A real CHAD in the team! Couldn't do this without you!
 
 ## Compatibility
 - Standalone Client Support
