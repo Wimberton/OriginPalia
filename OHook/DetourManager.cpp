@@ -63,11 +63,11 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
                     shouldTeleport = false;
                 }
 
-                // Avoid teleporting to targeted if there are nerby players
+                // Avoid teleporting to targeted if there are nearby players
                 if (Overlay->bDoRadiusPlayersAvoidance && shouldTeleport) {
                     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
                         if (ActorType == EType::Players) {
-                            if (!IsActorValid(Actor) || WorldPosition.IsZero())
+                            if (!IsActorValid(Actor) || !IsActorValid(Overlay->BestTargetActor) || WorldPosition.IsZero())
                                 continue;
 
                             // Don't count itself or us
