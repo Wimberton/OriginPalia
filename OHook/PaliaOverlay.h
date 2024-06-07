@@ -965,6 +965,9 @@ public:
 
     // ==================================== //
     
+    int windowSizeX = 1450;
+    int windowSizeY = 950;
+
     int TeleportHotkey = VK_XBUTTON1;
     int defaultTeleportHotkey = VK_XBUTTON1;
     bool bWaitingForKeyPress = false;
@@ -1295,6 +1298,10 @@ public:
 
     // Quicksell Hotkeys
     bool bEnableQuicksellHotkeys = false;
+
+    // Window Size Default Values
+    int defaultWindowSizeX = 1450;
+    int defaultWindowSizeY = 950;
 
     // ESP Default Values
     bool defaultEnableESP = false;
