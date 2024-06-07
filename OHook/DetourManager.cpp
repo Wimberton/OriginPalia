@@ -370,8 +370,13 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::Ore:
                 if (Overlay->Ores[Type][Variant]) {
-                    bShouldDraw = true;
-                    Color = Overlay->OreColors[Type];
+                    if (auto Ore = static_cast<ABP_ValeriaGatherableLoot_C*>(Actor)) {
+                        Color = Overlay->OreColors[Type];
+                        if (Ore->IAmAlive) { //Show Ore only if it has not been gathered by localPlayer
+                            bShouldDraw = true;
+                            Color = Overlay->OreColors[Type];
+                        }
+                    }
                 }
                 break;
             case EType::Players:
