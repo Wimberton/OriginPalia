@@ -3298,7 +3298,7 @@ void PaliaOverlay::DrawOverlay() {
                                 if (ActorType == EType::Forage && !Forageables[Type][Quality])
                                     continue;
 
-                                if (Actor && Actor->IsValidLowLevel() && !Actor->IsDefaultObject()) {
+                                if (IsActorValid(Actor)) {
                                     FVector PickableLocation = Actor->K2_GetActorLocation();
 
                                     if (ImGui::Selectable(DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
@@ -3650,6 +3650,9 @@ void PaliaOverlay::ProcessActors(int step) {
     }
 
     for (AActor* Actor : Actors) {
+        if (!IsActorValid(Actor))
+            continue;
+        
         auto ClassName = Actor->Class->GetName();
 
         // [HACK] Gates-Begone
@@ -3658,10 +3661,7 @@ void PaliaOverlay::ProcessActors(int step) {
             Actor->K2_DestroyActor();
             continue;
         }
-
-        if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
-            continue;
-
+        
         const FVector ActorPosition = Actor->K2_GetActorLocation();
         if (ActorPosition.IsZero() || ActorPosition == FVector{2, 0, -9900})
             continue;

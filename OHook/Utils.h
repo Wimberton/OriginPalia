@@ -214,19 +214,18 @@ union FunctionPointerUnion {
     SearchContainer.push_back(Clss);           \
 }
 
-inline bool PlayerControllerIsValid(const APlayerController* PlayerController) {
-    return PlayerController && PlayerController->Pawn;
-}
-
-inline bool ValeriaControllerIsValid(const AValeriaPlayerController* ValeriaControllerIsValid) {
-    return ValeriaControllerIsValid && ValeriaControllerIsValid->IsValidLowLevel() && !ValeriaControllerIsValid->IsDefaultObject();
+inline bool IsActorValid(const AActor* Actor) {
+    if (!Actor || Actor->IsDefaultObject() || !Actor->IsValidLowLevel() || !Actor->RootComponent->IsValidLowLevel() || Actor->IsActorBeingDestroyed()) {
+        return false;
+    }
+    return true;
 }
 
 inline APlayerController* GetPlayerController() {
     if (const UWorld* World = GetWorld()) {
         if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
             if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
-                if (PlayerControllerIsValid(LocalPlayer->PlayerController)) {
+                if (LocalPlayer->PlayerController && LocalPlayer->PlayerController->Pawn) {
                     return LocalPlayer->PlayerController;
                 }
             }
@@ -237,9 +236,9 @@ inline APlayerController* GetPlayerController() {
 
 inline AValeriaPlayerController* GetValeriaController() {
     APlayerController* PlayerController = GetPlayerController();
-    if (PlayerControllerIsValid(PlayerController)) {
+    if (PlayerController) {
         AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
-        if (ValeriaControllerIsValid(ValeriaController)) {
+        if (IsActorValid(ValeriaController)) {
             return ValeriaController;
         }
     }
@@ -248,7 +247,7 @@ inline AValeriaPlayerController* GetValeriaController() {
 
 inline AValeriaCharacter* GetValeriaCharacter() {
     const AValeriaPlayerController* ValeriaController = GetValeriaController();
-    if (ValeriaControllerIsValid(ValeriaController)) {
+    if (IsActorValid(ValeriaController)) {
         return ValeriaController->GetValeriaCharacter();
     }
     return nullptr;
