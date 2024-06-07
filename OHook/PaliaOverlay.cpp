@@ -1072,7 +1072,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.6.5 - Game Version 0.180.0");
+    const auto WindowTitle = std::string("OriginPalia V2.6.6 - Game Version 0.180.0");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
@@ -1129,7 +1129,10 @@ void PaliaOverlay::DrawOverlay() {
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
                 
-                if (bEnableESPCulling && ImGui::InputInt("Distance", &CullDistance)) {
+                if (bEnableESPCulling) {
+                    CullDistance = std::clamp(CullDistance, 10, 250);
+                    if (ImGui::InputInt("Cull Distance", &CullDistance))
+                        CullDistance = std::clamp(CullDistance, 10, 250);
                     SaveConfiguration(bEnableAntiAfk, bEnableSilentAimbot, bEnableAimbot, bTeleportToTargeted, bEnableWaypointTeleport, bAvoidTeleportingToPlayers, bEnableLootbagTeleportation, bEnableESP, ESPTextScale, bEnableESPCulling, CullDistance, bDrawFOVCircle, FOVRadius, bFishingNoDurability, bFishingMultiplayerHelp, bFishingPerfectCatch, bFishingInstantCatch, bFishingSell, bFishingDiscard, bFishingOpenStoreWaterlogged, bRequireClickFishing, CustomWalkSpeed, CustomSprintSpeedMultiplier, CustomClimbingSpeed, CustomGlidingSpeed, CustomGlidingFallSpeed, CustomJumpVelocity, CustomMaxStepHeight, bPlaceAnywhere, bEnableSernuk, bEnableElderSernuk, bEnableProudhornSernuk, bEnableChapaa, bEnableStripedChapaa, bEnableAzureChapaa, bEnableMinigameChapaa, bEnableMuujin, bEnableBandedMuujin, bEnableBluebristleMuujin, bEnableClayLg, bEnableStoneSm, bEnableStoneMed, bEnableStoneLg, bEnableCopperSm, bEnableCopperMed, bEnableCopperLg, bEnableIronSm, bEnableIronMed, bEnableIronLg, bEnablePaliumSm, bEnablePaliumMed, bEnablePaliumLg, bEnableCoral, bEnableOyster, bEnableShell, bEnablePoisonFlower, bEnablePoisonFlowerP, bEnableWaterFlower, bEnableWaterFlowerP, bEnableHeartdrop, bEnableHeartdropP, bEnableSundrop, bEnableSundropP, bEnableDragonsBeard, bEnableDragonsBeardP, bEnableEmeraldCarpet, bEnableEmeraldCarpetP, bEnableMushroomBlue, bEnableMushroomBlueP, bEnableMushroomRed, bEnableMushroomRedP, bEnableDariCloves, bEnableDariClovesP, bEnableHeatRoot, bEnableHeatRootP, bEnableSpicedSprouts, bEnableSpicedSproutsP, bEnableSweetLeaves, bEnableSweetLeavesP, bEnableGarlic, bEnableGarlicP, bEnableGinger, bEnableGingerP, bEnableGreenOnion, bEnableGreenOnionP, bEnableBeeU, bEnableBeeUP, bEnableBeeR, bEnableBeeRP, bEnableBeetleC, bEnableBeetleCP, bEnableBeetleU, bEnableBeetleUP, bEnableBeetleR, bEnableBeetleRP, bEnableBeetleE, bEnableBeetleEP, bEnableButterflyC, bEnableButterflyCP, bEnableButterflyU, bEnableButterflyUP, bEnableButterflyR, bEnableButterflyRP, bEnableButterflyE, bEnableButterflyEP, bEnableCicadaC, bEnableCicadaCP, bEnableCicadaU, bEnableCicadaUP, bEnableCicadaR, bEnableCicadaRP, bEnableCrabC, bEnableCrabCP, bEnableCrabU, bEnableCrabUP, bEnableCrabR, bEnableCrabRP, bEnableCricketC, bEnableCricketCP, bEnableCricketU, bEnableCricketUP, bEnableCricketR, bEnableCricketRP, bEnableDragonflyC, bEnableDragonflyCP, bEnableDragonflyU, bEnableDragonflyUP, bEnableDragonflyR, bEnableDragonflyRP, bEnableDragonflyE, bEnableDragonflyEP, bEnableGlowbugC, bEnableGlowbugCP, bEnableGlowbugU, bEnableGlowbugUP, bEnableLadybugC, bEnableLadybugCP, bEnableLadybugU, bEnableLadybugUP, bEnableMantisU, bEnableMantisUP, bEnableMantisR, bEnableMantisRP, bEnableMantisR2, bEnableMantisR2P, bEnableMantisE, bEnableMantisEP, bEnableMothC, bEnableMothCP, bEnableMothU, bEnableMothUP, bEnableMothR, bEnableMothRP, bEnablePedeU, bEnablePedeUP, bEnablePedeR, bEnablePedeRP, bEnablePedeR2, bEnablePedeR2P, bEnableSnailU, bEnableSnailUP, bEnableSnailR, bEnableSnailRP, bEnableBushSm, bEnableSapwoodSm, bEnableSapwoodMed, bEnableSapwoodLg, bEnableHeartwoodSm, bEnableHeartwoodMed, bEnableHeartwoodLg, bEnableFlowSm, bEnableFlowMed, bEnableFlowLg, bEnablePlayers, bEnableNPC, bEnableFish, bEnablePools, bEnableLoot, bEnableQuest, bEnableRummagePiles, bEnableStables, bEnableOthers);
                 }
 
@@ -3298,7 +3301,7 @@ void PaliaOverlay::DrawOverlay() {
                                 if (ActorType == EType::Forage && !Forageables[Type][Quality])
                                     continue;
 
-                                if (Actor && Actor->IsValidLowLevel() && !Actor->IsDefaultObject()) {
+                                if (IsActorValid(Actor)) {
                                     FVector PickableLocation = Actor->K2_GetActorLocation();
 
                                     if (ImGui::Selectable(DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
@@ -3650,6 +3653,9 @@ void PaliaOverlay::ProcessActors(int step) {
     }
 
     for (AActor* Actor : Actors) {
+        if (!IsActorValid(Actor))
+            continue;
+        
         auto ClassName = Actor->Class->GetName();
 
         // [HACK] Gates-Begone
@@ -3658,10 +3664,7 @@ void PaliaOverlay::ProcessActors(int step) {
             Actor->K2_DestroyActor();
             continue;
         }
-
-        if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
-            continue;
-
+        
         const FVector ActorPosition = Actor->K2_GetActorLocation();
         if (ActorPosition.IsZero() || ActorPosition == FVector{2, 0, -9900})
             continue;

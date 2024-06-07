@@ -1,8 +1,12 @@
 # OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="64" height="auto"></a>
-[Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
+♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
+
 ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
+
 ♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/DLL%E2%80%90Changelogs)
+
 ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
+
 ♥ [Discord Server](https://discord.gg/yS9uWFedBA)
 <p align="left">
   <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
@@ -11,9 +15,11 @@
 
 A multi-purpose tool for Palia, written in C++. Open source for non-commercial usage, looking for contributors.
 
-<p>OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs.</p>
-<p>Big thanks to @klukule for their Palia ESP DX11 / DX12 source on GitHub. Without that, I wouldn't have taken the time to build something from it.</p>
-<p>Thanks to @VoidPollo for the continued work, restructuring, and mainteinace! A real CHAD in the team! Couldn't do this without you! <3</p>
+OriginPalia comes packed with general enhancements like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more. OriginPalia is still in active development, there may be a few bugs.
+
+Big thanks to @klukule for their [Palia ESP DX11 / DX12 source on GitHub](https://github.com/klukule/PaliaHook). Without that, I wouldn't have taken the time to build something from it.
+
+Thanks to @VoidPollo for the continued work, restructuring, and mainteinace! A real CHAD in the team! Couldn't do this without you!
 
 ## Compatibility
 - Standalone Client Support
