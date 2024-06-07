@@ -860,6 +860,20 @@ inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
     }
 }
 
+inline void Func_DoCompleteMinigame(const PaliaOverlay* Overlay) {
+    if (!Overlay->bEnableMinigameSkip) return;
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter) return;
+
+    const auto MinigameComponent = ValeriaCharacter->MinigameQTE;
+    if (!MinigameComponent) return;
+
+    if (MinigameComponent->IsPlaying()) {
+        MinigameComponent->RpcServer_ChangeState(EMinigameState::Success);
+    }
+}
+
 // Detouring
 
 void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Function, void* Params) {
@@ -879,6 +893,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
         Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
         Func_DoInteliAim(Overlay);
         Func_DoPlaceAnywhere(Overlay);
+        Func_DoCompleteMinigame(Overlay);
     }
     // Fishing Capture/Override
     else if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
