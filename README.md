@@ -7,7 +7,7 @@
 
 ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
 
-♥ [Discord Server](https://discord.gg/yS9uWFedBA)
+♥ [Discord Server](https://discord.gg/originsoftware)
 <p align="left">
   <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
   <img src="https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif" width="350" alt="OriginPalia Menu Example">
