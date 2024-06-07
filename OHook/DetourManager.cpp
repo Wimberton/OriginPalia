@@ -870,7 +870,7 @@ inline void Func_DoCompleteMinigame(const PaliaOverlay* Overlay) {
     if (!MinigameComponent) return;
 
     if (MinigameComponent->IsPlaying()) {
-        MinigameComponent->StopMinigame(EMinigameState::Success);
+        MinigameComponent->RpcServer_ChangeState(EMinigameState::Success);
     }
 }
 
