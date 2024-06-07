@@ -104,6 +104,7 @@ Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, 
 
 ## Building
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
+More information can be found at: [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK)
 
 ### Dependencies (included):
 - ImGUI
