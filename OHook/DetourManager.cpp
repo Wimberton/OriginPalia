@@ -63,11 +63,11 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
                     shouldTeleport = false;
                 }
 
-                // Avoid teleporting to targeted if there are nerby players
+                // Avoid teleporting to targeted if there are nearby players
                 if (Overlay->bDoRadiusPlayersAvoidance && shouldTeleport) {
                     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
                         if (ActorType == EType::Players) {
-                            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject() || WorldPosition.IsZero())
+                            if (!IsActorValid(Actor) || !IsActorValid(Overlay->BestTargetActor) || WorldPosition.IsZero())
                                 continue;
 
                             // Don't count itself or us
@@ -163,7 +163,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
     double BestScore = FLT_MAX; // Using a scoring system based on various factors such as distance, area fov, prediction
 
     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-        if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject() || WorldPosition.IsZero())
+        if (!IsActorValid(Actor) || WorldPosition.IsZero())
             continue;
 
         bool bShouldConsider = false;
@@ -290,7 +290,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
             if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos) {
                 bool IsAnimal = false;
                 for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-                    if (shouldAdd && ActorType == EType::Animal && Actor && Actor->IsValidLowLevel() && !Actor->IsDefaultObject()) {
+                    if (shouldAdd && ActorType == EType::Animal && IsActorValid(Actor)) {
                         if (FVector ActorLocation = Actor->K2_GetActorLocation(); ActorLocation == Overlay->BestTargetLocation) {
                             IsAnimal = true;
                             break;
@@ -337,7 +337,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
         FVector ActorLocation = WorldPosition;
         if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType == EType::Loot) {
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject())
+            if (!IsActorValid(Actor))
                 continue;
             if (ActorLocation = Actor->K2_GetActorLocation(); ActorLocation.IsZero())
                 continue;
@@ -370,8 +370,13 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::Ore:
                 if (Overlay->Ores[Type][Variant]) {
-                    bShouldDraw = true;
-                    Color = Overlay->OreColors[Type];
+                    if (auto Ore = static_cast<ABP_ValeriaGatherableLoot_C*>(Actor)) {
+                        Color = Overlay->OreColors[Type];
+                        if (Ore->IAmAlive) { //Show Ore only if it has not been gathered by localPlayer
+                            bShouldDraw = true;
+                            Color = Overlay->OreColors[Type];
+                        }
+                    }
                 }
                 break;
             case EType::Players:
@@ -532,7 +537,7 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
         return;
 
     UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
+    if (!ValeriaMovementComponent || ValeriaMovementComponent->IsDefaultObject() || !ValeriaMovementComponent->IsValidLowLevel())
         return;
 
     if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
@@ -647,7 +652,7 @@ inline void ToggleFishingDelays(const bool RemoveDelays) {
         return;
     }
     UValeriaGameInstance* ValeriaGameInstance = ValeriaController->GameInst;
-    if (!ValeriaGameInstance || !ValeriaGameInstance->IsValidLowLevel() || ValeriaGameInstance->IsDefaultObject()) {
+    if (!ValeriaGameInstance || ValeriaGameInstance->IsDefaultObject() || !ValeriaGameInstance->IsValidLowLevel() ) {
         return;
     }
 
