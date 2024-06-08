@@ -7,7 +7,7 @@ A multi-purpose tool for Palia, written in C++. Open source for non-commercial u
 
 ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
 
-♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/DLL%E2%80%90Changelogs)
+♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/Changelogs-%E2%80%90-DLL)
 
 ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
 
