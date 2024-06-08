@@ -1,5 +1,5 @@
-# OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="64" height="auto"></a>
-<img align="right" src="https://i.gyazo.com/5254871e345d926e03be4757590b6eac.png" width="auto" height="auto">
+# OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="32" height="auto"></a>
+<img align="center" src="https://i.gyazo.com/5254871e345d926e03be4757590b6eac.png" width="auto" height="auto">
 
 A multi-purpose tool for Palia, written in C++. Open source for non-commercial usage, looking for contributors.
 
@@ -7,7 +7,7 @@ A multi-purpose tool for Palia, written in C++. Open source for non-commercial u
 
 ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
 
-♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/DLL%E2%80%90Changelogs)
+♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/Changelogs-%E2%80%90-DLL)
 
 ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
 
@@ -26,7 +26,7 @@ Thanks to [VoidPollo](https://github.com/VoidPollo) for the continued work, rest
 ## Usage
 - Toggle the menu using INSERT
 
-<img align="right" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
+<img align="center" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
 
 You will need to dump the SDK of the game yourself in order for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
 More information can be found at: [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK)
@@ -35,7 +35,7 @@ More information can be found at: [PaliaSDK README](https://github.com/Wimberton
 - GLEW
 - Detours
 
-<img align="right" src="https://i.gyazo.com/a31227e25a080e65054a4737a4baa6e1.png" width="auto" height="auto">
+<img align="center" src="https://i.gyazo.com/a31227e25a080e65054a4737a4baa6e1.png" width="auto" height="auto">
 
 ### ESP & Visuals:
 - Enable ESP *(enable or disable drawing ESPs in-game)*
@@ -55,7 +55,7 @@ Quality tiers such as Sernuk, Chapaa, and Muujin, including special categories l
 ### Bugs ESP
 Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, Beetles, Butterflies, Cicadas, Crabs, Crickets, Dragonflies, Glowbugs, Ladybugs, Mantises, Moths, Pedes, and Snails.
 
-### **Selling & Items:
+### Selling & Items:
 - Quick Sell Items interface *(sell preset or custom amounts of items from your inventory slots)*
 
 ### Aimbots & Fun:
@@ -101,7 +101,7 @@ Common, uncommon, rare, and epic qualities. Manage settings for bugs like Bees, 
 ### Housing Features:
 - Place housing objects anywhere *(decorate your house anyway you'd like)*
 
-<img align="right" src="https://i.gyazo.com/5054c7286fd254ebd39a52f196b05a20.png" width="auto" height="auto">
+<img align="center" src="https://i.gyazo.com/5054c7286fd254ebd39a52f196b05a20.png" width="auto" height="auto">
 
 <p align="left">
   <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
