@@ -302,14 +302,14 @@ bool* Configuration::bEnableFlowLg = nullptr;
 
 // ESP Player & Entities
 
-bool Configuration::bEnablePlayers = false;
-bool Configuration::bEnableNPC = false;
-bool Configuration::bEnableFish = false;
-bool Configuration::bEnablePools = false;
-bool Configuration::bEnableLoot = false;
-bool Configuration::bEnableQuest = false;
-bool Configuration::bEnableRummagePiles = false;
-bool Configuration::bEnableStables = false;
+bool* Configuration::bEnablePlayers = nullptr;
+bool* Configuration::bEnableNPC = nullptr;
+bool* Configuration::bEnableFish = nullptr;
+bool* Configuration::bEnablePools = nullptr;
+bool* Configuration::bEnableLoot = nullptr;
+bool* Configuration::bEnableQuest = nullptr;
+bool* Configuration::bEnableRummagePiles = nullptr;
+bool* Configuration::bEnableStables = nullptr;
 bool Configuration::bEnableOthers = false;
 
 #pragma endregion
@@ -546,14 +546,14 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Enable Flow Sm", *bEnableFlowSm, false);
     ParseBool("Enable Flow Med", *bEnableFlowMed, false);
     ParseBool("Enable Flow Lg", *bEnableFlowLg, false);
-    ParseBool("Enable Players", bEnablePlayers);
-    ParseBool("Enable NPC", bEnableNPC);
-    ParseBool("Enable Fish", bEnableFish);
-    ParseBool("Enable Pools", bEnablePools);
-    ParseBool("Enable Loot", bEnableLoot);
-    ParseBool("Enable Quest", bEnableQuest);
-    ParseBool("Enable Rummage Piles", bEnableRummagePiles);
-    ParseBool("Enable Stables", bEnableStables);
+    ParseBool("Enable Players", *bEnablePlayers, false);
+    ParseBool("Enable NPC", *bEnableNPC, false);
+    ParseBool("Enable Fish", *bEnableFish, false);
+    ParseBool("Enable Pools", *bEnablePools, false);
+    ParseBool("Enable Loot", *bEnableLoot, false);
+    ParseBool("Enable Quest", *bEnableQuest, false);
+    ParseBool("Enable Rummage Piles", *bEnableRummagePiles, false);
+    ParseBool("Enable Stables", *bEnableStables, false);
     ParseBool("Enable Others", bEnableOthers);
 
     ParseNumber("Distance", CullDistance);
@@ -929,14 +929,14 @@ void Configuration::Save() {
         configFile << "    \"Enable Flow Sm\": " << (*bEnableFlowSm ? "true" : "false") << ",\n";
         configFile << "    \"Enable Flow Med\": " << (*bEnableFlowMed ? "true" : "false") << ",\n";
         configFile << "    \"Enable Flow Lg\": " << (*bEnableFlowLg ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Players\": " << (bEnablePlayers ? "true" : "false") << ",\n";
-        configFile << "    \"Enable NPC\": " << (bEnableNPC ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Fish\": " << (bEnableFish ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Pools\": " << (bEnablePools ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Loot\": " << (bEnableLoot ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Quest\": " << (bEnableQuest ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Rummage Piles\": " << (bEnableRummagePiles ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Stables\": " << (bEnableStables ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Players\": " << (*bEnablePlayers ? "true" : "false") << ",\n";
+        configFile << "    \"Enable NPC\": " << (*bEnableNPC ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Fish\": " << (*bEnableFish ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Pools\": " << (*bEnablePools ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Loot\": " << (*bEnableLoot ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Quest\": " << (*bEnableQuest ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Rummage Piles\": " << (*bEnableRummagePiles ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Stables\": " << (*bEnableStables ? "true" : "false") << ",\n";
         configFile << "    \"Enable Others\": " << (bEnableOthers ? "true" : "false") << ",\n";
         configFile << "    \"Menu Size X\": " << windowSizeX << ",\n";
         configFile << "    \"Menu Size Y\": " << windowSizeY << "\n";

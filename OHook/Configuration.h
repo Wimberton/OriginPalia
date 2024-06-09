@@ -311,14 +311,14 @@ public:
 
 	// ESP Player & Entities
 
-	static bool  bEnablePlayers;
-	static bool  bEnableNPC;
-	static bool  bEnableFish;
-	static bool  bEnablePools;
-	static bool  bEnableLoot;
-	static bool  bEnableQuest;
-	static bool  bEnableRummagePiles;
-	static bool  bEnableStables;
+	static bool*  bEnablePlayers;
+	static bool*  bEnableNPC;
+	static bool*  bEnableFish;
+	static bool*  bEnablePools;
+	static bool*  bEnableLoot;
+	static bool*  bEnableQuest;
+	static bool*  bEnableRummagePiles;
+	static bool*  bEnableStables;
 	static bool  bEnableOthers;
 
 #pragma endregion
