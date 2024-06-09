@@ -339,7 +339,7 @@ void Configuration::ParseBool(std::string Key, bool& Var) {
 void Configuration::ParseBool(std::string Key, bool& Var, bool DefaultValue) {
     Var = DefaultValue;
 
-    ParseBool(Key, Var);
+    ParseBool(Key, Var);    
 }
 
 template<typename T>
@@ -390,6 +390,7 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Avoid Teleporting To Targeted Players", bAvoidTeleportingToPlayers);
     ParseBool("Teleport Dropped Loot to Player", bEnableLootbagTeleportation);
     ParseBool("Enable ESP", bEnableESP);
+    //ParseBool("Limit Distance", bEnableESPCulling);
     ParseBool("Enable InteliAim Circle", bDrawFOVCircle);
     ParseBool("No Fishing Rod Durability", bFishingNoDurability);
     ParseBool("Enable Fishing Multiplayer Help", bFishingMultiplayerHelp);
@@ -753,6 +754,7 @@ void Configuration::Save() {
     std::ofstream configFile(configFilePath);
     if (configFile.is_open()) {
         configFile << "{\n";
+        configFile << "    \"Version\": " << Version << ",\n";
         configFile << "    \"Enable Minigame Skip\": " << (bEnableMinigameSkip ? "true" : "false") << ",\n";
         configFile << "    \"Enable AntiAFK\": " << (bEnableAntiAfk ? "true" : "false") << ",\n";
         configFile << "    \"Enable ESP\": " << (bEnableESP ? "true" : "false") << ",\n";
