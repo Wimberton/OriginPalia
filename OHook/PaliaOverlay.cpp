@@ -1,5 +1,4 @@
 #include "PaliaOverlay.h"
-#include "DetourManager.h"
 #include <SDK/Palia_parameters.hpp>
 
 #include "ImGuiExt.h"
@@ -12,31 +11,6 @@
 
 using namespace SDK;
 
-std::vector<std::string> debugger;
-DetourManager gDetourManager;
-
-std::map<int, std::string> PaliaOverlay::CreatureQualityNames = {
-    {0, "Unknown"},
-    {1, "T1"},
-    {2, "T2"},
-    {3, "T3"},
-    {4, "Chase"}
-};
-std::map<int, std::string> PaliaOverlay::BugQualityNames = {
-    {0, "Unknown"},
-    {1, "Common"},
-    {2, "Uncommon"},
-    {3, "Rare"},
-    {4, "Rare2"},
-    {5, "Epic"}
-};
-std::map<int, std::string> PaliaOverlay::GatherableSizeNames = {
-    {0, "Unknown"},
-    {1, "Sm"},
-    {2, "Md"},
-    {3, "Lg"},
-    {4, "Bush"}
-};
 
 void PaliaOverlay::SetupColors() {
     // Forageable colors
@@ -82,24 +56,8 @@ void PaliaOverlay::SetupColors() {
     SingleColors[static_cast<int>(EOneOffs::Stables)] = IM_COL32(0x8B, 0x45, 0x13, 0xFF); // Saddle Brown
 };
 
-AValeriaCharacter* GetValeriaData() {
-    AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
-    if (UWorld* World = GetWorld()) {
-        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-            if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
-                if (APlayerController* PlayerController = LocalPlayer->PlayerController) {
-                    if (PlayerController && PlayerController->Pawn) {
-                        ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-                    }
-                }
-            }
-        }
-    }
-    return ValeriaCharacter;
-}
-
 void PaliaOverlay::DrawHUD() {
-    PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
+    auto Overlay = static_cast<PaliaOverlay*>(Instance);
 
     Configuration::Load(Overlay);
 
@@ -124,61 +82,31 @@ void PaliaOverlay::DrawHUD() {
 
     style.WindowRounding = prevWindowRounding; // Restore style after the temporary change.
 
-    APlayerController* PlayerController = nullptr;
-    AValeriaPlayerController* ValeriaController = nullptr;
-    AValeriaCharacter* ValeriaCharacter = nullptr;
+    HandleHooks();
 
-    if (UWorld* World = GetWorld()) {
-        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-            if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
-                if (PlayerController = LocalPlayer->PlayerController; PlayerController && PlayerController->Pawn) {
-                    ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
-                    if (ValeriaController) {
-                        ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
-                    }
-                }
+    // TODO: This shouldn't be handled in Draw
+    // Also thrown together very fast like the rest.
+    for (const auto& control : HotkeyControls) {
+        // Check if the key was pressed in the previous iteration
+        if (control.enabled && prevKeyState[control.vkCode] && !(GetAsyncKeyState(control.vkCode) & 0x8000)) {
+            if (Overlay->bShowOverlay) break;
+            
+            // Triggers on keyup event
+            if (control.label == "ESP") {
+                Configuration::bEnableESP = !Configuration::bEnableESP;
+            } else if (control.label == "InteliAim") {
+                Configuration::bDrawFOVCircle = !Configuration::bDrawFOVCircle;
+            } else if (control.label == "SilentAimbot") {
+                Configuration::bDrawFOVCircle = !Configuration::bEnableSilentAimbot;
+            } else if (control.label == "LegacyAimbot") {
+                Configuration::bDrawFOVCircle = !Configuration::bEnableAimbot;
+            } else if (control.label == "NoClip") {
+                Overlay->bEnableNoclip = !Overlay->bEnableNoclip;
             }
         }
-    }
-
-    if (ValeriaController) {
-        if (UTrackingComponent* TrackingComponent = ValeriaController->GetTrackingComponent(); TrackingComponent != nullptr) {
-            gDetourManager.SetupDetour(TrackingComponent);
-        }
-    }
-
-    // HOOKS
-    if (ValeriaCharacter) {
-
-        // INVENTORY COMPONENT
-        if (UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory(); InventoryComponent != nullptr) {
-            gDetourManager.SetupDetour(InventoryComponent);
-        }
-
-        // FISHING COMPONENT
-        if (UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing(); FishingComponent != nullptr) {
-            gDetourManager.SetupDetour(FishingComponent);
-        }
-
-        // FIRING COMPONENT
-        if (UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent(); FiringComponent != nullptr) {
-            gDetourManager.SetupDetour(FiringComponent);
-        }
-
-        // MOVEMENT COMPONENT
-        if (UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent(); ValeriaMovementComponent != nullptr) {
-            gDetourManager.SetupDetour(ValeriaMovementComponent);
-        }
-
-        // PLACEMENT COMPONENT
-        if (UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement(); PlacementComponent != nullptr) {
-            gDetourManager.SetupDetour(PlacementComponent);
-        }
-    }
-
-    // HOOKING PROCESSEVENT IN AHUD
-    if (PlayerController && HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
-        gDetourManager.SetupDetour(PlayerController->MyHUD);
+        
+        // Update the previous key state array
+        prevKeyState[control.vkCode] = (GetAsyncKeyState(control.vkCode) & 0x8000) != 0;
     }
 }
 
@@ -227,12 +155,16 @@ void PaliaOverlay::DrawOverlay() {
                 OpenTab = 3;
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Tools & Skills")) {
+            if (ImGui::BeginTabItem("Skills & Tools")) {
                 OpenTab = 4;
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Housing & Decor")) {
                 OpenTab = 5;
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Hotkeys")) {
+                OpenTab = 6;
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -530,7 +462,7 @@ void PaliaOverlay::DrawOverlay() {
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Star##Forage")) {
-                    for (int pos = 0; pos < (int)EForageableType::MAX; pos++) {
+                    for (int pos = 0; pos < static_cast<int>(EForageableType::MAX); pos++) {
                         Forageables[pos][1] = !Forageables[pos][1];
                     }
                     Configuration::Save();
@@ -832,37 +764,37 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::Text("Enable all:");
                 ImGui::SameLine();
                 if (ImGui::Button("Common##Bugs")) {
-                    for (int i = 0; i < (int)EBugKind::MAX; i++) {
-                        Bugs[i][(int)EBugQuality::Common][1] = Bugs[i][(int)EBugQuality::Common][0] = !Bugs[i][(int)EBugQuality::Common][0];
+                    for (int i = 0; i < static_cast<int>(EBugKind::MAX); i++) {
+                        Bugs[i][static_cast<int>(EBugQuality::Common)][1] = Bugs[i][static_cast<int>(EBugQuality::Common)][0] = !Bugs[i][static_cast<int>(EBugQuality::Common)][0];
                     }
                     Configuration::Save();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Uncommon##Bugs")) {
-                    for (int i = 0; i < (int)EBugKind::MAX; i++) {
-                        Bugs[i][(int)EBugQuality::Uncommon][1] = Bugs[i][(int)EBugQuality::Uncommon][0] = !Bugs[i][(int)EBugQuality::Uncommon][0];
+                    for (int i = 0; i < static_cast<int>(EBugKind::MAX); i++) {
+                        Bugs[i][static_cast<int>(EBugQuality::Uncommon)][1] = Bugs[i][static_cast<int>(EBugQuality::Uncommon)][0] = !Bugs[i][static_cast<int>(EBugQuality::Uncommon)][0];
                     }
                     Configuration::Save();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Rare##Bugs")) {
-                    for (int i = 0; i < (int)EBugKind::MAX; i++) {
-                        Bugs[i][(int)EBugQuality::Rare][1] = Bugs[i][(int)EBugQuality::Rare][0] = !Bugs[i][(int)EBugQuality::Rare][0];
-                        Bugs[i][(int)EBugQuality::Rare2][1] = Bugs[i][(int)EBugQuality::Rare2][0] = !Bugs[i][(int)EBugQuality::Rare2][0];
+                    for (int i = 0; i < static_cast<int>(EBugKind::MAX); i++) {
+                        Bugs[i][static_cast<int>(EBugQuality::Rare)][1] = Bugs[i][static_cast<int>(EBugQuality::Rare)][0] = !Bugs[i][static_cast<int>(EBugQuality::Rare)][0];
+                        Bugs[i][static_cast<int>(EBugQuality::Rare2)][1] = Bugs[i][static_cast<int>(EBugQuality::Rare2)][0] = !Bugs[i][static_cast<int>(EBugQuality::Rare2)][0];
                     }
                     Configuration::Save();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Epic##Bugs")) {
-                    for (int i = 0; i < (int)EBugKind::MAX; i++) {
-                        Bugs[i][(int)EBugQuality::Epic][1] = Bugs[i][(int)EBugQuality::Epic][0] = !Bugs[i][(int)EBugQuality::Epic][0];
+                    for (int i = 0; i < static_cast<int>(EBugKind::MAX); i++) {
+                        Bugs[i][static_cast<int>(EBugQuality::Epic)][1] = Bugs[i][static_cast<int>(EBugQuality::Epic)][0] = !Bugs[i][static_cast<int>(EBugQuality::Epic)][0];
                     }
                     Configuration::Save();
                 }
                 ImGui::SameLine();
                 if (ImGui::Button("Star##Bugs")) {
-                    for (int i = 0; i < (int)EBugKind::MAX; i++) {
-                        for (int j = 0; j < (int)EBugQuality::MAX; j++) {
+                    for (int i = 0; i < static_cast<int>(EBugKind::MAX); i++) {
+                        for (int j = 0; j < static_cast<int>(EBugQuality::MAX); j++) {
                             Bugs[i][j][1] = !Bugs[i][j][1];
                         }
                     }
@@ -1686,7 +1618,7 @@ void PaliaOverlay::DrawOverlay() {
         else if (OpenTab == 1) {
             ImGui::Columns(2, nullptr, false);
 
-            AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
 
             // InteliTarget Controls
             if (ImGui::CollapsingHeader("InteliTarget Settings - General##InteliTargetSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -2119,7 +2051,7 @@ void PaliaOverlay::DrawOverlay() {
         else if (OpenTab == 3) {
             ImGui::Columns(2, nullptr, false);
 
-            AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
 
             if (ImGui::CollapsingHeader("Selling Settings - Bag 1##SellingSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
@@ -2212,7 +2144,7 @@ void PaliaOverlay::DrawOverlay() {
         else if (OpenTab == 4) {
             ImGui::Columns(2, nullptr, false);
 
-            AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
             UFishingComponent* FishingComponent = nullptr;
             auto EquippedTool = ETools::None;
 
@@ -2334,7 +2266,7 @@ void PaliaOverlay::DrawOverlay() {
         else if (OpenTab == 5) {
             ImGui::Columns(1, nullptr, false);
 
-            AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
 
             if (ImGui::CollapsingHeader("Housing Base Settings##HousingBaseSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
                 if (ValeriaCharacter) {
@@ -2355,12 +2287,144 @@ void PaliaOverlay::DrawOverlay() {
                 }
             }
         }
+        // ==================================== 6 Hotkeys
+        else if (OpenTab == 6) {
+            ImGui::Columns(3, nullptr, false);
+            
+            for (size_t i = 0; i < HotkeyControls.size(); ++i) {
+                ImGui::Text("%s", HotkeyControls[i].label.c_str());
+
+                // Generate unique labels for InputText and Checkbox
+                std::string inputLabel = "##InputText" + std::to_string(i);
+                std::string checkboxLabel = "Enabled##Checkbox" + std::to_string(i);
+
+                // Render the InputText
+                if (ImGui::InputText(inputLabel.c_str(), HotkeyControls[i].buffer.data(), HotkeyControls[i].buffer.size() + 1)) {
+                    // Handle input changes, managed by ImGui
+                }
+
+                // Check if the current InputText control is active
+                if (ImGui::IsItemActive()) {
+                    HotkeyControls[i].isFocused = true;
+                }
+
+                // If focused, check for special keys and handle key detection
+                if (HotkeyControls[i].isFocused) {
+                    bool keyDetected = false;
+                    for (const auto& [vkKey, name] : keyMap) {
+                        if (GetAsyncKeyState(vkKey) & 0x8000) {
+                            if (vkKey == VK_ESCAPE) {
+                                // Clear the buffer if Escape is pressed
+                                HotkeyControls[i].vkCode = NULL;
+                                HotkeyControls[i].buffer.clear();
+                            } else {
+                                bool isUnique = true;
+                                for (size_t j = 0; j < HotkeyControls.size(); ++j) {
+                                    if (i != j && HotkeyControls[j].vkCode == vkKey) {
+                                        isUnique = false;
+                                        break;
+                                    }
+                                }
+                                if (isUnique) {
+                                    HotkeyControls[i].buffer = name;
+                                    HotkeyControls[i].vkCode = vkKey; // Save the VK code
+                                } else {
+                                    // Show error message or handle invalid hotkey
+                                }
+                            }
+                            keyDetected = true;
+                            break;
+                        }
+                    }
+                    if (keyDetected) {
+                        HotkeyControls[i].isFocused = false;
+                        ImGui::ClearActiveID();
+                    }
+                }
+
+                // Handle deactivation after edit
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    HotkeyControls[i].isFocused = false;
+                    if (TextChanged(HotkeyControls[i])) {
+                        // Handle text changed event
+                        printf("Text changed in control %zu: %s\n", i, HotkeyControls[i].buffer.c_str());
+                    }
+                }
+
+                ImGui::SameLine();
+                ImGui::Checkbox(checkboxLabel.c_str(), &HotkeyControls[i].enabled);
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+            }
+
+            ImGui::NextColumn();
+        }
     }
 
     ImGui::End();
 
     if (!show)
         ShowOverlay(false);
+}
+
+void PaliaOverlay::HandleHooks() {
+    APlayerController* PlayerController = nullptr;
+    AValeriaPlayerController* ValeriaController = nullptr;
+    AValeriaCharacter* ValeriaCharacter = nullptr;
+
+    if (UWorld* World = GetWorld()) {
+        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+            if (ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+                if (PlayerController = LocalPlayer->PlayerController; PlayerController && PlayerController->Pawn) {
+                    ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+                    if (ValeriaController) {
+                        ValeriaCharacter = static_cast<AValeriaPlayerController*>(PlayerController)->GetValeriaCharacter();
+                    }
+                }
+            }
+        }
+    }
+
+    if (ValeriaController) {
+        // TRACKING COMPONENT
+        if (UTrackingComponent* TrackingComponent = ValeriaController->GetTrackingComponent(); TrackingComponent != nullptr) {
+            DetourManager::SetupDetour(TrackingComponent);
+        }
+    }
+
+    // HOOKS
+    if (ValeriaCharacter) {
+        // INVENTORY COMPONENT
+        if (UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory(); InventoryComponent != nullptr) {
+            DetourManager::SetupDetour(InventoryComponent);
+        }
+
+        // FISHING COMPONENT
+        if (UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing(); FishingComponent != nullptr) {
+            DetourManager::SetupDetour(FishingComponent);
+        }
+
+        // FIRING COMPONENT
+        if (UProjectileFiringComponent* FiringComponent = ValeriaCharacter->GetFiringComponent(); FiringComponent != nullptr) {
+            DetourManager::SetupDetour(FiringComponent);
+        }
+
+        // MOVEMENT COMPONENT
+        if (UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent(); ValeriaMovementComponent != nullptr) {
+            DetourManager::SetupDetour(ValeriaMovementComponent);
+        }
+
+        // PLACEMENT COMPONENT
+        if (UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement(); PlacementComponent != nullptr) {
+            DetourManager::SetupDetour(PlacementComponent);
+        }
+    }
+
+    // HOOKING PROCESSEVENT IN AHUD
+    if (PlayerController && HookedClient != PlayerController->MyHUD && PlayerController->MyHUD != nullptr) {
+        DetourManager::SetupDetour(PlayerController->MyHUD);
+    }
 }
 
 void PaliaOverlay::ProcessActors(int step) {

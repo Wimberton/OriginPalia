@@ -15,6 +15,24 @@
 #endif
 
 #define IsKeyHeld(key) (GetAsyncKeyState(key) & 0x8000)
+
+inline bool IsHotkeyReady(const std::string& HotkeyName) {
+    auto it = ControlIndex.find(HotkeyName);
+    if (it == ControlIndex.end()) {
+        // HotkeyName doesn't exist in ControlIndex
+        return false;
+    }
+
+    size_t index = it->second;
+    const auto& control = HotkeyControls[index];
+
+    if (!control.enabled || !control.vkCode) {
+        return false;
+    }
+
+    return true;
+}
+
 #define StrPrinter ::_StrPrinter()
 
 class _StrPrinter : public std::string {

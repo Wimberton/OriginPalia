@@ -1,13 +1,38 @@
 ﻿#pragma once
 
 #include <OverlayBase.h>
+#include "HotkeyManager.h"
+#include "DetourManager.h"
 #include <map>
 #include <imgui.h>
 #include <SDK.hpp>
 
 using namespace SDK;
 
-#define NO_HOTKEY -1
+inline bool prevKeyState[256] = {false};
+
+inline std::map<int, std::string> CreatureQualityNames = {
+    {0, "Unknown"},
+    {1, "T1"},
+    {2, "T2"},
+    {3, "T3"},
+    {4, "Chase"}
+};
+inline std::map<int, std::string> BugQualityNames = {
+    {0, "Unknown"},
+    {1, "Common"},
+    {2, "Uncommon"},
+    {3, "Rare"},
+    {4, "Rare2"},
+    {5, "Epic"}
+};
+inline std::map<int, std::string> GatherableSizeNames = {
+    {0, "Unknown"},
+    {1, "Sm"},
+    {2, "Md"},
+    {3, "Lg"},
+    {4, "Bush"}
+};
 
 enum class EType {
     Unknown,
@@ -231,14 +256,15 @@ class PaliaOverlay final : public OverlayBase {
 protected:
     void DrawHUD() override;
     void DrawOverlay() override;
-
+    
+    static void HandleHooks();
+    
 public:
     void SetupColors();
     void ProcessActors(int);
 
-    static std::map<int, std::string> CreatureQualityNames;
-    static std::map<int, std::string> BugQualityNames;
-    static std::map<int, std::string> GatherableSizeNames;
+    std::vector<std::string> debugger;
+    
     static std::map<int, std::string> TypeIcons;
 
     static std::string GetQualityName(const int quality, const EType type) {

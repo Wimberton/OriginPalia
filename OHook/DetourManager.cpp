@@ -50,7 +50,7 @@ void ManageActorCache(PaliaOverlay* Overlay) {
 inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestScore) {
     if (Configuration::bTeleportToTargeted) {
         const auto now = std::chrono::steady_clock::now();
-        if (IsKeyHeld(VK_XBUTTON2) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
+        if (IsHotkeyReady("TeleportTargetted") && IsKeyHeld(IsKeyHeld(HotkeyControls[ControlIndex["TeleportTargetted"]].vkCode)) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
             if (duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 1) {
                 const auto ValeriaCharacter = GetValeriaCharacter();
 
