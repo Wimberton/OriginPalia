@@ -33,7 +33,7 @@ DWORD WINAPI MainThread(const LPVOID lpReserved) {
     if (IsSteamVersion) {
         Offsets::GObjects = 0x08A68340; //0.179.0 0x089C9C00;
         Offsets::AppendString = 0x00CFEBB0; //0.179.0 0x00CF9A50;
-        Offsets::GWorld = 0x08BD8D78; //0.179.0 0x08B3A638;
+        Offsets::GWorld = 0x089C1980; //0.180.0 0x08BD8D78;
         Offsets::ProcessEvent = 0x00ED8730; //0.179.0 0x00ED35D0;
     }
 
