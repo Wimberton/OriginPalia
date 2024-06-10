@@ -197,7 +197,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.6.9 - Game Version 0.180.0");
+    const auto WindowTitle = std::string("OriginPalia V2.7.0 - Game Version 0.180.1");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
