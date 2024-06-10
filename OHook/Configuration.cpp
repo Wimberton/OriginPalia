@@ -75,6 +75,7 @@ bool Configuration::bTeleportToTargeted = true;
 bool Configuration::bAvoidTeleportingToPlayers = true;
 bool Configuration::bDoRadiusPlayersAvoidance = true;
 bool Configuration::bEnableESPCulling = true;
+bool Configuration::bEnableDespawnTimer = true;
 
 // ESP Numericals
 
@@ -390,6 +391,7 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Avoid Teleporting To Targeted Players", bAvoidTeleportingToPlayers);
     ParseBool("Teleport Dropped Loot to Player", bEnableLootbagTeleportation);
     ParseBool("Enable ESP", bEnableESP);
+    ParseBool("Enable ESP Despawn Timer", bEnableDespawnTimer);
     //ParseBool("Limit Distance", bEnableESPCulling);
     ParseBool("Enable InteliAim Circle", bDrawFOVCircle);
     ParseBool("No Fishing Rod Durability", bFishingNoDurability);
@@ -758,6 +760,7 @@ void Configuration::Save() {
         configFile << "    \"Enable Minigame Skip\": " << (bEnableMinigameSkip ? "true" : "false") << ",\n";
         configFile << "    \"Enable AntiAFK\": " << (bEnableAntiAfk ? "true" : "false") << ",\n";
         configFile << "    \"Enable ESP\": " << (bEnableESP ? "true" : "false") << ",\n";
+        configFile << "    \"Enable ESP Despawn Timer\": " << (bEnableDespawnTimer ? "true" : "false") << ",\n";
         configFile << "    \"ESP Text Scale\": " << ESPTextScale << ",\n";
         //configFile << "    \"Limit Distance\": " << (bEnableESPCulling ? "true" : "false") << ",\n";
         configFile << "    \"Distance\": " << CullDistance << ",\n";

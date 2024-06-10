@@ -249,6 +249,10 @@ void PaliaOverlay::DrawOverlay() {
                     Configuration::Save();
                 }
 
+                if (ImGui::Checkbox("Enable Despawn Timer", &Configuration::bEnableDespawnTimer)) {
+                    Configuration::Save();
+                }
+
                 if (ImGui::SliderFloat("ESP Text Scale", &Configuration::ESPTextScale, 0.5f, 3.0f, "%.1f")) {
                     Configuration::Save();
                 }

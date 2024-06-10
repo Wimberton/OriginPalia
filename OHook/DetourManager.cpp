@@ -475,7 +475,33 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 text += " [" + qualityName + "]";
             }
             text += std::format(" [{:.2f}m]", Distance);
+
+            std::string despawnText = "";
+            if (ActorType == EType::Ore) {
+                auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
+
+                double seconds = 0;
+
+                GatherableLoot->GetSecondsUntilDespawn(&seconds);
+
+                if (seconds >= 1)
+                    despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
+                else if (seconds > 0)
+                    despawnText += "Despawning in " + std::to_string(seconds) + "s";
+            }
+            else if (ActorType == EType::Forage) {
+                auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
+
+                float seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
+
+                if (seconds >= 1)
+                    despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
+                else if (seconds > 0)
+                    despawnText += "Despawning in " + std::to_string(seconds) + "s";
+            }
+
             std::wstring wideText(text.begin(), text.end());
+            std::wstring wideDespawnText(despawnText.begin(), despawnText.end());
 
             double BaseScale = 1.0; // Default scale at a reference distance
             double ReferenceDistance = 100.0; // Distance at which no scaling is applied
@@ -496,12 +522,22 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             // Calculate positions
             FVector2D TextPosition = ScreenLocation;
             FVector2D ShadowPosition = { TextPosition.X + 1.0, TextPosition.Y + 1.0 };
+            
+            // Despawn text positions
+            FVector2D DespawnTextPosition = { TextPosition.X, TextPosition.Y + 13};
+            FVector2D DespawnShadowPosition = { DespawnTextPosition.X + 1.0, DespawnTextPosition.Y + 1.0 };
 
             // Draw shadow text
             HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
 
             // Draw main text
             HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+
+            // Draw despawn shadow text
+            HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+
+            // Draw despawn main text
+            HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnTextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
         }
     }
 
