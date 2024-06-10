@@ -484,20 +484,16 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
                 GatherableLoot->GetSecondsUntilDespawn(&seconds);
 
-                if (seconds >= 1)
+                if (seconds >= 0)
                     despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
-                else if (seconds > 0)
-                    despawnText += "Despawning in " + std::to_string(seconds) + "s";
             }
             else if (ActorType == EType::Forage) {
                 auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
 
                 float seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
 
-                if (seconds >= 1)
+                if (seconds >= 0)
                     despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
-                else if (seconds > 0)
-                    despawnText += "Despawning in " + std::to_string(seconds) + "s";
             }
 
             std::wstring wideText(text.begin(), text.end());
