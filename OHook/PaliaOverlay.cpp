@@ -2139,7 +2139,7 @@ void PaliaOverlay::DrawOverlay() {
                     static char customQuantity[64] = "100";
 
                     // Slot selection dropdown
-                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot).c_str())) {
+                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot+1 /*Continuity*/).c_str())) {
                         for (int i = 0; i < 8; i++) {
                             const bool isSelected = (selectedSlot == i);
                             if (ImGui::Selectable(std::to_string(i + 1).c_str(), isSelected)) {
