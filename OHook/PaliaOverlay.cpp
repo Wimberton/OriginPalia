@@ -227,7 +227,7 @@ void PaliaOverlay::DrawOverlay() {
                 OpenTab = 3;
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Skills & Tools")) {
+            if (ImGui::BeginTabItem("Tools & Skills")) {
                 OpenTab = 4;
                 ImGui::EndTabItem();
             }
