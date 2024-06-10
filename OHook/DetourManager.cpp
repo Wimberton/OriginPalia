@@ -148,7 +148,7 @@ inline void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegme
 }
 
 inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
-    if (!Configuration::bEnableAimbot || !Configuration::bDrawFOVCircle)
+    if (!Configuration::bEnableAimbot && !Configuration::bDrawFOVCircle)
         return;
 
     UWorld* World = GetWorld();
