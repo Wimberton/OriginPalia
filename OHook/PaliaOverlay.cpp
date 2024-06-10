@@ -97,9 +97,9 @@ void PaliaOverlay::DrawHUD() {
             } else if (control.label == "InteliAim") {
                 Configuration::bDrawFOVCircle = !Configuration::bDrawFOVCircle;
             } else if (control.label == "SilentAimbot") {
-                Configuration::bDrawFOVCircle = !Configuration::bEnableSilentAimbot;
+                Configuration::bEnableSilentAimbot = !Configuration::bEnableSilentAimbot;
             } else if (control.label == "LegacyAimbot") {
-                Configuration::bDrawFOVCircle = !Configuration::bEnableAimbot;
+                Configuration::bEnableAimbot = !Configuration::bEnableAimbot;
             } else if (control.label == "NoClip") {
                 Overlay->bEnableNoclip = !Overlay->bEnableNoclip;
             }
@@ -2275,6 +2275,7 @@ void PaliaOverlay::DrawOverlay() {
                         if (ImGui::Checkbox("Place Items Anywhere", &Configuration::bPlaceAnywhere)) {
                             Configuration::Save();
                         }
+                        
                         // ImGui::Checkbox("Manual Position Adjustment", &bManualPositionAdjustment);
 
                     }
