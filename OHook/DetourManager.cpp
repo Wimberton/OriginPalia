@@ -7,7 +7,6 @@
 #include "format"
 #include "functional"
 #include "Configuration.h"
-#include "SDK/GC_Mining_Chop_parameters.hpp"
 
 using namespace SDK;
 
