@@ -112,7 +112,7 @@ void PaliaOverlay::DrawHUD() {
     style.WindowRounding = 5.0f; // Temporary change of style.
 
     // Calculate watermark text only once, not in the drawing loop.
-    std::string watermarkText = "OriginPalia By Wimberton, Void, & The UnknownCheats Community";
+    /*std::string watermarkText = "OriginPalia By Wimberton, Void, & The UnknownCheats Community";
     if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
         watermarkText = "Waiting for the game to load...";
     }
@@ -120,7 +120,7 @@ void PaliaOverlay::DrawHUD() {
     ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - ImGui::CalcTextSize(watermarkText.c_str()).x) * 0.5f, 10.0f));
     ImGui::Begin("Watermark", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
     ImGui::Text("%s", watermarkText.c_str());
-    ImGui::End();
+    ImGui::End();*/
 
     style.WindowRounding = prevWindowRounding; // Restore style after the temporary change.
 
