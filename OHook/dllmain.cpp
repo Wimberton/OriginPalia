@@ -31,7 +31,6 @@ DWORD WINAPI MainThread(const LPVOID lpReserved) {
     }
 
     if (IsSteamVersion) {
-<<<<<<< HEAD
         Offsets::GObjects = 0x08A68340; // 1.180.1
         Offsets::AppendString = 0x00CFEBB0; // 1.180.1
         Offsets::GNames = 0x089C1980; // 1.180.1
@@ -39,12 +38,6 @@ DWORD WINAPI MainThread(const LPVOID lpReserved) {
         Offsets::ProcessEvent = 0x00ED8730; // 1.180.1
         Offsets::ProcessEventIdx = 0x0000004D; // 1.180.1
         Offsets::ProcessEvent = 0x00ED8730; // 1.180.1
-=======
-        Offsets::GObjects = 0x08A68340; //0.179.0 0x089C9C00;
-        Offsets::AppendString = 0x00CFEBB0; //0.179.0 0x00CF9A50;
-        Offsets::GWorld = 0x089C1980; //0.180.0 0x08BD8D78;
-        Offsets::ProcessEvent = 0x00ED8730; //0.179.0 0x00ED35D0;
->>>>>>> c219dc8523694eeb801523d67b95b67ba2dfb553
     }
 
     // Initialize SDK and create overlay
