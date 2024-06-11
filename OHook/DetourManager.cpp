@@ -869,13 +869,27 @@ inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
     if (!FiringComponent)
         return;
 
-    if (Configuration::bEnableSilentAimbot && Overlay->BestTargetActor) {
+    if (Configuration::bEnableSilentAimbot) {
+        // Initial Target Check
+        if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
+            return;
+
         FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
         FVector HitLocation = TargetLocation;
 
         for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
             if (ProjectileId == FireProjectile->ProjectileId) {
+
+                // Projectile Check
+                if (!ProjectileActor || !IsActorValid(ProjectileActor))
+                    continue;
+
                 FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
+
+                // Checks Before FiringTargetLocation
+                if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
+                    continue;
+
                 FVector FiringTargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
 
                 FVector DirectionToTarget = (FiringTargetLocation - ProjectileLocation).GetNormalized();
