@@ -277,17 +277,44 @@ void PaliaOverlay::DrawOverlay() {
 
             if (ImGui::CollapsingHeader("Animals##AnimalsSettingsHeader")) {
 
-                if (ImGui::Button("Toggle All Animals##AnimalsBtn")) {
-                    bool newState = !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)];
+                if (ImGui::Button("Sernuk##SernukBtn")) {
+                    Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier1)] =
+                        !Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier1)];
 
-                    for (auto& kind_pair : CREATURE_KIND_MAPPINGS) {
-                        ECreatureKind kind = kind_pair.first;
+                    Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier2)] =
+                        !Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier2)];
 
-                        for (auto& quality_pair : CREATURE_KINDQUALITY_MAPPINGS) {
-                            ECreatureQuality quality = quality_pair.first;
-                            Animals[static_cast<int>(kind)][static_cast<int>(quality)] = newState;
-                        }
-                    }
+                    Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier3)] =
+                        !Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier3)];
+
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Chapaa##ChapaaBtn")) {
+                    Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)] =
+                        !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)];
+
+                    Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier2)] =
+                        !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier2)];
+
+                    Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier3)] =
+                        !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier3)];
+
+                    Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Chase)] =
+                        !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Chase)];
+
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Muujin##MuujinBtn")) {
+                    Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier1)] =
+                        !Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier1)];
+
+                    Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier2)] =
+                        !Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier2)];
+
+                    Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier3)] =
+                        !Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier3)];
 
                     Configuration::Save();
                 }
@@ -410,18 +437,43 @@ void PaliaOverlay::DrawOverlay() {
             }
             if (ImGui::CollapsingHeader("Ores##OresSettingsHeader")) {
 
-                if (ImGui::Button("Toggle All Ores##OresBtn")) {
+                if (ImGui::Button("Clay##ClayBtn")) {
                     bool newState = !Ores[static_cast<int>(EOreType::Clay)][static_cast<int>(EGatherableSize::Large)];
-
-                    for (const auto& ore_pair : MINING_TYPE_MAPPINGS) {
-                        EOreType oreType = ore_pair.first;
-
-                        for (const auto& size_pair : GATHERABLE_SIZE_MAPPINGS) {
-                            EGatherableSize size = size_pair.first;
-                            Ores[static_cast<int>(oreType)][static_cast<int>(size)] = newState;
-                        }
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Ores[static_cast<int>(EOreType::Clay)][static_cast<int>(size.first)] = newState;
                     }
-
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Stone##StoneBtn")) {
+                    bool newState = !Ores[static_cast<int>(EOreType::Stone)][static_cast<int>(EGatherableSize::Large)];
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Ores[static_cast<int>(EOreType::Stone)][static_cast<int>(size.first)] = newState;
+                    }
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Copper##CopperBtn")) {
+                    bool newState = !Ores[static_cast<int>(EOreType::Copper)][static_cast<int>(EGatherableSize::Large)];
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Ores[static_cast<int>(EOreType::Copper)][static_cast<int>(size.first)] = newState;
+                    }
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Iron##IronBtn")) {
+                    bool newState = !Ores[static_cast<int>(EOreType::Iron)][static_cast<int>(EGatherableSize::Large)];
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Ores[static_cast<int>(EOreType::Iron)][static_cast<int>(size.first)] = newState;
+                    }
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Palium##PaliumBtn")) {
+                    bool newState = !Ores[static_cast<int>(EOreType::Palium)][static_cast<int>(EGatherableSize::Large)];
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Ores[static_cast<int>(EOreType::Palium)][static_cast<int>(size.first)] = newState;
+                    }
                     Configuration::Save();
                 }
 
@@ -1526,15 +1578,33 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Trees##TreesSettingHeader")) {
-                if (ImGui::Button("Toggle All Trees##TreesBtn")) {
+                if (ImGui::Button("Bush##BushBtn")) {
                     bool newState = !Trees[static_cast<int>(ETreeType::Bush)][static_cast<int>(EGatherableSize::Bush)];
-
-                    for (int i = 0; i < static_cast<int>(ETreeType::MAX); ++i) {
-                        for (int j = 0; j < static_cast<int>(EGatherableSize::MAX); ++j) {
-                            Trees[i][j] = newState;
-                        }
+                    Trees[static_cast<int>(ETreeType::Bush)][static_cast<int>(EGatherableSize::Bush)] = newState;
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Sapwood##SapwoodBtn")) {
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(size.first)] =
+                            !Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(size.first)];
                     }
-
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Heartwood##HeartwoodBtn")) {
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(size.first)] =
+                            !Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(size.first)];
+                    }
+                    Configuration::Save();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Flow##FlowBtn")) {
+                    for (const auto& size : GATHERABLE_SIZE_MAPPINGS) {
+                        Trees[static_cast<int>(ETreeType::Flow)][static_cast<int>(size.first)] =
+                            !Trees[static_cast<int>(ETreeType::Flow)][static_cast<int>(size.first)];
+                    }
                     Configuration::Save();
                 }
 
@@ -1621,7 +1691,7 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Player & Entities##PlayerEntitiesSettingHeader")) {
-                if (ImGui::Button("Toggle All Misc##MiscBtn")) {
+                if (ImGui::Button("Toggle All##MiscBtn")) {
                     bool newState = !Singles[static_cast<int>(EOneOffs::Player)];
 
                     Singles[static_cast<int>(EOneOffs::Player)] = newState;
