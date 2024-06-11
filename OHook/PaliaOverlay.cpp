@@ -238,7 +238,6 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::EndTabBar();
         }
 
-
         // ==================================== 0 Visuals & ESPs TAB
         if (OpenTab == 0) {
             ImGui::Columns(3, nullptr, false);
@@ -248,21 +247,17 @@ void PaliaOverlay::DrawOverlay() {
                 if (ImGui::Checkbox("Enable ESP", &Configuration::bEnableESP)) {
                     Configuration::Save();
                 }
-
+                if (ImGui::Checkbox("Enable Despawn Timer", &Configuration::bEnableDespawnTimer)) {
+                    Configuration::Save();
+                }
                 if (ImGui::SliderFloat("ESP Text Scale", &Configuration::ESPTextScale, 0.5f, 3.0f, "%.1f")) {
                     Configuration::Save();
                 }
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Adjust the scale of ESP text size.");
 
-                //if (ImGui::Checkbox("Limit Distance", &Configuration::bEnableESPCulling)) {
-                //    Configuration::Save();
-                //}
-                //if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                //    ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
-
                 Configuration::CullDistance = std::clamp(Configuration::CullDistance, 10, 999);
-                if (ImGui::InputInt("Cull Distance", &Configuration::CullDistance)) {
+                if (ImGui::InputInt("ESP Distance", &Configuration::CullDistance)) {
                     Configuration::CullDistance = std::clamp(Configuration::CullDistance, 10, 999);
                     Configuration::Save();
                 }
@@ -281,6 +276,22 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::NextColumn();
 
             if (ImGui::CollapsingHeader("Animals##AnimalsSettingsHeader")) {
+
+                if (ImGui::Button("Toggle All Animals##AnimalsBtn")) {
+                    bool newState = !Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)];
+
+                    for (auto& kind_pair : CREATURE_KIND_MAPPINGS) {
+                        ECreatureKind kind = kind_pair.first;
+
+                        for (auto& quality_pair : CREATURE_KINDQUALITY_MAPPINGS) {
+                            ECreatureQuality quality = quality_pair.first;
+                            Animals[static_cast<int>(kind)][static_cast<int>(quality)] = newState;
+                        }
+                    }
+
+                    Configuration::Save();
+                }
+
                 ImGui::BeginTable("Animals", 3);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -398,6 +409,22 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Ores##OresSettingsHeader")) {
+
+                if (ImGui::Button("Toggle All Ores##OresBtn")) {
+                    bool newState = !Ores[static_cast<int>(EOreType::Clay)][static_cast<int>(EGatherableSize::Large)];
+
+                    for (const auto& ore_pair : MINING_TYPE_MAPPINGS) {
+                        EOreType oreType = ore_pair.first;
+
+                        for (const auto& size_pair : GATHERABLE_SIZE_MAPPINGS) {
+                            EGatherableSize size = size_pair.first;
+                            Ores[static_cast<int>(oreType)][static_cast<int>(size)] = newState;
+                        }
+                    }
+
+                    Configuration::Save();
+                }
+
                 ImGui::BeginTable("Ores", 5);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -498,8 +525,6 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Forageables##ForageablesSettingsHeader")) {
-                ImGui::Text("Enable all:");
-                ImGui::SameLine();
 
                 if (ImGui::Button("Common##Forage")) {
                     for (int pos : ForageableCommon) {
@@ -827,10 +852,8 @@ void PaliaOverlay::DrawOverlay() {
 
             ImGui::NextColumn();
 
-
             if (ImGui::CollapsingHeader("Bugs##BugsSettingsHeader")) {
-                ImGui::Text("Enable all:");
-                ImGui::SameLine();
+
                 if (ImGui::Button("Common##Bugs")) {
                     for (int i = 0; i < (int)EBugKind::MAX; i++) {
                         Bugs[i][(int)EBugQuality::Common][1] = Bugs[i][(int)EBugQuality::Common][0] = !Bugs[i][(int)EBugQuality::Common][0];
@@ -1503,6 +1526,18 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Trees##TreesSettingHeader")) {
+                if (ImGui::Button("Toggle All Trees##TreesBtn")) {
+                    bool newState = !Trees[static_cast<int>(ETreeType::Bush)][static_cast<int>(EGatherableSize::Bush)];
+
+                    for (int i = 0; i < static_cast<int>(ETreeType::MAX); ++i) {
+                        for (int j = 0; j < static_cast<int>(EGatherableSize::MAX); ++j) {
+                            Trees[i][j] = newState;
+                        }
+                    }
+
+                    Configuration::Save();
+                }
+
                 ImGui::BeginTable("Trees", 5);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -1586,6 +1621,22 @@ void PaliaOverlay::DrawOverlay() {
                 ImGui::EndTable();
             }
             if (ImGui::CollapsingHeader("Player & Entities##PlayerEntitiesSettingHeader")) {
+                if (ImGui::Button("Toggle All Misc##MiscBtn")) {
+                    bool newState = !Singles[static_cast<int>(EOneOffs::Player)];
+
+                    Singles[static_cast<int>(EOneOffs::Player)] = newState;
+                    Singles[static_cast<int>(EOneOffs::NPC)] = newState;
+                    Fish[static_cast<int>(EFishType::Hook)] = newState;
+                    Fish[static_cast<int>(EFishType::Node)] = newState;
+                    Singles[static_cast<int>(EOneOffs::Loot)] = newState;
+                    Singles[static_cast<int>(EOneOffs::Quest)] = newState;
+                    Singles[static_cast<int>(EOneOffs::RummagePiles)] = newState;
+                    Singles[static_cast<int>(EOneOffs::Stables)] = newState;
+                    Singles[static_cast<int>(EOneOffs::Others)] = newState;
+
+                    Configuration::Save();
+                }
+
                 ImGui::BeginTable("Odds", 3);
                 {
                     ImGui::TableSetupColumn("Name");
@@ -2135,7 +2186,7 @@ void PaliaOverlay::DrawOverlay() {
                     static char customQuantity[64] = "100";
 
                     // Slot selection dropdown
-                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot).c_str())) {
+                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot + 1).c_str())) {
                         for (int i = 0; i < 8; i++) {
                             const bool isSelected = (selectedSlot == i);
                             if (ImGui::Selectable(std::to_string(i + 1).c_str(), isSelected)) {
