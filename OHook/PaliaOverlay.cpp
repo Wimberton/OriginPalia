@@ -238,7 +238,6 @@ void PaliaOverlay::DrawOverlay() {
             ImGui::EndTabBar();
         }
 
-
         // ==================================== 0 Visuals & ESPs TAB
         if (OpenTab == 0) {
             ImGui::Columns(3, nullptr, false);
@@ -248,18 +247,14 @@ void PaliaOverlay::DrawOverlay() {
                 if (ImGui::Checkbox("Enable ESP", &Configuration::bEnableESP)) {
                     Configuration::Save();
                 }
-
+                if (ImGui::Checkbox("Enable Despawn Timer", &Configuration::bEnableDespawnTimer)) {
+                    Configuration::Save();
+                }
                 if (ImGui::SliderFloat("ESP Text Scale", &Configuration::ESPTextScale, 0.5f, 3.0f, "%.1f")) {
                     Configuration::Save();
                 }
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                     ImGui::SetTooltip("Adjust the scale of ESP text size.");
-
-                //if (ImGui::Checkbox("Limit Distance", &Configuration::bEnableESPCulling)) {
-                //    Configuration::Save();
-                //}
-                //if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                //    ImGui::SetTooltip("Limit the maximum distance the ESP will render. Turn this down to a low value if you're having performance problems.");
 
                 Configuration::CullDistance = std::clamp(Configuration::CullDistance, 10, 999);
                 if (ImGui::InputInt("ESP Distance", &Configuration::CullDistance)) {
@@ -2191,7 +2186,7 @@ void PaliaOverlay::DrawOverlay() {
                     static char customQuantity[64] = "100";
 
                     // Slot selection dropdown
-                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot).c_str())) {
+                    if (ImGui::BeginCombo("Slot", std::to_string(selectedSlot + 1).c_str())) {
                         for (int i = 0; i < 8; i++) {
                             const bool isSelected = (selectedSlot == i);
                             if (ImGui::Selectable(std::to_string(i + 1).c_str(), isSelected)) {

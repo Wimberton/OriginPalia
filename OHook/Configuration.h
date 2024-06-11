@@ -84,6 +84,7 @@ public:
 	static bool bAvoidTeleportingToPlayers;
 	static bool bDoRadiusPlayersAvoidance;
 	static bool bEnableESPCulling;
+	static bool bEnableDespawnTimer;
 
 	// ESP Numericals
 
