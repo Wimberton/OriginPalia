@@ -393,8 +393,8 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Teleport to Targeted", bTeleportToTargeted);
     ParseBool("Teleport to Waypoint", bEnableWaypointTeleport);
     ParseBool("Avoid Teleporting To Targeted Players", bAvoidTeleportingToPlayers);
-    ParseBool("Teleport Dropped Loot to Player", bEnableLootbagTeleportation);
     ParseNumber("Avoidance Radius", AvoidanceRadius);
+    ParseBool("Teleport Dropped Loot to Player", bEnableLootbagTeleportation);
     ParseBool("Enable ESP", bEnableESP);
     ParseBool("Show Watermark", bShowWatermark);
     ParseBool("Enable ESP Despawn Timer", bEnableDespawnTimer);
