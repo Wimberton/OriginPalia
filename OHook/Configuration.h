@@ -59,9 +59,10 @@ public:
 	static bool bEnableLootbagTeleportation;
 	static bool bEnableWaypointTeleport;
 
-	// Housing Booleans
+	// Housing
 	static bool bPlaceAnywhere;
 	static bool bManualPositionAdjustment;
+	static float fMaxUpAngle;
 
 	// Quicksell Hotkeys
 	static bool bEnableQuicksellHotkeys;
@@ -71,10 +72,13 @@ public:
 	static bool bEnableMinigameSkip;
 
 	static float FOVRadius;
+	static int AvoidanceRadius;
 
 #pragma region ESP
 
 	// ESP Booleans
+
+	static bool bShowWatermark;
 
 	static bool bEnableESP;
 	static bool bEnableAimbot;

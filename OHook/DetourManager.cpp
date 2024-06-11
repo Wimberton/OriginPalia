@@ -75,8 +75,8 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
                             if (Actor == Overlay->BestTargetActor || Actor == ValeriaCharacter)
                                 continue;
 
-                            // Check for actors within 30 meters of this actor
-                            if (WorldPosition.GetDistanceToInMeters(Overlay->BestTargetActor->K2_GetActorLocation()) < 30) {
+                            // Check for actors within X meters of this actor
+                            if (WorldPosition.GetDistanceToInMeters(Overlay->BestTargetActor->K2_GetActorLocation()) < Configuration::AvoidanceRadius) {
                                 shouldTeleport = false;
                                 break;
                             }
@@ -673,6 +673,7 @@ inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
     UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
     if (PlacementComponent) {
         PlacementComponent->CanPlaceHere = true;
+        PlacementComponent->MaxPlacementUpAngle = Configuration::fMaxUpAngle;
     }
 }
 
