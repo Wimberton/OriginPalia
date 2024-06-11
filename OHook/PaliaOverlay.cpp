@@ -111,18 +111,23 @@ void PaliaOverlay::DrawHUD() {
     const float prevWindowRounding = style.WindowRounding;
     style.WindowRounding = 5.0f; // Temporary change of style.
 
-    // Calculate watermark text only once, not in the drawing loop.
     std::string watermarkText = "OriginPalia By Wimberton, Void, & The UnknownCheats Community";
-    if (CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) {
-        watermarkText = "Waiting for the game to load...";
+    bool showWatermark = false;
+    if ((CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) || Configuration::bShowWatermark) {
+        if (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown") {
+            watermarkText = "Waiting for the game to load...";
+        }
+        showWatermark = true;
     }
 
-    ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - ImGui::CalcTextSize(watermarkText.c_str()).x) * 0.5f, 10.0f));
-    ImGui::Begin("Watermark", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
-    ImGui::Text("%s", watermarkText.c_str());
-    ImGui::End();
+    if (showWatermark) {
+        ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - ImGui::CalcTextSize(watermarkText.c_str()).x) * 0.5f, 10.0f));
+        ImGui::Begin("Watermark", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+        ImGui::Text("%s", watermarkText.c_str());
+        ImGui::End();
+    }
 
-    style.WindowRounding = prevWindowRounding; // Restore style after the temporary change.
+    style.WindowRounding = prevWindowRounding;
 
     APlayerController* PlayerController = nullptr;
     AValeriaPlayerController* ValeriaController = nullptr;
@@ -197,7 +202,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.7.0 - Game Version 0.180.1");
+    const auto WindowTitle = std::string("OriginPalia V2.7.1 - Game Version 0.180.1");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
@@ -227,7 +232,7 @@ void PaliaOverlay::DrawOverlay() {
                 OpenTab = 3;
                 ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Tools & Skills")) {
+            if (ImGui::BeginTabItem("Skills & Tools")) {
                 OpenTab = 4;
                 ImGui::EndTabItem();
             }
@@ -244,6 +249,12 @@ void PaliaOverlay::DrawOverlay() {
 
             // Base ESP controls
             if (ImGui::CollapsingHeader("Visual Settings - General##VisualSettingsGeneralHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (ImGui::Checkbox("Show Watermark", &Configuration::bShowWatermark)) {
+                    Configuration::Save();
+                }
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("Toggle display of the custom watermark on the screen.");
+
                 if (ImGui::Checkbox("Enable ESP", &Configuration::bEnableESP)) {
                     Configuration::Save();
                 }
@@ -1815,10 +1826,12 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::Checkbox("Enable Silent Aimbot", &Configuration::bEnableSilentAimbot)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport Bug Bombs & Arrows To Your Target");
 
                     if (ImGui::Checkbox("Enable Legacy Aimbot", &Configuration::bEnableAimbot)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Typical Aimbot system for targets");
 
                     if (Configuration::bEnableAimbot) {
                         ImGui::Text("Aim Smoothing:");
@@ -1863,18 +1876,26 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::Checkbox("Teleport to Targeted", &Configuration::bTeleportToTargeted)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport directly to your targeted entity");
+
                     ImGui::SameLine();
                     ImGui::Text("[ hotkey: X1 Mouse Button (Back) ]");
 
                     if (ImGui::Checkbox("Avoid Teleporting To Targeted Players", &Configuration::bAvoidTeleportingToPlayers)) {
                         Configuration::Save();
                     }
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Don't teleport to players.");
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Don't teleport to targeted players.");
 
                     ImGui::Checkbox("Avoid Teleporting To Targeted When Players Are Near", &Configuration::bDoRadiusPlayersAvoidance);
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Don't teleport if a player is detected near your destination.");
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Don't teleport if a player is detected near your destination.");
+
+                    if (Configuration::bDoRadiusPlayersAvoidance) {
+                        ImGui::SetNextItemWidth(200.0f);
+                        ImGui::InputInt("Avoidance Radius (meters)", &Configuration::AvoidanceRadius);
+                        Configuration::AvoidanceRadius = std::clamp(Configuration::AvoidanceRadius, 1, 100);
+                        Configuration::Save();
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Distance to avoid players when target teleporting");
                 }
                 else {
                     ImGui::Text("Waiting for character initialization...");
@@ -1897,16 +1918,17 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::Checkbox("Anti AFK", &Configuration::bEnableAntiAfk)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Stop inactivity disconnects and play forever");
 
                     if (ImGui::Checkbox("Skip Minigames", &Configuration::bEnableMinigameSkip)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Skips the cooking minigame process completely");
 
                     if (ImGui::Checkbox("Teleport To Map Waypoint", &Configuration::bEnableWaypointTeleport)) {
                         Configuration::Save();
                     }
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        ImGui::SetTooltip("Automatically teleports you at your world map's waypoint.");
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Automatically teleports you at your world map's waypoint.");
                 }
                 else {
                     ImGui::Text("Waiting for character initialization...");
@@ -2317,6 +2339,8 @@ void PaliaOverlay::DrawOverlay() {
                         ValeriaCharacter->RpcServer_ToggleDevChallengeEasyMode();
                         Configuration::bEasyModeActive = !Configuration::bEasyModeActive;
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Experimental - May skip questing requirements");
+
                     if (Configuration::bEasyModeActive) {
                         ImGui::Text("CHALLENGE EASY MODE ON");
                     }
@@ -2387,38 +2411,48 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::Checkbox("Disable Durability Loss", &Configuration::bFishingNoDurability)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Never break your fishing rod");
 
                     if (ImGui::Checkbox("Enable Multiplayer Help", &Configuration::bFishingMultiplayerHelp)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Force fishing with other players for extra quest completion");
 
                     if (ImGui::Checkbox("Always Perfect Catch", &Configuration::bFishingPerfectCatch)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Fishing will always result in a perfect catch");
 
                     if (ImGui::Checkbox("Instant Catch", &Configuration::bFishingInstantCatch)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Catch fish as soon as your bobber hits the water");
 
                     if (ImGui::Checkbox("Sell All Fish", &Configuration::bFishingSell)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("When fishing, automatically sell all fish from your inventory");
 
                     if (ImGui::Checkbox("Discard All Junk", &Configuration::bFishingDiscard)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("When fishing, automatically remove junk items from your inventory");
 
                     if (ImGui::Checkbox("Open and Store Makeshift Decor", &Configuration::bFishingOpenStoreWaterlogged)) {
                         Configuration::Save();
                     }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("When fishing, automatically move valuables to your home base storage");
 
                     if (EquippedTool == ETools::FishingRod) {
                         if (ImGui::Checkbox("Auto Fast Fishing", &bEnableAutoFishing)) {
                             Configuration::Save();
                         }
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Fish extremely fast. Pairs nicely with other fishing features");
+
                         if (ImGui::Checkbox("Require Holding Left-Click To Auto Fish", &Configuration::bRequireClickFishing)) {
                             Configuration::Save();
                         }
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Require holding the left mouse button to toggle the fast fishing");
                     }
                     else {
                         ImGui::Spacing();
@@ -2428,6 +2462,8 @@ void PaliaOverlay::DrawOverlay() {
                     }
 
                     ImGui::Checkbox("Force Fishing Pool", &bOverrideFishingSpot);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Force all catches to result from the selected pool");
+
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(200.0f);
                     if (ImGui::Combo("##FishingSpotsCombo", &bSelectedFishingSpot, bFishingSpots, IM_ARRAYSIZE(bFishingSpots))) {
@@ -2454,26 +2490,28 @@ void PaliaOverlay::DrawOverlay() {
         // ==================================== 5 Housing & Decorating TAB
         else if (OpenTab == 5) {
             ImGui::Columns(1, nullptr, false);
-
-            AValeriaCharacter* ValeriaCharacter = GetValeriaData();
+            AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
 
             if (ImGui::CollapsingHeader("Housing Base Settings##HousingBaseSettingsHeader", ImGuiTreeNodeFlags_DefaultOpen)) {
-                if (ValeriaCharacter) {
-                    //UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
-                    if (ValeriaCharacter->GetPlacement()) {
-                        if (ImGui::Checkbox("Place Items Anywhere", &Configuration::bPlaceAnywhere)) {
-                            Configuration::Save();
-                        }
-                        // ImGui::Checkbox("Manual Position Adjustment", &bManualPositionAdjustment);
+                if (ValeriaCharacter && ValeriaCharacter->GetPlacement()) {
+                    UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+                    if (ImGui::Checkbox("Place Items Anywhere", &Configuration::bPlaceAnywhere)) {
+                        Configuration::Save();
+                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Allow for placement of housing items anywhere");
 
+                    ImGui::SetNextItemWidth(200.0f);
+                    if (ImGui::SliderFloat("Max Placement Height", &Configuration::fMaxUpAngle, 1.0f, 3600.0f, "%10.0f degrees")) {
+                        Configuration::Save();
                     }
-                    else {
-                        ImGui::Text("No Placement Component available.");
-                    }
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Modify the max height you're allowed to place items");
                 }
                 else {
-                    ImGui::Text("Waiting for character initialization...");
+                    ImGui::Text("No Placement Component available.");
                 }
+            }
+            else {
+                ImGui::Text("Waiting for character initialization...");
             }
         }
     }

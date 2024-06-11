@@ -50,9 +50,10 @@ bool Configuration::bEasyModeActive = false;
 bool Configuration::bEnableLootbagTeleportation = false;
 bool Configuration::bEnableWaypointTeleport = false;
 
-// Housing Booleans
+// Housing
 bool Configuration::bPlaceAnywhere = false;
 bool Configuration::bManualPositionAdjustment = false;
+float Configuration::fMaxUpAngle = 360.0f;
 
 // Quicksell Hotkeys
 bool Configuration::bEnableQuicksellHotkeys = false;
@@ -62,10 +63,13 @@ bool Configuration::bEnableAntiAfk = false;
 bool Configuration::bEnableMinigameSkip = false;
 
 float Configuration::FOVRadius = 185.0f;
+int Configuration::AvoidanceRadius = 30;
 
 #pragma region ESP
 
 // ESP Booleans
+
+bool Configuration::bShowWatermark = true;
 
 bool Configuration::bEnableESP = true;
 bool Configuration::bEnableAimbot = false;
@@ -389,8 +393,10 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Teleport to Targeted", bTeleportToTargeted);
     ParseBool("Teleport to Waypoint", bEnableWaypointTeleport);
     ParseBool("Avoid Teleporting To Targeted Players", bAvoidTeleportingToPlayers);
+    ParseNumber("Avoidance Radius", AvoidanceRadius);
     ParseBool("Teleport Dropped Loot to Player", bEnableLootbagTeleportation);
     ParseBool("Enable ESP", bEnableESP);
+    ParseBool("Show Watermark", bShowWatermark);
     ParseBool("Enable ESP Despawn Timer", bEnableDespawnTimer);
     //ParseBool("Limit Distance", bEnableESPCulling);
     ParseBool("Enable InteliAim Circle", bDrawFOVCircle);
@@ -403,6 +409,7 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Fishing Open Store Waterlogged", bFishingOpenStoreWaterlogged);
     ParseBool("Require Left Click Fishing", bRequireClickFishing);
     ParseBool("Place Items Anywhere", bPlaceAnywhere);
+    ParseNumber("Max Placement Height", fMaxUpAngle);
 
     ParseBool("Enable Sernuk", *bEnableSernuk, false);
     ParseBool("Enable Elder Sernuk", *bEnableElderSernuk, false);
@@ -760,6 +767,7 @@ void Configuration::Save() {
         configFile << "    \"Enable Minigame Skip\": " << (bEnableMinigameSkip ? "true" : "false") << ",\n";
         configFile << "    \"Enable AntiAFK\": " << (bEnableAntiAfk ? "true" : "false") << ",\n";
         configFile << "    \"Enable ESP\": " << (bEnableESP ? "true" : "false") << ",\n";
+        configFile << "    \"Show Watermark\": " << (bShowWatermark ? "true" : "false") << ",\n";
         configFile << "    \"Enable ESP Despawn Timer\": " << (bEnableDespawnTimer ? "true" : "false") << ",\n";
         configFile << "    \"ESP Text Scale\": " << ESPTextScale << ",\n";
         //configFile << "    \"Limit Distance\": " << (bEnableESPCulling ? "true" : "false") << ",\n";
@@ -771,6 +779,7 @@ void Configuration::Save() {
         configFile << "    \"Teleport to Targeted\": " << (bTeleportToTargeted ? "true" : "false") << ",\n";
         configFile << "    \"Teleport to Waypoint\": " << (bEnableWaypointTeleport ? "true" : "false") << ",\n";
         configFile << "    \"Avoid Teleporting To Targeted Players\": " << (bAvoidTeleportingToPlayers ? "true" : "false") << ",\n";
+        configFile << "    \"Avoidance Radius\": " << AvoidanceRadius << ",\n";
         configFile << "    \"Teleport Dropped Loot to Player\": " << (bEnableLootbagTeleportation ? "true" : "false") << ",\n";
         configFile << "    \"No Fishing Rod Durability\": " << (bFishingNoDurability ? "true" : "false") << ",\n";
         configFile << "    \"Enable Fishing Multiplayer Help\": " << (bFishingMultiplayerHelp ? "true" : "false") << ",\n";
@@ -788,6 +797,7 @@ void Configuration::Save() {
         configFile << "    \"Custom Jump Velocity\": " << CustomJumpVelocity << ",\n";
         configFile << "    \"Custom Max Step Height\": " << CustomMaxStepHeight << ",\n";
         configFile << "    \"Place Items Anywhere\": " << (bPlaceAnywhere ? "true" : "false") << ",\n";
+        configFile << "    \"Max Placement Height\": " << fMaxUpAngle << ",\n";
         configFile << "    \"Enable Sernuk\": " << (*bEnableSernuk ? "true" : "false") << ",\n";
         configFile << "    \"Enable Elder Sernuk\": " << (*bEnableElderSernuk ? "true" : "false") << ",\n";
         configFile << "    \"Enable Proudhorn Sernuk\": " << (*bEnableProudhornSernuk ? "true" : "false") << ",\n";

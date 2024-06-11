@@ -197,6 +197,10 @@ enum class ELocation {
     Kilima_Fairgrounds_MajiMarket,
     Kilima_GeneralStore,
     Kilima_RepairStation,
+    Kilima_TailorStore,
+    Kilima_FurnitureStore,
+    Kilima_CityHall,
+    Kilima_Tavern,
     Kilima_PhoenixFalls,
     Kilima_DragonShrine,
     Kilima_FishermansLagoon,
@@ -271,6 +275,13 @@ public:
     std::vector<FLocation> TeleportLocations = {
         // Global Home
         {"UserDefined", ELocation::Global_Home, "[Global] Housing Plot", {00000.000f, 00000.000f, 00000.000}, {0.000f, 0.00f, 0.000f}},
+        // Kilima City Spots
+        {"Village_Root", ELocation::Kilima_GeneralStore, "[Kilima] General Store", {156.193f, -1509.144f, 305.576}, {0.000f, -122.07f, 0.000f}},
+        {"Village_Root", ELocation::Kilima_TailorStore, "[Kilima] Tailor Store", {-1715.341f, 2052.674f, 163.455}, {0.000f, -123.346f, 0.000f}},
+        {"Village_Root", ELocation::Kilima_FurnitureStore, "[Kilima] Furniture Store", {3734.435f, -563.303f, 161.163}, {0.000f, -122.006f, 0.000f}},
+        {"Village_Root", ELocation::Kilima_CityHall, "[Kilima] City Hall", {6344.635f, 2519.250f, 511.920}, {0.000f, 0.451f, 0.000f}},
+        {"Village_Root", ELocation::Kilima_Tavern, "[Kilima] Tavern", {-755.001f, 4102.823f, 330.888}, {0.000f, 120.090f, 0.000f}},
+        {"Village_Root", ELocation::Kilima_RepairStation, "[Kilima] Repair Station", {2465.246f, 6734.343f, 323.050}, {0.000f, 120.89f, 0.000f}},
         // Kilima Entrances
         {"Village_Root", ELocation::Kilima_HousingPlot, "[Kilima] Housing Plot Entrance", {20204.810f, -15375.620f, 2272.460}, {0.000f, -6.24f, 0.000f}},
         {"Village_Root", ELocation::Kilima_ToBahariBay, "[Kilima] Bahari Bay Entrance", {50623.753f, -5403.530f, 1332.610}, {0.000f, -24.72f, 0.000f}},
@@ -281,8 +292,6 @@ public:
         {"Village_Root", ELocation::Kilima_WhisperingBanks, "[Kilima] Whispering Banks", {38958.433f, 7574.109f, -657.983}, {0.000f, 214.71f, 0.000f}},
         // Kilima Others
         {"Village_Root", ELocation::Kilima_Fairgrounds_MajiMarket, "[Kilima] Fairgrounds Entrance (Maji Market)", {54696.812f, 21802.943f, -94.603}, {0.000f, -7.65f, 0.000f}},
-        {"Village_Root", ELocation::Kilima_GeneralStore, "[Kilima] General Store", {156.193f, -1509.144f, 305.576}, {0.000f, -122.07f, 0.000f}},
-        {"Village_Root", ELocation::Kilima_RepairStation, "[Kilima] Repair Station", {2465.246f, 6734.343f, 323.050}, {0.000f, 120.89f, 0.000f}},
         {"Village_Root", ELocation::Kilima_PhoenixFalls, "[Kilima] Phoenix Falls", {7596.145f, -51226.853f, 4026.341}, {0.000f, -68.64f, 0.000f}},
         {"Village_Root", ELocation::Kilima_DragonShrine, "[Kilima] Dragon Shrine", {33743.980f, -22253.369f, 1323.870}, {0.000f, -90.211f, 0.000f}},
         {"Village_Root", ELocation::Kilima_FishermansLagoon, "[Kilima] Fisherman's Lagoon", {25325.044f, 19246.651f, -439.559}, {0.000f, 25.76f, 0.000f}},
