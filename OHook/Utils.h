@@ -1,14 +1,14 @@
 #pragma once
-#include <string>
-#include <sstream>
+#include <ShlObj.h>
+#include <Windows.h>
+#include <cmath>
 #include <fstream>
 #include <functional>
-#include <cmath>
-#include <vector>
 #include <map>
-#include <Windows.h>
-#include <ShlObj.h>
+#include <sstream>
+#include <string>
 #include <tchar.h>
+#include <vector>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -19,96 +19,90 @@
 #define StrPrinter ::_StrPrinter()
 
 class _StrPrinter : public std::string {
-public:
-    _StrPrinter() = default;
+    public:
+        _StrPrinter() = default;
 
-    template <typename T>
-    _StrPrinter& operator<<(T&& data) {
-        _stream << std::forward<T>(data);
-        this->std::string::operator=(_stream.str());
-        return *this;
-    }
+        template <typename T> _StrPrinter &operator<<(T &&data) {
+            _stream << std::forward<T>(data);
+            this->std::string::operator=(_stream.str());
+            return *this;
+        }
 
-    std::string operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::string>(*this); }
+        std::string operator<<(std::ostream &(*f)(std::ostream &)) const { return static_cast<std::string>(*this); }
 
-private:
-    std::stringstream _stream;
+    private:
+        std::stringstream _stream;
 };
 
 #define WStrPrinter ::_WStrPrinter()
 
 class _WStrPrinter : public std::wstring {
-public:
-    _WStrPrinter() = default;
+    public:
+        _WStrPrinter() = default;
 
-    template <typename T>
-    _WStrPrinter& operator<<(T&& data) {
-        _stream << std::forward<T>(data);
-        this->std::wstring::operator=(_stream.str());
-        return *this;
-    }
+        template <typename T> _WStrPrinter &operator<<(T &&data) {
+            _stream << std::forward<T>(data);
+            this->std::wstring::operator=(_stream.str());
+            return *this;
+        }
 
-    std::wstring operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::wstring>(*this); }
+        std::wstring operator<<(std::ostream &(*f)(std::ostream &)) const { return static_cast<std::wstring>(*this); }
 
-private:
-    std::wstringstream _stream;
+    private:
+        std::wstringstream _stream;
 };
 
 struct vec3 {
-    float x, y, z;
+        float x, y, z;
 
-    explicit vec3(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f) : x(x), y(y), z(z) {}
+        explicit vec3(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f) : x(x), y(y), z(z) {}
 
-    FVector ToFVector() const { return FVector(x, y, z); }
+        FVector ToFVector() const { return FVector(x, y, z); }
 
-    // Vector addition
-    vec3 operator+(const vec3& other) const { return vec3(x + other.x, y + other.y, z + other.z); }
+        // Vector addition
+        vec3 operator+(const vec3 &other) const { return vec3(x + other.x, y + other.y, z + other.z); }
 
-    // Vector subtraction
-    vec3 operator-(const vec3& other) const { return vec3(x - other.x, y - other.y, z - other.z); }
+        // Vector subtraction
+        vec3 operator-(const vec3 &other) const { return vec3(x - other.x, y - other.y, z - other.z); }
 
-    // Scalar multiplication
-    vec3 operator*(const float scalar) const { return vec3(x * scalar, y * scalar, z * scalar); }
+        // Scalar multiplication
+        vec3 operator*(const float scalar) const { return vec3(x * scalar, y * scalar, z * scalar); }
 
-    // Dot product
-    float Dot(const vec3& other) const { return x * other.x + y * other.y + z * other.z; }
+        // Dot product
+        float Dot(const vec3 &other) const { return x * other.x + y * other.y + z * other.z; }
 
-    // Cross product
-    vec3 Cross(const vec3& other) const {
-        return vec3(
-            y * other.z - z * other.y,
-            z * other.x - x * other.z,
-            x * other.y - y * other.x
-        );
-    }
+        // Cross product
+        vec3 Cross(const vec3 &other) const {
+            return vec3(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x);
+        }
 
-    // Size of the vector
-    float Size() const { return std::sqrt(x * x + y * y + z * z); }
+        // Size of the vector
+        float Size() const { return std::sqrt(x * x + y * y + z * z); }
 
-    // Distance between two vectors
-    float Distance(const vec3& other) const { return (*this - other).Size(); }
+        // Distance between two vectors
+        float Distance(const vec3 &other) const { return (*this - other).Size(); }
 
-    // Convert to string (for debugging)
-    std::string ToString() const {
-        std::stringstream ss;
-        ss << "vec3(" << x << ", " << y << ", " << z << ")";
-        return ss.str();
-    }
+        // Convert to string (for debugging)
+        std::string ToString() const {
+            std::stringstream ss;
+            ss << "vec3(" << x << ", " << y << ", " << z << ")";
+            return ss.str();
+        }
 };
 
-inline FString CharToWide(const char* NarrowString) {
+inline FString CharToWide(const char *NarrowString) {
     wchar_t WideString[1024];
     MultiByteToWideChar(CP_ACP, 0, NarrowString, -1, WideString, 1024);
     return FString(WideString);
 }
 
 template <typename SearchType>
-SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std::string>> &map) {
     SearchType T = static_cast<SearchType>(0);
-    for (auto& Entry : map) {
+    for (auto &Entry : map) {
         bool bFound = false;
 
-        for (auto& Str : Entry.second) {
+        for (auto &Str : Entry.second) {
             if (Text.find(Str) != std::string::npos) {
                 T = Entry.first;
                 bFound = true;
@@ -123,12 +117,12 @@ SearchType GetFlagSingle(std::string Text, std::map<SearchType, std::vector<std:
 }
 
 template <typename SearchType>
-SearchType GetFlagSingleEnd(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+SearchType GetFlagSingleEnd(std::string Text, std::map<SearchType, std::vector<std::string>> &map) {
     SearchType T = static_cast<SearchType>(0);
-    for (auto& Entry : map) {
+    for (auto &Entry : map) {
         bool bFound = false;
 
-        for (auto& Str : Entry.second) {
+        for (auto &Str : Entry.second) {
             if (Text.ends_with(Str)) {
                 T = Entry.first;
                 bFound = true;
@@ -143,16 +137,19 @@ SearchType GetFlagSingleEnd(std::string Text, std::map<SearchType, std::vector<s
 }
 
 template <typename SearchType>
-SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::string>> &map) {
     SearchType T = static_cast<SearchType>(0);
-    for (auto& Entry : map) {
-        for (auto& Str : Entry.second) { if (Text.find(Str) != std::string::npos) { T |= Entry.first; } }
+    for (auto &Entry : map) {
+        for (auto &Str : Entry.second) {
+            if (Text.find(Str) != std::string::npos) {
+                T |= Entry.first;
+            }
+        }
     }
     return T;
 }
 
-template <size_t size_x>
-bool AnyTrue(bool(&arr)[size_x]) {
+template <size_t size_x> bool AnyTrue(bool (&arr)[size_x]) {
     for (int x = 0; x < size_x; x++) {
         if (arr[x])
             return true;
@@ -160,8 +157,7 @@ bool AnyTrue(bool(&arr)[size_x]) {
     return false;
 }
 
-template <size_t size_x, size_t size_y>
-bool AnyTrue2D(bool(&arr)[size_x][size_y]) {
+template <size_t size_x, size_t size_y> bool AnyTrue2D(bool (&arr)[size_x][size_y]) {
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             if (arr[x][y])
@@ -171,8 +167,7 @@ bool AnyTrue2D(bool(&arr)[size_x][size_y]) {
     return false;
 }
 
-template <size_t size_x, size_t size_y, size_t size_z>
-bool AnyTrue3D(bool(&arr)[size_x][size_y][size_z]) {
+template <size_t size_x, size_t size_y, size_t size_z> bool AnyTrue3D(bool (&arr)[size_x][size_y][size_z]) {
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             for (int z = 0; z < size_z; z++) {
@@ -185,15 +180,15 @@ bool AnyTrue3D(bool(&arr)[size_x][size_y][size_z]) {
 }
 
 // Function to convert std::vector<FEntry> to TArray<FEntry>
-inline TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
+inline TArray<FEntry> ConvertToTArray(const std::vector<FEntry> &VectorEntries) {
     TArray<FEntry> TArrayEntries;
-    for (const auto& Entry : VectorEntries) { TArrayEntries.Add(Entry); }
+    for (const auto &Entry : VectorEntries) {
+        TArrayEntries.Add(Entry);
+    }
     return TArrayEntries;
 }
 
-inline bool SortByName(const FEntry& a, const FEntry& b) {
-    return a.DisplayName < b.DisplayName;
-}
+inline bool SortByName(const FEntry &a, const FEntry &b) { return a.DisplayName < b.DisplayName; }
 
 inline bool IsGameWindowActive() {
     const HWND foregroundWindow = GetForegroundWindow();
@@ -203,29 +198,31 @@ inline bool IsGameWindowActive() {
 }
 
 union FunctionPointerUnion {
-    const void* ProcessEventPointer;
-    void (*ProcessEventFunction)(const UObject*, UFunction*, void*);
+        const void *ProcessEventPointer;
+        void (*ProcessEventFunction)(const UObject *, UFunction *, void *);
 };
 
-#define STATIC_CLASS(CName, SearchContainer)                          \
-{                                                                     \
-    static class UClass* Clss = nullptr;                              \
-    if (!Clss || !Clss->IsValidLowLevel() || Clss->IsDefaultObject()) \
-        Clss = UObject::FindClassFast(CName);                         \
-    SearchContainer.push_back(Clss);                                  \
-}
+#define STATIC_CLASS(CName, SearchContainer)                                                                           \
+    {                                                                                                                  \
+        static class UClass *Clss = nullptr;                                                                           \
+        if (!Clss || !Clss->IsValidLowLevel() || Clss->IsDefaultObject())                                              \
+            Clss = UObject::FindClassFast(CName);                                                                      \
+        SearchContainer.push_back(Clss);                                                                               \
+    }
 
-inline bool IsActorValid(const AActor* Actor) {
-    if (!Actor || !Actor->IsValidLowLevel() || !Actor->RootComponent->IsValidLowLevel() || Actor->IsActorBeingDestroyed()) {
+inline bool IsActorValid(const AActor *Actor) {
+    if (!Actor || !Actor->IsValidLowLevel() || !Actor->RootComponent->IsValidLowLevel() ||
+        Actor->IsActorBeingDestroyed()) {
         return false;
     }
     return true;
 }
 
-inline APlayerController* GetPlayerController() {
-    if (const UWorld* World = GetWorld()) {
-        if (UGameInstance* GameInstance = World->OwningGameInstance; GameInstance && GameInstance->LocalPlayers.Num() > 0) {
-            if (const ULocalPlayer* LocalPlayer = GameInstance->LocalPlayers[0]) {
+inline APlayerController *GetPlayerController() {
+    if (const UWorld *World = GetWorld()) {
+        if (UGameInstance *GameInstance = World->OwningGameInstance;
+            GameInstance && GameInstance->LocalPlayers.Num() > 0) {
+            if (const ULocalPlayer *LocalPlayer = GameInstance->LocalPlayers[0]) {
                 if (LocalPlayer->PlayerController && LocalPlayer->PlayerController->Pawn) {
                     return LocalPlayer->PlayerController;
                 }
@@ -235,10 +232,10 @@ inline APlayerController* GetPlayerController() {
     return nullptr;
 }
 
-inline AValeriaPlayerController* GetValeriaController() {
-    APlayerController* PlayerController = GetPlayerController();
+inline AValeriaPlayerController *GetValeriaController() {
+    APlayerController *PlayerController = GetPlayerController();
     if (PlayerController) {
-        AValeriaPlayerController* ValeriaController = static_cast<AValeriaPlayerController*>(PlayerController);
+        AValeriaPlayerController *ValeriaController = static_cast<AValeriaPlayerController *>(PlayerController);
         if (IsActorValid(ValeriaController)) {
             return ValeriaController;
         }
@@ -246,8 +243,8 @@ inline AValeriaPlayerController* GetValeriaController() {
     return nullptr;
 }
 
-inline AValeriaCharacter* GetValeriaCharacter() {
-    const AValeriaPlayerController* ValeriaController = GetValeriaController();
+inline AValeriaCharacter *GetValeriaCharacter() {
+    const AValeriaPlayerController *ValeriaController = GetValeriaController();
     if (IsActorValid(ValeriaController)) {
         return ValeriaController->GetValeriaCharacter();
     }
@@ -270,7 +267,7 @@ inline bool IsKeyUp(const int key) {
 }
 
 inline int teleportingFlushCounter = 0;
-inline void TeleportPlayer(FVector& Dest) {
+inline void TeleportPlayer(FVector &Dest) {
     const auto PlayerController = GetPlayerController();
     if (!PlayerController)
         return;
@@ -282,7 +279,8 @@ inline void TeleportPlayer(FVector& Dest) {
     FHitResult WaypointHitResult;
     Dest.Z += 222.2f;
     ValeriaCharacter->K2_SetActorLocation(Dest, false, &WaypointHitResult, true);
-    ValeriaCharacter->TeleportToLocationWithGroundCheck(Dest, ValeriaCharacter->LastGoodPersistRotation, 200.f, 200.f, false, false);
+    ValeriaCharacter->TeleportToLocationWithGroundCheck(Dest, ValeriaCharacter->LastGoodPersistRotation, 200.f, 200.f,
+                                                        false, false);
 
     teleportingFlushCounter++;
     if (teleportingFlushCounter >= 3) {
@@ -294,86 +292,85 @@ inline void TeleportPlayer(FVector& Dest) {
 
 // Vector math utilities
 namespace VectorMath {
-    static FVector GetVectorForward(const FRotator& Rotation) {
-        const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
-        const float PitchRadians = Rotation.Pitch * M_PI / 180.0f;
+static FVector GetVectorForward(const FRotator &Rotation) {
+    const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+    const float PitchRadians = Rotation.Pitch * M_PI / 180.0f;
 
-        const float CP = std::cos(PitchRadians);
-        const float SP = std::sin(PitchRadians);
-        const float CY = std::cos(YawRadians);
-        const float SY = std::sin(YawRadians);
+    const float CP = std::cos(PitchRadians);
+    const float SP = std::sin(PitchRadians);
+    const float CY = std::cos(YawRadians);
+    const float SY = std::sin(YawRadians);
 
-        return FVector(CP * CY, CP * SY, SP);
-    }
-
-    static FVector GetVectorRight(const FRotator& Rotation) {
-        const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
-
-        const float CY = std::cos(YawRadians - M_PI / 2); // Subtract 90 degrees to get the right vector
-        const float SY = std::sin(YawRadians - M_PI / 2);
-
-        return FVector(CY, SY, 0.0f); // Right vector is on the horizontal plane, so Z component is 0
-    }
+    return FVector(CP * CY, CP * SY, SP);
 }
+
+static FVector GetVectorRight(const FRotator &Rotation) {
+    const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+
+    const float CY = std::cos(YawRadians - M_PI / 2); // Subtract 90 degrees to get the right vector
+    const float SY = std::sin(YawRadians - M_PI / 2);
+
+    return FVector(CY, SY, 0.0f); // Right vector is on the horizontal plane, so Z component is 0
+}
+} // namespace VectorMath
 
 namespace CustomMath {
 
-    constexpr float PI = 3.14159265358979323846f;
+constexpr float PI = 3.14159265358979323846f;
 
-    template <typename T>
-    inline T Clamp(const T& value, const T& min, const T& max) {
-        return value < min ? min : (value > max ? max : value);
-    }
-
-    template <typename T>
-    inline T Abs(const T& value) { return value < 0 ? -value : value; }
-
-    inline float DegreesToRadians(float degrees) { return degrees * (PI / 180.0f); }
-
-    // Custom square root function
-    inline float Sqrt(float value) { return std::sqrt(value); }
-
-    // Custom square function
-    template <typename T>
-    inline T Square(const T& value) { return value * value; }
-
-    // Custom arccosine function
-    inline float Acos(float value) { return std::acos(Clamp(value, -1.0f, 1.0f)); }
-
-    inline float DistanceBetweenPoints(const FVector2D& Point1, const FVector2D& Point2) {
-        return sqrt(pow(Point2.X - Point1.X, 2) + pow(Point2.Y - Point1.Y, 2));
-    }
-
-    // Custom radians to degrees function
-    inline float RadiansToDegrees(float radians) { return radians * (180.0f / PI); }
-
-    inline double Fmod(double Value, double Mod) { return std::fmod(Value, Mod); }
-
-    inline FRotator RInterpTo(const FRotator& Current, const FRotator& Target, double DeltaTime, float InterpSpeed) {
-        // If no interpolation speed, just return the target
-        if (InterpSpeed <= 0.0f) { return Target; }
-
-        // Calculate the difference in each component
-        double DeltaPitch = Target.Pitch - Current.Pitch;
-        double DeltaYaw = Target.Yaw - Current.Yaw;
-        double DeltaRoll = Target.Roll - Current.Roll;
-
-        // Wrap angles to ensure shortest path is taken
-        DeltaPitch = Fmod(DeltaPitch + 180.0, 360.0) - 180.0;
-        DeltaYaw = Fmod(DeltaYaw + 180.0, 360.0) - 180.0;
-        DeltaRoll = Fmod(DeltaRoll + 180.0, 360.0) - 180.0;
-
-        // Calculate the step for each component based on the interpolation speed and delta time
-        double PitchStep = DeltaPitch * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
-        double YawStep = DeltaYaw * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
-        double RollStep = DeltaRoll * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
-
-        // Generate the new interpolated rotation
-        FRotator InterpolatedRotation;
-        InterpolatedRotation.Pitch = Current.Pitch + PitchStep;
-        InterpolatedRotation.Yaw = Current.Yaw + YawStep;
-        InterpolatedRotation.Roll = Current.Roll + RollStep;
-
-        return InterpolatedRotation;
-    }
+template <typename T> inline T Clamp(const T &value, const T &min, const T &max) {
+    return value < min ? min : (value > max ? max : value);
 }
+
+template <typename T> inline T Abs(const T &value) { return value < 0 ? -value : value; }
+
+inline float DegreesToRadians(float degrees) { return degrees * (PI / 180.0f); }
+
+// Custom square root function
+inline float Sqrt(float value) { return std::sqrt(value); }
+
+// Custom square function
+template <typename T> inline T Square(const T &value) { return value * value; }
+
+// Custom arccosine function
+inline float Acos(float value) { return std::acos(Clamp(value, -1.0f, 1.0f)); }
+
+inline float DistanceBetweenPoints(const FVector2D &Point1, const FVector2D &Point2) {
+    return sqrt(pow(Point2.X - Point1.X, 2) + pow(Point2.Y - Point1.Y, 2));
+}
+
+// Custom radians to degrees function
+inline float RadiansToDegrees(float radians) { return radians * (180.0f / PI); }
+
+inline double Fmod(double Value, double Mod) { return std::fmod(Value, Mod); }
+
+inline FRotator RInterpTo(const FRotator &Current, const FRotator &Target, double DeltaTime, float InterpSpeed) {
+    // If no interpolation speed, just return the target
+    if (InterpSpeed <= 0.0f) {
+        return Target;
+    }
+
+    // Calculate the difference in each component
+    double DeltaPitch = Target.Pitch - Current.Pitch;
+    double DeltaYaw = Target.Yaw - Current.Yaw;
+    double DeltaRoll = Target.Roll - Current.Roll;
+
+    // Wrap angles to ensure shortest path is taken
+    DeltaPitch = Fmod(DeltaPitch + 180.0, 360.0) - 180.0;
+    DeltaYaw = Fmod(DeltaYaw + 180.0, 360.0) - 180.0;
+    DeltaRoll = Fmod(DeltaRoll + 180.0, 360.0) - 180.0;
+
+    // Calculate the step for each component based on the interpolation speed and delta time
+    double PitchStep = DeltaPitch * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
+    double YawStep = DeltaYaw * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
+    double RollStep = DeltaRoll * Clamp(InterpSpeed * DeltaTime, 0.0, 1.0);
+
+    // Generate the new interpolated rotation
+    FRotator InterpolatedRotation;
+    InterpolatedRotation.Pitch = Current.Pitch + PitchStep;
+    InterpolatedRotation.Yaw = Current.Yaw + YawStep;
+    InterpolatedRotation.Roll = Current.Roll + RollStep;
+
+    return InterpolatedRotation;
+}
+} // namespace CustomMath

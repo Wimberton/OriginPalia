@@ -4,3 +4,4 @@ ColumnLimit: 120
 IndentWidth: 4
 AccessModifierOffset: 0
 IndentAccessModifiers: true
+InsertNewlineAtEOF: true

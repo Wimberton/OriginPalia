@@ -4,18 +4,18 @@
 class BaseHook;
 
 class HookManager {
-  friend class BaseHook;
+        friend class BaseHook;
 
-public:
-  static HookManager &Instance();
+    public:
+        static HookManager &Instance();
 
-  void AddHook(BaseHook *InHook);
-  void RemoveHook(BaseHook *InHook);
-  void UnhookAll();
+        void AddHook(BaseHook *InHook);
+        void RemoveHook(BaseHook *InHook);
+        void UnhookAll();
 
-protected:
-  std::set<BaseHook *> _hooks;
+    protected:
+        std::set<BaseHook *> _hooks;
 
-  HookManager();
-  virtual ~HookManager();
+        HookManager();
+        virtual ~HookManager();
 };

@@ -5,23 +5,23 @@
 #include "PaliaOverlay.h"
 #include <SDK/Palia_parameters.hpp>
 
+#include "Configuration.h"
 #include "SDKExt.h"
 #include "Utils.h"
 #include "format"
 #include "functional"
-#include "Configuration.h"
 
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 using namespace SDK;
 
 // Cache
 
-void ClearActorCache(PaliaOverlay* Overlay) {
-    const UWorld* World = GetWorld();
+void ClearActorCache(PaliaOverlay *Overlay) {
+    const UWorld *World = GetWorld();
 
-    const auto GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+    const auto GameplayStatics = static_cast<UGameplayStatics *>(UGameplayStatics::StaticClass()->DefaultObject);
     if (!GameplayStatics)
         return;
 
@@ -33,14 +33,15 @@ void ClearActorCache(PaliaOverlay* Overlay) {
     }
 }
 
-void ManageActorCache(PaliaOverlay* Overlay) {
-    const UWorld* World = GetWorld();
+void ManageActorCache(PaliaOverlay *Overlay) {
+    const UWorld *World = GetWorld();
 
-    const auto GameplayStatics = static_cast<UGameplayStatics*>(UGameplayStatics::StaticClass()->DefaultObject);
+    const auto GameplayStatics = static_cast<UGameplayStatics *>(UGameplayStatics::StaticClass()->DefaultObject);
     if (!GameplayStatics)
         return;
 
-    if (const double WorldTime = GameplayStatics->GetTimeSeconds(World); abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
+    if (const double WorldTime = GameplayStatics->GetTimeSeconds(World);
+        abs(WorldTime - Overlay->LastCachedTime) > 0.1) {
         Overlay->LastCachedTime = WorldTime;
         Overlay->ProcessActors(Overlay->ActorStep);
 
@@ -53,7 +54,7 @@ void ManageActorCache(PaliaOverlay* Overlay) {
 
 // [Fun]
 
-inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay) {
+inline void Func_DoTeleportToTargeted(PaliaOverlay *Overlay) {
     if (!Configuration::bTeleportToTargeted)
         return;
 
@@ -74,7 +75,8 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay) {
 
     // Avoid teleporting to targeted if there are nearby players
     if (Configuration::bDoRadiusPlayersAvoidance) {
-        for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+        for (auto &[Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] :
+             Overlay->CachedActors) {
             if (!Actor || ActorType != EType::Players)
                 continue;
 
@@ -106,7 +108,8 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay) {
     // ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
 }
 
-inline void Func_DoTeleportToWaypoint(const Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap* SetUserMarkerViaWorldMap) {
+inline void Func_DoTeleportToWaypoint(
+    const Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap *SetUserMarkerViaWorldMap) {
     if (!Configuration::bEnableWaypointTeleport)
         return;
 
@@ -143,26 +146,27 @@ inline void Func_DoAntiAfk() {
 
 // [HUD]
 
-inline void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegments, const FLinearColor Color, const float Thickness = 1.0f) {
+inline void DrawCircle(UCanvas *Canvas, const float Radius, const int32 NumSegments, const FLinearColor Color,
+                       const float Thickness = 1.0f) {
     // Calculate screen center more accurately
-    const FVector2D ScreenCenter = { static_cast<double>(Canvas->ClipX) / 2.0, static_cast<double>(Canvas->ClipY) / 2.0 };
+    const FVector2D ScreenCenter = {static_cast<double>(Canvas->ClipX) / 2.0, static_cast<double>(Canvas->ClipY) / 2.0};
 
     const double Increment = 360.0 / static_cast<double>(NumSegments);
-    FVector2D LastPos = { ScreenCenter.X + Radius, ScreenCenter.Y };
+    FVector2D LastPos = {ScreenCenter.X + Radius, ScreenCenter.Y};
 
     for (int i = 1; i <= NumSegments; i++) {
         const float Rad = CustomMath::DegreesToRadians(static_cast<float>(Increment * i));
-        FVector2D NewPos = { ScreenCenter.X + Radius * cos(Rad), ScreenCenter.Y + Radius * sin(Rad) };
+        FVector2D NewPos = {ScreenCenter.X + Radius * cos(Rad), ScreenCenter.Y + Radius * sin(Rad)};
         Canvas->K2_DrawLine(LastPos, NewPos, Thickness, Color);
         LastPos = NewPos;
     }
 }
 
-inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
+inline void Func_DoInteliAim(PaliaOverlay *Overlay) {
     if (!Configuration::bDrawFOVCircle)
         return;
 
-    UWorld* World = GetWorld();
+    UWorld *World = GetWorld();
     if (!World)
         return;
 
@@ -179,7 +183,8 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
     FVector ForwardVector = UKismetMathLibrary::GetForwardVector(CharacterRotation);
     double BestScore = FLT_MAX;
 
-    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+    for (auto &[Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] :
+         Overlay->CachedActors) {
         if (!Actor || !IsActorValid(Actor) || WorldPosition.IsZero())
             continue;
 
@@ -214,7 +219,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
             break;
         case EType::RummagePiles:
             if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-                auto Pile = static_cast<ATimedLootPile*>(Actor);
+                auto Pile = static_cast<ATimedLootPile *>(Actor);
                 if (!Pile || !IsActorValid(Pile))
                     break;
 
@@ -289,7 +294,9 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
         }
 
         // Calculate score based on weighted sum of factors
-        if (double Score = AngleWeight * Angle + DistanceWeight * Distance + MovementWeight * RelativeDirection.Magnitude(); Angle <= Configuration::FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
+        if (double Score =
+                AngleWeight * Angle + DistanceWeight * Distance + MovementWeight * RelativeDirection.Magnitude();
+            Angle <= Configuration::FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
             if (Score < BestScore) {
                 BestScore = Score;
                 Overlay->BestScore = Score;
@@ -302,7 +309,7 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
     }
 }
 
-inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
+inline void Func_DoESP(PaliaOverlay *Overlay, const AHUD *HUD) {
     if (!Configuration::bEnableESP) {
         Overlay->CachedActors.clear();
         return;
@@ -312,11 +319,11 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     ClearActorCache(Overlay);
     ManageActorCache(Overlay);
 
-    AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
+    AValeriaCharacter *ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaCharacter)
         return;
 
-    APlayerController* PlayerController = GetPlayerController();
+    APlayerController *PlayerController = GetPlayerController();
     if (!PlayerController)
         return;
 
@@ -327,7 +334,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     FVector PawnLocation = PlayerController->K2_GetPawn()->K2_GetActorLocation();
 
     // Calculate distance - actor
-    for (auto& Actor : Overlay->CachedActors) {
+    for (auto &Actor : Overlay->CachedActors) {
         if (!Actor.Actor || !IsActorValid(Actor.Actor))
             continue;
 
@@ -336,17 +343,18 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     }
 
     // Sort actors based on distance - prioritizing BestTargetActor
-    std::ranges::sort(Overlay->CachedActors, [&](const auto& a, const auto& b) {
+    std::ranges::sort(Overlay->CachedActors, [&](const auto &a, const auto &b) {
         if (a.Actor == Overlay->BestTargetActor)
             return false;
         if (b.Actor == Overlay->BestTargetActor)
             return true;
 
         return a.Distance > b.Distance;
-        });
+    });
 
     // Draw ESP Names Entities
-    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+    for (auto &[Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] :
+         Overlay->CachedActors) {
         if (!Actor || !IsActorValid(Actor) || WorldPosition.IsZero())
             continue;
 
@@ -384,7 +392,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::Ore:
                 if (Overlay->Ores[Type][Variant]) {
-                    auto Ore = static_cast<ABP_ValeriaGatherableLoot_C*>(Actor);
+                    auto Ore = static_cast<ABP_ValeriaGatherableLoot_C *>(Actor);
                     if (Ore && IsActorValid(Ore)) {
                         if (Ore->IAmAlive) {
                             bShouldDraw = true;
@@ -437,7 +445,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::RummagePiles:
                 if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-                    auto Pile = static_cast<ATimedLootPile*>(Actor);
+                    auto Pile = static_cast<ATimedLootPile *>(Actor);
                     if (!Pile || !IsActorValid(Pile)) {
                         bShouldDraw = false;
                         break;
@@ -446,8 +454,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                     if (Configuration::bEnableOthers) {
                         bShouldDraw = true;
                         Color = Pile->bActivated ? IM_COL32(0xFF, 0xFF, 0xFF, 0xFF) : IM_COL32(0xFF, 0x00, 0x00, 0xFF);
-                    }
-                    else if (Pile->CanGather(ValeriaCharacter) && Pile->bActivated) {
+                    } else if (Pile->CanGather(ValeriaCharacter) && Pile->bActivated) {
                         bShouldDraw = true;
                         Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
                     }
@@ -476,7 +483,7 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 continue;
 
             if (!Roboto) {
-                Roboto = reinterpret_cast<UFont*>(UObject::FindObject("Font Roboto.Roboto", EClassCastFlags::None));
+                Roboto = reinterpret_cast<UFont *>(UObject::FindObject("Font Roboto.Roboto", EClassCastFlags::None));
 
                 if (!Roboto)
                     continue;
@@ -497,13 +504,12 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
                 if (Actor) {
                     if (ActorType == EType::Ore) {
-                        auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
+                        auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C *>(Actor);
                         if (GatherableLoot && IsActorValid(GatherableLoot)) {
                             GatherableLoot->GetSecondsUntilDespawn(&seconds);
                         }
-                    }
-                    else if (ActorType == EType::Forage) {
-                        auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
+                    } else if (ActorType == EType::Forage) {
+                        auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C *>(Actor);
                         if (ForageableLoot && IsActorValid(ForageableLoot)) {
                             if (ForageableLoot->Gatherable) {
                                 seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
@@ -518,30 +524,33 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
             std::wstring wideText(text.begin(), text.end());
 
-            double BaseScale = 1.0; // Default scale at a reference distance
+            double BaseScale = 1.0;           // Default scale at a reference distance
             double ReferenceDistance = 100.0; // Distance at which no scaling is applied
-            double ScalingFactor = 0; // Determines how much the scale changes with distance
+            double ScalingFactor = 0;         // Determines how much the scale changes with distance
 
             double DistanceScale;
             DistanceScale = BaseScale - ScalingFactor * (Distance - ReferenceDistance);
             DistanceScale = CustomMath::Clamp(DistanceScale, 0.5, BaseScale); // Clamp the scale to a reasonable range
 
-            const FVector2D TextScale = { DistanceScale * Configuration::ESPTextScale, DistanceScale * Configuration::ESPTextScale };
+            const FVector2D TextScale = {DistanceScale * Configuration::ESPTextScale,
+                                         DistanceScale * Configuration::ESPTextScale};
             ImColor IMC(Color);
-            FLinearColor TextColor = { IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w };
+            FLinearColor TextColor = {IMC.Value.x, IMC.Value.y, IMC.Value.z, IMC.Value.w};
 
             // Setup shadow properties
             ImColor IMCS(Color);
-            FLinearColor ShadowColor = { IMCS.Value.x, IMCS.Value.y, IMCS.Value.z, IMCS.Value.w };
+            FLinearColor ShadowColor = {IMCS.Value.x, IMCS.Value.y, IMCS.Value.z, IMCS.Value.w};
 
             // Calculate positions
             FVector2D TextPosition = ScreenLocation;
-            FVector2D ShadowPosition = { TextPosition.X + 1.0, TextPosition.Y + 1.0 };
+            FVector2D ShadowPosition = {TextPosition.X + 1.0, TextPosition.Y + 1.0};
 
             // Draw shadow text
-            HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+            HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0,
+                                     {0, 0, 0, 1}, {1.0f, 1.0f}, true, true, true, {0, 0, 0, 1});
             // Draw main text
-            HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+            HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0,
+                                     {0, 0, 0, 1}, {1.0f, 1.0f}, true, true, true, {0, 0, 0, 1});
         }
     }
 
@@ -552,24 +561,25 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
 
         if (PlayerController->ProjectWorldLocationToScreen(PawnLocation, &PlayerScreenPosition, true)) {
             // Calculate the center of the FOV circle based on the player's screen position
-            FVector2D FOVCenter = { HUD->Canvas->ClipX * 0.5f, HUD->Canvas->ClipY * 0.5f };
-            DrawCircle(HUD->Canvas, Configuration::FOVRadius, 1200, { 0.485f, 0.485f, 0.485f, 0.485f }, 1.0f);
+            FVector2D FOVCenter = {HUD->Canvas->ClipX * 0.5f, HUD->Canvas->ClipY * 0.5f};
+            DrawCircle(HUD->Canvas, Configuration::FOVRadius, 1200, {0.485f, 0.485f, 0.485f, 0.485f}, 1.0f);
 
             if (Overlay->BestTargetLocation.IsZero())
                 return;
-            if (!PlayerController->ProjectWorldLocationToScreen(Overlay->BestTargetLocation, &TargetScreenPosition, true))
+            if (!PlayerController->ProjectWorldLocationToScreen(Overlay->BestTargetLocation, &TargetScreenPosition,
+                                                                true))
                 return;
             if (!(CustomMath::DistanceBetweenPoints(TargetScreenPosition, FOVCenter) <= Configuration::FOVRadius))
                 return;
 
-            HUD->Canvas->K2_DrawLine(FOVCenter, TargetScreenPosition, 0.5f, { 0.485f, 0.485f, 0.485f, 0.485f });
+            HUD->Canvas->K2_DrawLine(FOVCenter, TargetScreenPosition, 0.5f, {0.485f, 0.485f, 0.485f, 0.485f});
         }
     }
 }
 
 // [Movement]
 
-inline void Func_DoNoClip(PaliaOverlay* Overlay) {
+inline void Func_DoNoClip(PaliaOverlay *Overlay) {
     if (!Overlay->bEnableNoclip && Overlay->bEnableNoclip == Overlay->bPreviousNoclipState)
         return;
 
@@ -577,19 +587,20 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
     if (!ValeriaCharacter)
         return;
 
-    UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
+    UValeriaCharacterMoveComponent *ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() ||
+        ValeriaMovementComponent->IsDefaultObject())
         return;
 
     if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
         if (Overlay->bEnableNoclip) {
             ValeriaMovementComponent->SetMovementMode(EMovementMode::MOVE_Flying, 5);
             ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-        }
-        else {
+        } else {
             ValeriaMovementComponent->SetMovementMode(EMovementMode::MOVE_Walking, 1);
             ValeriaCharacter->CapsuleComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-            ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+            ValeriaCharacter->CapsuleComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,
+                                                                              ECollisionResponse::ECR_Block);
         }
 
         Overlay->bPreviousNoclipState = Overlay->bEnableNoclip;
@@ -605,16 +616,16 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
             return;
 
         // Calculate forward and right vectors based on the camera's yaw
-        const FRotator& CameraRot = PlayerController->PlayerCameraManager->GetCameraRotation();
+        const FRotator &CameraRot = PlayerController->PlayerCameraManager->GetCameraRotation();
 
         FVector CameraForward = UKismetMathLibrary::GetForwardVector(CameraRot);
         FVector CameraRight = UKismetMathLibrary::GetRightVector(CameraRot);
-        constexpr FVector CameraUp = { 0.f, 0.f, 1.f };
+        constexpr FVector CameraUp = {0.f, 0.f, 1.f};
 
         CameraForward.Normalize();
         CameraRight.Normalize();
 
-        FVector MovementDirection = { 0.f, 0.f, 0.f };
+        FVector MovementDirection = {0.f, 0.f, 0.f};
         float FlySpeed = 800.0f;
 
         if (IsKeyHeld('W')) {
@@ -650,17 +661,19 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
 
         // Update character position
         FHitResult HitResult;
-        ValeriaCharacter->K2_SetActorLocation(ValeriaCharacter->K2_GetActorLocation() + MovementDelta, false, &HitResult, false);
+        ValeriaCharacter->K2_SetActorLocation(ValeriaCharacter->K2_GetActorLocation() + MovementDelta, false,
+                                              &HitResult, false);
     }
 }
 
-inline void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
+inline void Func_DoPersistentMovement(const PaliaOverlay *Overlay) {
     const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaCharacter)
         return;
 
-    UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
+    UValeriaCharacterMoveComponent *ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
+    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() ||
+        ValeriaMovementComponent->IsDefaultObject())
         return;
 
     ValeriaMovementComponent->MaxWalkSpeed = Configuration::CustomWalkSpeed;
@@ -674,7 +687,7 @@ inline void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
 
 // [Placement]
 
-inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
+inline void Func_DoPlaceAnywhere(const PaliaOverlay *Overlay) {
     if (!Configuration::bPlaceAnywhere)
         return;
 
@@ -682,7 +695,7 @@ inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
     if (!ValeriaCharacter)
         return;
 
-    UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
+    UPlacementComponent *PlacementComponent = ValeriaCharacter->GetPlacement();
     if (!PlacementComponent || !PlacementComponent->IsValidLowLevel() || PlacementComponent->IsDefaultObject())
         return;
 
@@ -698,12 +711,12 @@ inline void ToggleFishingDelays(const bool RemoveDelays) {
         return;
     }
 
-    UValeriaGameInstance* ValeriaGameInstance = ValeriaController->GameInst;
+    UValeriaGameInstance *ValeriaGameInstance = ValeriaController->GameInst;
     if (!ValeriaGameInstance || !ValeriaGameInstance->IsValidLowLevel() || ValeriaGameInstance->IsDefaultObject()) {
         return;
     }
 
-    auto& CastSettings = ValeriaGameInstance->Configs.Globals.Fishing->CastSettings;
+    auto &CastSettings = ValeriaGameInstance->Configs.Globals.Fishing->CastSettings;
 
     // Avoid continuously setting values if already set properly
     float newCastDelay = RemoveDelays ? 0.0f : 0.150f;
@@ -711,13 +724,13 @@ inline void ToggleFishingDelays(const bool RemoveDelays) {
         return;
     }
 
-    auto& FishingSettings = ValeriaGameInstance->Configs.Globals.Fishing;
-    auto& EndSettings = ValeriaGameInstance->Configs.Globals.Fishing->EndSettings;
+    auto &FishingSettings = ValeriaGameInstance->Configs.Globals.Fishing;
+    auto &EndSettings = ValeriaGameInstance->Configs.Globals.Fishing->EndSettings;
 
     CastSettings.CastDelay = newCastDelay;
     CastSettings.MaxDistanceToCast = 1500.0f;
     CastSettings.MinDistanceToCast = RemoveDelays ? 1500.0f : 500.0f;
-    CastSettings.LaunchOffset = RemoveDelays ? FVector{ 1500, 0, -300 } : FVector{};
+    CastSettings.LaunchOffset = RemoveDelays ? FVector{1500, 0, -300} : FVector{};
     CastSettings.WindupSpeed = RemoveDelays ? FLT_MAX : 0.350f;
 
     FishingSettings->AfterFinishDestroyBobberWhenAtDistanceToRod = RemoveDelays ? FLT_MAX : 50.0;
@@ -731,7 +744,7 @@ inline void ToggleFishingDelays(const bool RemoveDelays) {
     EndSettings.MaxTimeOfEndFishingFailure = RemoveDelays ? 0.0f : 1.75f;
 }
 
-inline void Func_DoFastAutoFishing(const PaliaOverlay* Overlay) {
+inline void Func_DoFastAutoFishing(const PaliaOverlay *Overlay) {
     // Toggle values (Safe to leave looped)
     ToggleFishingDelays(Overlay->bEnableAutoFishing);
 
@@ -744,7 +757,8 @@ inline void Func_DoFastAutoFishing(const PaliaOverlay* Overlay) {
         return;
     }
 
-    if (Configuration::bRequireClickFishing ? !Overlay->ShowOverlay() && IsGameWindowActive() && IsKeyHeld(VK_LBUTTON) : true) {
+    if (Configuration::bRequireClickFishing ? !Overlay->ShowOverlay() && IsGameWindowActive() && IsKeyHeld(VK_LBUTTON)
+                                            : true) {
         // Instant Catch
         auto FishingComponent = ValeriaCharacter->GetFishing();
         if (FishingComponent) {
@@ -769,7 +783,7 @@ inline void Func_DoInstantCatch() {
     if (!ValeriaCharacter)
         return;
 
-    UFishingComponent* FishingComponent = ValeriaCharacter->GetFishing();
+    UFishingComponent *FishingComponent = ValeriaCharacter->GetFishing();
     if (!FishingComponent)
         return;
 
@@ -790,12 +804,13 @@ inline void Func_DoFishingCleanup() {
     }
 
     // Avoid doing extra work
-    if (!Configuration::bFishingSell && !Configuration::bFishingDiscard && !Configuration::bFishingOpenStoreWaterlogged) {
+    if (!Configuration::bFishingSell && !Configuration::bFishingDiscard &&
+        !Configuration::bFishingOpenStoreWaterlogged) {
         return;
     }
 
-    UVillagerStoreComponent* StoreComponent = ValeriaCharacter->StoreComponent;
-    const UInventoryComponent* InventoryComponent = ValeriaCharacter->GetInventory();
+    UVillagerStoreComponent *StoreComponent = ValeriaCharacter->StoreComponent;
+    const UInventoryComponent *InventoryComponent = ValeriaCharacter->GetInventory();
     if (!InventoryComponent) {
         return;
     }
@@ -803,7 +818,7 @@ inline void Func_DoFishingCleanup() {
     // Sell / Discard / Storage
     for (int BagIndex = 0; BagIndex < InventoryComponent->Bags.Num(); BagIndex++) {
         for (int SlotIndex = 0; SlotIndex < 8; SlotIndex++) {
-            FBagSlotLocation Slot{ BagIndex, SlotIndex };
+            FBagSlotLocation Slot{BagIndex, SlotIndex};
             FValeriaItem Item = InventoryComponent->GetItemAt(Slot);
 
             if (Configuration::bFishingSell && Item.ItemType->Category == EItemCategory::Fish && StoreComponent) {
@@ -813,21 +828,18 @@ inline void Func_DoFishingCleanup() {
                 }
 
                 StoreComponent->RpcServer_SellItem(Slot, 10);
-            }
-            else if (Configuration::bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
+            } else if (Configuration::bFishingDiscard && Item.ItemType->Category == EItemCategory::Junk) {
                 // Don't ever discard more than the amount of the stack
                 ValeriaController->DiscardItem(Slot, Item.Amount);
-            }
-            else if (Item.ItemType->PersistId == 2810) { // Waterlogged Chest
+            } else if (Item.ItemType->PersistId == 2810) { // Waterlogged Chest
                 if (!Configuration::bFishingOpenStoreWaterlogged) {
                     // Don't ever discard more than the amount of the stack
                     ValeriaController->DiscardItem(Slot, Item.Amount);
-                }
-                else {
+                } else {
                     ValeriaController->ConsumeItem(Slot);
                 }
-            }
-            else if (Configuration::bFishingOpenStoreWaterlogged && Item.ItemType->Name.ToString().find("DA_ItemType_Decor_Makeshift_") != std::string::npos) {
+            } else if (Configuration::bFishingOpenStoreWaterlogged &&
+                       Item.ItemType->Name.ToString().find("DA_ItemType_Decor_Makeshift_") != std::string::npos) {
                 ValeriaController->MoveItemSlotToStorage(Slot, 1, EStoragePoolType::Primary);
             }
         }
@@ -835,7 +847,7 @@ inline void Func_DoFishingCleanup() {
 
     fishingFlushCounter++;
     if (fishingFlushCounter >= 30) {
-        if (APlayerController* PlayerController = GetPlayerController()) {
+        if (APlayerController *PlayerController = GetPlayerController()) {
             PlayerController->ClientFlushLevelStreaming();
             PlayerController->ClientForceGarbageCollection();
 
@@ -844,7 +856,8 @@ inline void Func_DoFishingCleanup() {
     }
 }
 
-inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_SelectLoot* SelectLoot) {
+inline void Func_DoFishingCaptureOverride(PaliaOverlay *Overlay,
+                                          Params::FishingComponent_RpcServer_SelectLoot *SelectLoot) {
     if (Overlay->bCaptureFishingSpot) {
         memcpy(&Overlay->sOverrideFishingSpot, &SelectLoot->RPCLootParams.WaterType_Deprecated, sizeof(FName));
         Overlay->bCaptureFishingSpot = false;
@@ -854,7 +867,8 @@ inline void Func_DoFishingCaptureOverride(PaliaOverlay* Overlay, Params::Fishing
     }
 }
 
-Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOverlay* Overlay, Params::FishingComponent_RpcServer_EndFishing* EndFishing) {
+Params::FishingComponent_RpcServer_EndFishing *
+EndFishingDetoured(const PaliaOverlay *Overlay, Params::FishingComponent_RpcServer_EndFishing *EndFishing) {
     if (Configuration::bFishingInstantCatch || Overlay->bEnableAutoFishing) {
         EndFishing->Context.Result = EFishingMiniGameResult::Success;
     }
@@ -863,7 +877,9 @@ Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOve
         EndFishing->Context.DurabilityReduction = 0;
     }
 
-    EndFishing->Context.Perfect = Configuration::bFishingPerfectCatch ? true : Configuration::bFishingInstantCatch ? false : EndFishing->Context.Perfect;
+    EndFishing->Context.Perfect = Configuration::bFishingPerfectCatch   ? true
+                                  : Configuration::bFishingInstantCatch ? false
+                                                                        : EndFishing->Context.Perfect;
     EndFishing->Context.SourceWaterBody = nullptr;
     EndFishing->Context.bUsedMultiplayerHelp = Configuration::bFishingMultiplayerHelp;
     EndFishing->Context.StartRodHealth = 100.0f;
@@ -875,7 +891,7 @@ Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOve
 
 // [Firing]
 
-inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
+inline void Func_DoSilentAim(const PaliaOverlay *Overlay, void *Params) {
     if (!Configuration::bEnableSilentAimbot || !Overlay->BestTargetActor)
         return;
 
@@ -887,24 +903,23 @@ inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
     if (!FiringComponent || !FiringComponent->IsValidLowLevel() || FiringComponent->IsDefaultObject())
         return;
 
-    auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
+    auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile *>(Params);
 
     // Initial Target Check
     if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
         return;
 
-    AActor* TargetActor = Overlay->BestTargetActor;
+    AActor *TargetActor = Overlay->BestTargetActor;
     FVector TargetLocation = TargetActor->K2_GetActorLocation();
     FVector HitLocation = TargetLocation;
 
-    for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
+    for (auto &[ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
         // Projectile Check
         if (!ProjectileActor || !IsActorValid(ProjectileActor))
             continue;
 
         if (ProjectileId != FireProjectile->ProjectileId)
             continue;
-
 
         FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
 
@@ -919,12 +934,13 @@ inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
         HasHit = true;
         FHitResult HitResult;
         ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
-        HitResult.Location = { NewProjectileLocation };
-        FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
+        HitResult.Location = {NewProjectileLocation};
+        FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor,
+                                                       HitLocation);
     }
 }
 
-inline void Func_DoLegacyAim(const PaliaOverlay* Overlay) {
+inline void Func_DoLegacyAim(const PaliaOverlay *Overlay) {
     if (!Configuration::bEnableAimbot || !Overlay->BestTargetActor || Overlay->ShowOverlay())
         return;
 
@@ -944,7 +960,8 @@ inline void Func_DoLegacyAim(const PaliaOverlay* Overlay) {
         return;
 
     bool IsAnimal = false;
-    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+    for (auto &[Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] :
+         Overlay->CachedActors) {
         if (ActorType != EType::Animal || !IsActorValid(Actor))
             continue;
 
@@ -967,12 +984,14 @@ inline void Func_DoLegacyAim(const PaliaOverlay* Overlay) {
         FRotator CharacterRotation = PlayerController->GetControlRotation();
 
         // Apply offset to pitch and yaw directly
-        FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(CharacterLocation, Overlay->BestTargetLocation);
+        FRotator TargetRotation =
+            UKismetMathLibrary::FindLookAtRotation(CharacterLocation, Overlay->BestTargetLocation);
         TargetRotation.Pitch += Overlay->AimOffset.X;
         TargetRotation.Yaw += Overlay->AimOffset.Y;
 
         // Smooth rotation adjustment
-        FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
+        FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation,
+                                                     UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
         PlayerController->SetControlRotation(NewRotation);
     }
 }
@@ -998,8 +1017,8 @@ inline void Func_DoCompleteMinigame() {
 
 // Detouring
 
-void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Function, void* Params) {
-    const auto Overlay = dynamic_cast<PaliaOverlay*>(OverlayBase::Instance);
+void DetourManager::ProcessEventDetour(const UObject *Class, const UFunction *Function, void *Params) {
+    const auto Overlay = dynamic_cast<PaliaOverlay *>(OverlayBase::Instance);
     const auto fn = Function->GetFullName();
     invocations.insert(fn);
 
@@ -1012,7 +1031,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // HUD
     else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
-        Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
+        Func_DoESP(Overlay, reinterpret_cast<const AHUD *>(Class));
         Func_DoInteliAim(Overlay);
         Func_DoLegacyAim(Overlay);
         Func_DoTeleportToTargeted(Overlay);
@@ -1021,7 +1040,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // Fishing Capture/Override
     else if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
-        Func_DoFishingCaptureOverride(Overlay, static_cast<Params::FishingComponent_RpcServer_SelectLoot*>(Params));
+        Func_DoFishingCaptureOverride(Overlay, static_cast<Params::FishingComponent_RpcServer_SelectLoot *>(Params));
     }
     // Fishing Instant Catch
     else if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
@@ -1029,7 +1048,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // Fishing End (Perfect/Durability/PlayerHelp)
     else if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
-        EndFishingDetoured(Overlay, static_cast<Params::FishingComponent_RpcServer_EndFishing*>(Params));
+        EndFishingDetoured(Overlay, static_cast<Params::FishingComponent_RpcServer_EndFishing *>(Params));
     }
     // Fishing Cleanup (Sell/Discard/Move)
     else if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
@@ -1037,7 +1056,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // Teleport To Waypoint
     else if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
-        Func_DoTeleportToWaypoint(static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params));
+        Func_DoTeleportToWaypoint(static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap *>(Params));
     }
     // Silent Aim
     else if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
@@ -1045,7 +1064,8 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // ??
     else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
-        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = { 0, 0, 0 };
+        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement *>(Params)
+            ->MoveInfo.TargetVelocity = {0, 0, 0};
     }
 
     if (OriginalProcessEvent) {
@@ -1055,24 +1075,24 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
 
 // Essentials
 
-void DetourManager::SetupDetour(void* Instance, void (*DetourFunc)(const UObject*, const UFunction*, void*)) {
-    const void** Vtable = *static_cast<const void***>(Instance);
+void DetourManager::SetupDetour(void *Instance, void (*DetourFunc)(const UObject *, const UFunction *, void *)) {
+    const void **Vtable = *static_cast<const void ***>(Instance);
 
     DWORD OldProtection;
     VirtualProtect(Vtable, sizeof(DWORD) * 1024, PAGE_EXECUTE_READWRITE, &OldProtection);
 
     const int32_t Idx = Offsets::ProcessEventIdx;
-    OriginalProcessEvent = reinterpret_cast<void(*)(const UObject*, const UFunction*, void*)>(reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr)) + Offsets::ProcessEvent);
+    OriginalProcessEvent = reinterpret_cast<void (*)(const UObject *, const UFunction *, void *)>(
+        reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr)) + Offsets::ProcessEvent);
     Vtable[Idx] = DetourFunc;
 
     HookedClient = Instance;
     VirtualProtect(Vtable, sizeof(DWORD) * 1024, OldProtection, &OldProtection);
 }
 
-void DetourManager::SetupDetour(void* Instance) {
-    SetupDetour(Instance, &DetourManager::ProcessEventDetour);
-}
+void DetourManager::SetupDetour(void *Instance) { SetupDetour(Instance, &DetourManager::ProcessEventDetour); }
 
-void DetourManager::ProcessEventDetourCallback(const UObject* Class, const UFunction* Function, void* Params, const DetourManager* manager) {
+void DetourManager::ProcessEventDetourCallback(const UObject *Class, const UFunction *Function, void *Params,
+                                               const DetourManager *manager) {
     manager->ProcessEventDetour(Class, Function, Params);
 }
