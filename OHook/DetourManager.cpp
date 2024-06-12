@@ -89,6 +89,12 @@ inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestSc
                     FVector TargetLocation = Overlay->BestTargetLocation;
                     TargetLocation.Z += 150.0f;
 
+                    // Apply horizontal offset for animal targets
+                    if (Overlay->BestTargetActorType == EType::Animal) {
+                        FVector RightVector = ValeriaCharacter->GetActorRightVector();
+                        TargetLocation += RightVector * 160.0f;
+                    }
+
                     FHitResult HitResult;
                     ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
                     Overlay->LastTeleportToTargetTime = now;
@@ -104,8 +110,9 @@ inline void Func_DoTeleportToWaypoint(const PaliaOverlay* Overlay, const Params:
         if (ValeriaCharacter) {
             FVector TargetLocation = SetUserMarkerViaWorldMap->MarkerLocation;
             if (!TargetLocation.IsZero()) {
-                TargetLocation.Z += 150.0f;
-                ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, nullptr, true);
+                FHitResult WaypointHitResult;
+                TargetLocation.Z += 300.0f;
+                ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &WaypointHitResult, true);
             }
         }
     }
@@ -611,7 +618,7 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
         CameraRight.Normalize();
 
         FVector MovementDirection = { 0.f, 0.f, 0.f };
-        constexpr float FlySpeed = 800.0f;
+        float FlySpeed = 800.0f;
 
         if (IsKeyHeld('W')) {
             MovementDirection += CameraForward * FlySpeed;
@@ -630,6 +637,9 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
         }
         if (IsKeyHeld(VK_CONTROL)) {
             MovementDirection -= CameraUp * FlySpeed;
+        }
+        if (IsKeyHeld(VK_SHIFT)) {
+            FlySpeed *= 2.0f;
         }
 
         // Normalize the total movement direction
