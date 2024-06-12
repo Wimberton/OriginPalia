@@ -476,25 +476,28 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             }
             text += std::format(" [{:.2f}m]", Distance);
 
-            std::string despawnText = "";
-            if (ActorType == EType::Ore) {
-                auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
+			std::string despawnText = "";
+			if (ActorType == EType::Ore && shouldAdd) {
+				if (auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor); IsActorValid(GatherableLoot)) {
+                    if (!GatherableLoot || !GatherableLoot->IsValidLowLevel()) continue;
 
-                double seconds = 0;
+					double seconds = 0;
 
-                GatherableLoot->GetSecondsUntilDespawn(&seconds);
+					GatherableLoot->GetSecondsUntilDespawn(&seconds);
 
-                if (seconds > 0)
-                    despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
-            }
-            else if (ActorType == EType::Forage) {
-                if (auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor); IsActorValid(Actor)) {
-                    float seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
-
-                    if (seconds > 0)
-                        despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
+					if (seconds > 0)
+						despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
                 }
-            }
+			}
+			else if (ActorType == EType::Forage && shouldAdd) {
+				if (auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor); IsActorValid(ForageableLoot)) {
+                    if (!ForageableLoot || !ForageableLoot->IsValidLowLevel()) continue;
+					float seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
+
+					if (seconds > 0)
+						despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
+				}
+			}
 
 
             std::wstring wideText(text.begin(), text.end());
@@ -529,10 +532,12 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             // Draw main text
             HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
 
-            // Draw despawn shadow text
-            HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
-            // Draw despawn main text
-            HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnTextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+            if (Configuration::bEnableDespawnTimer) {
+                // Draw despawn shadow text
+                HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+                // Draw despawn main text
+                HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnTextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
+            }
         }
     }
 
@@ -969,6 +974,12 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     // ??
     else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
         static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = {0, 0, 0};
+    }
+    else if (fn == "Function Engine.WorldPartitionBlueprintLibrary.UnloadActors") {
+        ClearActorCache(Overlay);
+    }
+    else if (fn == "Function Engine.WorldPartitionBlueprintLibrary.LoadActors") {
+        ManageActorCache(Overlay);
     }
 
     if (OriginalProcessEvent) {
