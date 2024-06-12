@@ -1,11 +1,11 @@
 #include "Configuration.h"
 #include "PaliaOverlay.h"
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
 #include <type_traits>
 
 namespace fs = std::filesystem;
@@ -27,13 +27,13 @@ float Configuration::windowSizeX = 1450.0f;
 float Configuration::windowSizeY = 950.0f;
 
 // Game Modifiers
-float Configuration::CustomWalkSpeed = 565.0f; // Custom, Dynamic walk speed
+float Configuration::CustomWalkSpeed = 565.0f;            // Custom, Dynamic walk speed
 float Configuration::CustomSprintSpeedMultiplier = 1.65f; // Custom, Dynamic sprint speed multiplier
-float Configuration::CustomClimbingSpeed = 80.0f; // Custom, Dynamic climbing speed
-float Configuration::CustomGlidingSpeed = 900.0f; // Custom, Dynamic gliding speed
-float Configuration::CustomGlidingFallSpeed = 250.0f; // Custom, Dynamic gliding fall speed
-float Configuration::CustomJumpVelocity = 700.0f; // Custom, Dynamic jump velocity
-float Configuration::CustomMaxStepHeight = 45.0f; // Custom, Dynamic maximum step height
+float Configuration::CustomClimbingSpeed = 80.0f;         // Custom, Dynamic climbing speed
+float Configuration::CustomGlidingSpeed = 900.0f;         // Custom, Dynamic gliding speed
+float Configuration::CustomGlidingFallSpeed = 250.0f;     // Custom, Dynamic gliding fall speed
+float Configuration::CustomJumpVelocity = 700.0f;         // Custom, Dynamic jump velocity
+float Configuration::CustomMaxStepHeight = 45.0f;         // Custom, Dynamic maximum step height
 
 // Fishing Options
 bool Configuration::bFishingNoDurability = true;
@@ -88,233 +88,233 @@ int Configuration::CullDistance = 200;
 
 // ESP Animals
 
-bool* Configuration::bEnableSernuk = nullptr;
-bool* Configuration::bEnableElderSernuk = nullptr;
-bool* Configuration::bEnableProudhornSernuk = nullptr;
-bool* Configuration::bEnableChapaa = nullptr;
-bool* Configuration::bEnableStripedChapaa = nullptr;
-bool* Configuration::bEnableAzureChapaa = nullptr;
-bool* Configuration::bEnableMinigameChapaa = nullptr;
-bool* Configuration::bEnableMuujin = nullptr;
-bool* Configuration::bEnableBandedMuujin = nullptr;
-bool* Configuration::bEnableBluebristleMuujin = nullptr;
+bool *Configuration::bEnableSernuk = nullptr;
+bool *Configuration::bEnableElderSernuk = nullptr;
+bool *Configuration::bEnableProudhornSernuk = nullptr;
+bool *Configuration::bEnableChapaa = nullptr;
+bool *Configuration::bEnableStripedChapaa = nullptr;
+bool *Configuration::bEnableAzureChapaa = nullptr;
+bool *Configuration::bEnableMinigameChapaa = nullptr;
+bool *Configuration::bEnableMuujin = nullptr;
+bool *Configuration::bEnableBandedMuujin = nullptr;
+bool *Configuration::bEnableBluebristleMuujin = nullptr;
 
 // ESP Ores
 
-bool* Configuration::bEnableClayLg = nullptr;
+bool *Configuration::bEnableClayLg = nullptr;
 
-bool* Configuration::bEnableStoneSm = nullptr;
-bool* Configuration::bEnableStoneMed = nullptr;
-bool* Configuration::bEnableStoneLg = nullptr;
+bool *Configuration::bEnableStoneSm = nullptr;
+bool *Configuration::bEnableStoneMed = nullptr;
+bool *Configuration::bEnableStoneLg = nullptr;
 
-bool* Configuration::bEnableCopperSm = nullptr;
-bool* Configuration::bEnableCopperMed = nullptr;
-bool* Configuration::bEnableCopperLg = nullptr;
+bool *Configuration::bEnableCopperSm = nullptr;
+bool *Configuration::bEnableCopperMed = nullptr;
+bool *Configuration::bEnableCopperLg = nullptr;
 
-bool* Configuration::bEnableIronSm = nullptr;
-bool* Configuration::bEnableIronMed = nullptr;
-bool* Configuration::bEnableIronLg = nullptr;
+bool *Configuration::bEnableIronSm = nullptr;
+bool *Configuration::bEnableIronMed = nullptr;
+bool *Configuration::bEnableIronLg = nullptr;
 
-bool* Configuration::bEnablePaliumSm = nullptr;
-bool* Configuration::bEnablePaliumMed = nullptr;
-bool* Configuration::bEnablePaliumLg = nullptr;
+bool *Configuration::bEnablePaliumSm = nullptr;
+bool *Configuration::bEnablePaliumMed = nullptr;
+bool *Configuration::bEnablePaliumLg = nullptr;
 
 // ESP Forage Types
 
-bool* Configuration::bEnableCoral = nullptr;
-bool* Configuration::bEnableOyster = nullptr;
-bool* Configuration::bEnableShell = nullptr;
+bool *Configuration::bEnableCoral = nullptr;
+bool *Configuration::bEnableOyster = nullptr;
+bool *Configuration::bEnableShell = nullptr;
 
-bool* Configuration::bEnablePoisonFlower = nullptr;
-bool* Configuration::bEnablePoisonFlowerP = nullptr;
+bool *Configuration::bEnablePoisonFlower = nullptr;
+bool *Configuration::bEnablePoisonFlowerP = nullptr;
 
-bool* Configuration::bEnableWaterFlower = nullptr;
-bool* Configuration::bEnableWaterFlowerP = nullptr;
+bool *Configuration::bEnableWaterFlower = nullptr;
+bool *Configuration::bEnableWaterFlowerP = nullptr;
 
-bool* Configuration::bEnableHeartdrop = nullptr;
-bool* Configuration::bEnableHeartdropP = nullptr;
+bool *Configuration::bEnableHeartdrop = nullptr;
+bool *Configuration::bEnableHeartdropP = nullptr;
 
-bool* Configuration::bEnableSundrop = nullptr;
-bool* Configuration::bEnableSundropP = nullptr;
+bool *Configuration::bEnableSundrop = nullptr;
+bool *Configuration::bEnableSundropP = nullptr;
 
-bool* Configuration::bEnableDragonsBeard = nullptr;
-bool* Configuration::bEnableDragonsBeardP = nullptr;
+bool *Configuration::bEnableDragonsBeard = nullptr;
+bool *Configuration::bEnableDragonsBeardP = nullptr;
 
-bool* Configuration::bEnableEmeraldCarpet = nullptr;
-bool* Configuration::bEnableEmeraldCarpetP = nullptr;
+bool *Configuration::bEnableEmeraldCarpet = nullptr;
+bool *Configuration::bEnableEmeraldCarpetP = nullptr;
 
-bool* Configuration::bEnableMushroomBlue = nullptr;
-bool* Configuration::bEnableMushroomBlueP = nullptr;
+bool *Configuration::bEnableMushroomBlue = nullptr;
+bool *Configuration::bEnableMushroomBlueP = nullptr;
 
-bool* Configuration::bEnableMushroomRed = nullptr;
-bool* Configuration::bEnableMushroomRedP = nullptr;
+bool *Configuration::bEnableMushroomRed = nullptr;
+bool *Configuration::bEnableMushroomRedP = nullptr;
 
-bool* Configuration::bEnableDariCloves = nullptr;
-bool* Configuration::bEnableDariClovesP = nullptr;
+bool *Configuration::bEnableDariCloves = nullptr;
+bool *Configuration::bEnableDariClovesP = nullptr;
 
-bool* Configuration::bEnableHeatRoot = nullptr;
-bool* Configuration::bEnableHeatRootP = nullptr;
+bool *Configuration::bEnableHeatRoot = nullptr;
+bool *Configuration::bEnableHeatRootP = nullptr;
 
-bool* Configuration::bEnableSpicedSprouts = nullptr;
-bool* Configuration::bEnableSpicedSproutsP = nullptr;
+bool *Configuration::bEnableSpicedSprouts = nullptr;
+bool *Configuration::bEnableSpicedSproutsP = nullptr;
 
-bool* Configuration::bEnableSweetLeaves = nullptr;
-bool* Configuration::bEnableSweetLeavesP = nullptr;
+bool *Configuration::bEnableSweetLeaves = nullptr;
+bool *Configuration::bEnableSweetLeavesP = nullptr;
 
-bool* Configuration::bEnableGarlic = nullptr;
-bool* Configuration::bEnableGarlicP = nullptr;
+bool *Configuration::bEnableGarlic = nullptr;
+bool *Configuration::bEnableGarlicP = nullptr;
 
-bool* Configuration::bEnableGinger = nullptr;
-bool* Configuration::bEnableGingerP = nullptr;
+bool *Configuration::bEnableGinger = nullptr;
+bool *Configuration::bEnableGingerP = nullptr;
 
-bool* Configuration::bEnableGreenOnion = nullptr;
-bool* Configuration::bEnableGreenOnionP = nullptr;
+bool *Configuration::bEnableGreenOnion = nullptr;
+bool *Configuration::bEnableGreenOnionP = nullptr;
 
 // ESP Bug Types
 
-bool* Configuration::bEnableBeeU = nullptr;
-bool* Configuration::bEnableBeeUP = nullptr;
+bool *Configuration::bEnableBeeU = nullptr;
+bool *Configuration::bEnableBeeUP = nullptr;
 
-bool* Configuration::bEnableBeeR = nullptr;
-bool* Configuration::bEnableBeeRP = nullptr;
+bool *Configuration::bEnableBeeR = nullptr;
+bool *Configuration::bEnableBeeRP = nullptr;
 
-bool* Configuration::bEnableBeetleC = nullptr;
-bool* Configuration::bEnableBeetleCP = nullptr;
+bool *Configuration::bEnableBeetleC = nullptr;
+bool *Configuration::bEnableBeetleCP = nullptr;
 
-bool* Configuration::bEnableBeetleU = nullptr;
-bool* Configuration::bEnableBeetleUP = nullptr;
+bool *Configuration::bEnableBeetleU = nullptr;
+bool *Configuration::bEnableBeetleUP = nullptr;
 
-bool* Configuration::bEnableBeetleR = nullptr;
-bool* Configuration::bEnableBeetleRP = nullptr;
+bool *Configuration::bEnableBeetleR = nullptr;
+bool *Configuration::bEnableBeetleRP = nullptr;
 
-bool* Configuration::bEnableBeetleE = nullptr;
-bool* Configuration::bEnableBeetleEP = nullptr;
+bool *Configuration::bEnableBeetleE = nullptr;
+bool *Configuration::bEnableBeetleEP = nullptr;
 
-bool* Configuration::bEnableButterflyC = nullptr;
-bool* Configuration::bEnableButterflyCP = nullptr;
+bool *Configuration::bEnableButterflyC = nullptr;
+bool *Configuration::bEnableButterflyCP = nullptr;
 
-bool* Configuration::bEnableButterflyU = nullptr;
-bool* Configuration::bEnableButterflyUP = nullptr;
+bool *Configuration::bEnableButterflyU = nullptr;
+bool *Configuration::bEnableButterflyUP = nullptr;
 
-bool* Configuration::bEnableButterflyR = nullptr;
-bool* Configuration::bEnableButterflyRP = nullptr;
+bool *Configuration::bEnableButterflyR = nullptr;
+bool *Configuration::bEnableButterflyRP = nullptr;
 
-bool* Configuration::bEnableButterflyE = nullptr;
-bool* Configuration::bEnableButterflyEP = nullptr;
+bool *Configuration::bEnableButterflyE = nullptr;
+bool *Configuration::bEnableButterflyEP = nullptr;
 
-bool* Configuration::bEnableCicadaC = nullptr;
-bool* Configuration::bEnableCicadaCP = nullptr;
+bool *Configuration::bEnableCicadaC = nullptr;
+bool *Configuration::bEnableCicadaCP = nullptr;
 
-bool* Configuration::bEnableCicadaU = nullptr;
-bool* Configuration::bEnableCicadaUP = nullptr;
+bool *Configuration::bEnableCicadaU = nullptr;
+bool *Configuration::bEnableCicadaUP = nullptr;
 
-bool* Configuration::bEnableCicadaR = nullptr;
-bool* Configuration::bEnableCicadaRP = nullptr;
+bool *Configuration::bEnableCicadaR = nullptr;
+bool *Configuration::bEnableCicadaRP = nullptr;
 
-bool* Configuration::bEnableCrabC = nullptr;
-bool* Configuration::bEnableCrabCP = nullptr;
+bool *Configuration::bEnableCrabC = nullptr;
+bool *Configuration::bEnableCrabCP = nullptr;
 
-bool* Configuration::bEnableCrabU = nullptr;
-bool* Configuration::bEnableCrabUP = nullptr;
+bool *Configuration::bEnableCrabU = nullptr;
+bool *Configuration::bEnableCrabUP = nullptr;
 
-bool* Configuration::bEnableCrabR = nullptr;
-bool* Configuration::bEnableCrabRP = nullptr;
+bool *Configuration::bEnableCrabR = nullptr;
+bool *Configuration::bEnableCrabRP = nullptr;
 
-bool* Configuration::bEnableCricketC = nullptr;
-bool* Configuration::bEnableCricketCP = nullptr;
+bool *Configuration::bEnableCricketC = nullptr;
+bool *Configuration::bEnableCricketCP = nullptr;
 
-bool* Configuration::bEnableCricketU = nullptr;
-bool* Configuration::bEnableCricketUP = nullptr;
+bool *Configuration::bEnableCricketU = nullptr;
+bool *Configuration::bEnableCricketUP = nullptr;
 
-bool* Configuration::bEnableCricketR = nullptr;
-bool* Configuration::bEnableCricketRP = nullptr;
+bool *Configuration::bEnableCricketR = nullptr;
+bool *Configuration::bEnableCricketRP = nullptr;
 
-bool* Configuration::bEnableDragonflyC = nullptr;
-bool* Configuration::bEnableDragonflyCP = nullptr;
+bool *Configuration::bEnableDragonflyC = nullptr;
+bool *Configuration::bEnableDragonflyCP = nullptr;
 
-bool* Configuration::bEnableDragonflyU = nullptr;
-bool* Configuration::bEnableDragonflyUP = nullptr;
+bool *Configuration::bEnableDragonflyU = nullptr;
+bool *Configuration::bEnableDragonflyUP = nullptr;
 
-bool* Configuration::bEnableDragonflyR = nullptr;
-bool* Configuration::bEnableDragonflyRP = nullptr;
+bool *Configuration::bEnableDragonflyR = nullptr;
+bool *Configuration::bEnableDragonflyRP = nullptr;
 
-bool* Configuration::bEnableDragonflyE = nullptr;
-bool* Configuration::bEnableDragonflyEP = nullptr;
+bool *Configuration::bEnableDragonflyE = nullptr;
+bool *Configuration::bEnableDragonflyEP = nullptr;
 
-bool* Configuration::bEnableGlowbugC = nullptr;
-bool* Configuration::bEnableGlowbugCP = nullptr;
+bool *Configuration::bEnableGlowbugC = nullptr;
+bool *Configuration::bEnableGlowbugCP = nullptr;
 
-bool* Configuration::bEnableGlowbugU = nullptr;
-bool* Configuration::bEnableGlowbugUP = nullptr;
+bool *Configuration::bEnableGlowbugU = nullptr;
+bool *Configuration::bEnableGlowbugUP = nullptr;
 
-bool* Configuration::bEnableLadybugC = nullptr;
-bool* Configuration::bEnableLadybugCP = nullptr;
+bool *Configuration::bEnableLadybugC = nullptr;
+bool *Configuration::bEnableLadybugCP = nullptr;
 
-bool* Configuration::bEnableLadybugU = nullptr;
-bool* Configuration::bEnableLadybugUP = nullptr;
+bool *Configuration::bEnableLadybugU = nullptr;
+bool *Configuration::bEnableLadybugUP = nullptr;
 
-bool* Configuration::bEnableMantisU = nullptr;
-bool* Configuration::bEnableMantisUP = nullptr;
+bool *Configuration::bEnableMantisU = nullptr;
+bool *Configuration::bEnableMantisUP = nullptr;
 
-bool* Configuration::bEnableMantisR = nullptr;
-bool* Configuration::bEnableMantisRP = nullptr;
+bool *Configuration::bEnableMantisR = nullptr;
+bool *Configuration::bEnableMantisRP = nullptr;
 
-bool* Configuration::bEnableMantisR2 = nullptr;
-bool* Configuration::bEnableMantisR2P = nullptr;
+bool *Configuration::bEnableMantisR2 = nullptr;
+bool *Configuration::bEnableMantisR2P = nullptr;
 
-bool* Configuration::bEnableMantisE = nullptr;
-bool* Configuration::bEnableMantisEP = nullptr;
+bool *Configuration::bEnableMantisE = nullptr;
+bool *Configuration::bEnableMantisEP = nullptr;
 
-bool* Configuration::bEnableMothC = nullptr;
-bool* Configuration::bEnableMothCP = nullptr;
+bool *Configuration::bEnableMothC = nullptr;
+bool *Configuration::bEnableMothCP = nullptr;
 
-bool* Configuration::bEnableMothU = nullptr;
-bool* Configuration::bEnableMothUP = nullptr;
+bool *Configuration::bEnableMothU = nullptr;
+bool *Configuration::bEnableMothUP = nullptr;
 
-bool* Configuration::bEnableMothR = nullptr;
-bool* Configuration::bEnableMothRP = nullptr;
+bool *Configuration::bEnableMothR = nullptr;
+bool *Configuration::bEnableMothRP = nullptr;
 
-bool* Configuration::bEnablePedeU = nullptr;
-bool* Configuration::bEnablePedeUP = nullptr;
+bool *Configuration::bEnablePedeU = nullptr;
+bool *Configuration::bEnablePedeUP = nullptr;
 
-bool* Configuration::bEnablePedeR = nullptr;
-bool* Configuration::bEnablePedeRP = nullptr;
+bool *Configuration::bEnablePedeR = nullptr;
+bool *Configuration::bEnablePedeRP = nullptr;
 
-bool* Configuration::bEnablePedeR2 = nullptr;
-bool* Configuration::bEnablePedeR2P = nullptr;
+bool *Configuration::bEnablePedeR2 = nullptr;
+bool *Configuration::bEnablePedeR2P = nullptr;
 
-bool* Configuration::bEnableSnailU = nullptr;
-bool* Configuration::bEnableSnailUP = nullptr;
+bool *Configuration::bEnableSnailU = nullptr;
+bool *Configuration::bEnableSnailUP = nullptr;
 
-bool* Configuration::bEnableSnailR = nullptr;
-bool* Configuration::bEnableSnailRP = nullptr;
+bool *Configuration::bEnableSnailR = nullptr;
+bool *Configuration::bEnableSnailRP = nullptr;
 
 // ESP Trees
 
-bool* Configuration::bEnableBushSm = nullptr;
+bool *Configuration::bEnableBushSm = nullptr;
 
-bool* Configuration::bEnableSapwoodSm = nullptr;
-bool* Configuration::bEnableSapwoodMed = nullptr;
-bool* Configuration::bEnableSapwoodLg = nullptr;
+bool *Configuration::bEnableSapwoodSm = nullptr;
+bool *Configuration::bEnableSapwoodMed = nullptr;
+bool *Configuration::bEnableSapwoodLg = nullptr;
 
-bool* Configuration::bEnableHeartwoodSm = nullptr;
-bool* Configuration::bEnableHeartwoodMed = nullptr;
-bool* Configuration::bEnableHeartwoodLg = nullptr;
+bool *Configuration::bEnableHeartwoodSm = nullptr;
+bool *Configuration::bEnableHeartwoodMed = nullptr;
+bool *Configuration::bEnableHeartwoodLg = nullptr;
 
-bool* Configuration::bEnableFlowSm = nullptr;
-bool* Configuration::bEnableFlowMed = nullptr;
-bool* Configuration::bEnableFlowLg = nullptr;
+bool *Configuration::bEnableFlowSm = nullptr;
+bool *Configuration::bEnableFlowMed = nullptr;
+bool *Configuration::bEnableFlowLg = nullptr;
 
 // ESP Player & Entities
 
-bool* Configuration::bEnablePlayers = nullptr;
-bool* Configuration::bEnableNPC = nullptr;
-bool* Configuration::bEnableFish = nullptr;
-bool* Configuration::bEnablePools = nullptr;
-bool* Configuration::bEnableLoot = nullptr;
-bool* Configuration::bEnableQuest = nullptr;
-bool* Configuration::bEnableRummagePiles = nullptr;
-bool* Configuration::bEnableStables = nullptr;
+bool *Configuration::bEnablePlayers = nullptr;
+bool *Configuration::bEnableNPC = nullptr;
+bool *Configuration::bEnableFish = nullptr;
+bool *Configuration::bEnablePools = nullptr;
+bool *Configuration::bEnableLoot = nullptr;
+bool *Configuration::bEnableQuest = nullptr;
+bool *Configuration::bEnableRummagePiles = nullptr;
+bool *Configuration::bEnableStables = nullptr;
 bool Configuration::bEnableOthers = false;
 
 #pragma endregion
@@ -326,35 +326,38 @@ static const std::string configFileName = "overlay_config.json";
 static const std::string configFilePath = configDirectory + "\\" + configFileName;
 
 // Functions for saving and loading config data
-static void EnsureDirectoryExists(const std::string& path) {
+static void EnsureDirectoryExists(const std::string &path) {
     fs::path dir(path);
     if (!fs::exists(dir)) {
         fs::create_directories(dir);
     }
 }
 
-void Configuration::ParseBool(std::string Key, bool& Var) {
-    if (JsonConfigFile.empty()) return;
+void Configuration::ParseBool(std::string Key, bool &Var) {
+    if (JsonConfigFile.empty())
+        return;
 
-    if (JsonConfigFile.find(Key) == std::string::npos) return;
+    if (JsonConfigFile.find(Key) == std::string::npos)
+        return;
 
     Var = (JsonConfigFile.find("\"" + Key + "\": true") != std::string::npos);
 }
 
-void Configuration::ParseBool(std::string Key, bool& Var, bool DefaultValue) {
+void Configuration::ParseBool(std::string Key, bool &Var, bool DefaultValue) {
     Var = DefaultValue;
 
     ParseBool(Key, Var);
 }
 
-template<typename T>
-void Configuration::ParseNumber(std::string Key, T& Var) {
+template <typename T> void Configuration::ParseNumber(std::string Key, T &Var) {
     static_assert(std::is_arithmetic<T>::value, "Template parameter must be a numeric type");
 
-    if (JsonConfigFile.empty()) return;
+    if (JsonConfigFile.empty())
+        return;
 
     auto pos = JsonConfigFile.find("\"" + Key + "\":");
-    if (pos == std::string::npos) return;
+    if (pos == std::string::npos)
+        return;
 
     std::size_t start = JsonConfigFile.find_first_of("0123456789.", pos);
     std::size_t end = JsonConfigFile.find_first_not_of("0123456789.", start);
@@ -379,12 +382,14 @@ bool Configuration::ReadJsonFile() {
     return false;
 }
 
-void Configuration::Load(PaliaOverlay* Overlay) {
-    if (ConfigLoaded) return;
+void Configuration::Load(PaliaOverlay *Overlay) {
+    if (ConfigLoaded)
+        return;
 
     LoadESPArraysPtr(Overlay);
 
-    if (!ReadJsonFile()) return;
+    if (!ReadJsonFile())
+        return;
 
     ParseBool("Enable Minigame Skip", bEnableMinigameSkip);
     ParseBool("Enable AntiAFK", bEnableAntiAfk);
@@ -398,7 +403,7 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ParseBool("Enable ESP", bEnableESP);
     ParseBool("Show Watermark", bShowWatermark);
     ParseBool("Enable ESP Despawn Timer", bEnableDespawnTimer);
-    //ParseBool("Limit Distance", bEnableESPCulling);
+    // ParseBool("Limit Distance", bEnableESPCulling);
     ParseBool("Enable InteliAim Circle", bDrawFOVCircle);
     ParseBool("No Fishing Rod Durability", bFishingNoDurability);
     ParseBool("Enable Fishing Multiplayer Help", bFishingMultiplayerHelp);
@@ -583,7 +588,7 @@ void Configuration::Load(PaliaOverlay* Overlay) {
     ConfigLoaded = true;
 }
 
-void Configuration::LoadESPArraysPtr(PaliaOverlay* Overlay) {
+void Configuration::LoadESPArraysPtr(PaliaOverlay *Overlay) {
     bEnablePlayers = &(Overlay->Singles[static_cast<int>(EOneOffs::Player)]);
     bEnableNPC = &(Overlay->Singles[static_cast<int>(EOneOffs::NPC)]);
     bEnableFish = &(Overlay->Fish[static_cast<int>(EFishType::Hook)]);
@@ -593,16 +598,26 @@ void Configuration::LoadESPArraysPtr(PaliaOverlay* Overlay) {
     bEnableRummagePiles = &(Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]);
     bEnableStables = &(Overlay->Singles[static_cast<int>(EOneOffs::Stables)]);
 
-    bEnableSernuk = &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier1)]);
-    bEnableElderSernuk = &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier2)]);
-    bEnableProudhornSernuk = &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier3)]);
-    bEnableChapaa = &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)]);
-    bEnableStripedChapaa = &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier2)]);
-    bEnableAzureChapaa = &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier3)]);
-    bEnableMinigameChapaa = &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Chase)]);
-    bEnableMuujin = &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier1)]);
-    bEnableBandedMuujin = &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier2)]);
-    bEnableBluebristleMuujin = &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier3)]);
+    bEnableSernuk =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier1)]);
+    bEnableElderSernuk =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier2)]);
+    bEnableProudhornSernuk =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Cearnuk)][static_cast<int>(ECreatureQuality::Tier3)]);
+    bEnableChapaa =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier1)]);
+    bEnableStripedChapaa =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier2)]);
+    bEnableAzureChapaa =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Tier3)]);
+    bEnableMinigameChapaa =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::Chapaa)][static_cast<int>(ECreatureQuality::Chase)]);
+    bEnableMuujin =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier1)]);
+    bEnableBandedMuujin =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier2)]);
+    bEnableBluebristleMuujin =
+        &(Overlay->Animals[static_cast<int>(ECreatureKind::TreeClimber)][static_cast<int>(ECreatureQuality::Tier3)]);
 
     bEnableClayLg = &(Overlay->Ores[static_cast<int>(EOreType::Clay)][static_cast<int>(EGatherableSize::Large)]);
     bEnableStoneSm = &(Overlay->Ores[static_cast<int>(EOreType::Stone)][static_cast<int>(EGatherableSize::Small)]);
@@ -667,14 +682,20 @@ void Configuration::LoadESPArraysPtr(PaliaOverlay* Overlay) {
     bEnableBeetleRP = &(Overlay->Bugs[static_cast<int>(EBugKind::Beetle)][static_cast<int>(EBugQuality::Rare)][1]);
     bEnableBeetleE = &(Overlay->Bugs[static_cast<int>(EBugKind::Beetle)][static_cast<int>(EBugQuality::Epic)][0]);
     bEnableBeetleEP = &(Overlay->Bugs[static_cast<int>(EBugKind::Beetle)][static_cast<int>(EBugQuality::Epic)][1]);
-    bEnableButterflyC = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Common)][0]);
-    bEnableButterflyCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Common)][1]);
-    bEnableButterflyU = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Uncommon)][0]);
-    bEnableButterflyUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Uncommon)][1]);
+    bEnableButterflyC =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Common)][0]);
+    bEnableButterflyCP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Common)][1]);
+    bEnableButterflyU =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Uncommon)][0]);
+    bEnableButterflyUP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Uncommon)][1]);
     bEnableButterflyR = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Rare)][0]);
-    bEnableButterflyRP = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Rare)][1]);
+    bEnableButterflyRP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Rare)][1]);
     bEnableButterflyE = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Epic)][0]);
-    bEnableButterflyEP = &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Epic)][1]);
+    bEnableButterflyEP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Butterfly)][static_cast<int>(EBugQuality::Epic)][1]);
     bEnableCicadaC = &(Overlay->Bugs[static_cast<int>(EBugKind::Cicada)][static_cast<int>(EBugQuality::Common)][0]);
     bEnableCicadaCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Cicada)][static_cast<int>(EBugQuality::Common)][1]);
     bEnableCicadaU = &(Overlay->Bugs[static_cast<int>(EBugKind::Cicada)][static_cast<int>(EBugQuality::Uncommon)][0]);
@@ -691,28 +712,37 @@ void Configuration::LoadESPArraysPtr(PaliaOverlay* Overlay) {
     bEnableCricketC = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Common)][0]);
     bEnableCricketCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Common)][1]);
     bEnableCricketU = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Uncommon)][0]);
-    bEnableCricketUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Uncommon)][1]);
+    bEnableCricketUP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Uncommon)][1]);
     bEnableCricketR = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Rare)][0]);
     bEnableCricketRP = &(Overlay->Bugs[static_cast<int>(EBugKind::Cricket)][static_cast<int>(EBugQuality::Rare)][1]);
 
-    bEnableDragonflyC = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Common)][0]);
-    bEnableDragonflyCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Common)][1]);
-    bEnableDragonflyU = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Uncommon)][0]);
-    bEnableDragonflyUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Uncommon)][1]);
+    bEnableDragonflyC =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Common)][0]);
+    bEnableDragonflyCP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Common)][1]);
+    bEnableDragonflyU =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Uncommon)][0]);
+    bEnableDragonflyUP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Uncommon)][1]);
     bEnableDragonflyR = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Rare)][0]);
-    bEnableDragonflyRP = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Rare)][1]);
+    bEnableDragonflyRP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Rare)][1]);
     bEnableDragonflyE = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Epic)][0]);
-    bEnableDragonflyEP = &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Epic)][1]);
+    bEnableDragonflyEP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Dragonfly)][static_cast<int>(EBugQuality::Epic)][1]);
 
     bEnableGlowbugC = &(Overlay->Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Common)][0]);
     bEnableGlowbugCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Common)][1]);
     bEnableGlowbugU = &(Overlay->Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)][0]);
-    bEnableGlowbugUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)][1]);
+    bEnableGlowbugUP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)][1]);
 
     bEnableLadybugC = &(Overlay->Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Common)][0]);
     bEnableLadybugCP = &(Overlay->Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Common)][1]);
     bEnableLadybugU = &(Overlay->Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Uncommon)][0]);
-    bEnableLadybugUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Uncommon)][1]);
+    bEnableLadybugUP =
+        &(Overlay->Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Uncommon)][1]);
 
     bEnableMantisU = &(Overlay->Bugs[static_cast<int>(EBugKind::Mantis)][static_cast<int>(EBugQuality::Uncommon)][0]);
     bEnableMantisUP = &(Overlay->Bugs[static_cast<int>(EBugKind::Mantis)][static_cast<int>(EBugQuality::Uncommon)][1]);
@@ -744,13 +774,19 @@ void Configuration::LoadESPArraysPtr(PaliaOverlay* Overlay) {
 
     bEnableBushSm = &(Overlay->Trees[static_cast<int>(ETreeType::Bush)][static_cast<int>(EGatherableSize::Bush)]);
 
-    bEnableSapwoodSm = &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Small)]);
-    bEnableSapwoodMed = &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Medium)]);
-    bEnableSapwoodLg = &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Large)]);
+    bEnableSapwoodSm =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Small)]);
+    bEnableSapwoodMed =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Medium)]);
+    bEnableSapwoodLg =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Sapwood)][static_cast<int>(EGatherableSize::Large)]);
 
-    bEnableHeartwoodSm = &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Small)]);
-    bEnableHeartwoodMed = &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Medium)]);
-    bEnableHeartwoodLg = &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Large)]);
+    bEnableHeartwoodSm =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Small)]);
+    bEnableHeartwoodMed =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Medium)]);
+    bEnableHeartwoodLg =
+        &(Overlay->Trees[static_cast<int>(ETreeType::Heartwood)][static_cast<int>(EGatherableSize::Large)]);
 
     bEnableFlowSm = &(Overlay->Trees[static_cast<int>(ETreeType::Flow)][static_cast<int>(EGatherableSize::Small)]);
     bEnableFlowMed = &(Overlay->Trees[static_cast<int>(ETreeType::Flow)][static_cast<int>(EGatherableSize::Medium)]);
@@ -770,7 +806,7 @@ void Configuration::Save() {
         configFile << "    \"Show Watermark\": " << (bShowWatermark ? "true" : "false") << ",\n";
         configFile << "    \"Enable ESP Despawn Timer\": " << (bEnableDespawnTimer ? "true" : "false") << ",\n";
         configFile << "    \"ESP Text Scale\": " << ESPTextScale << ",\n";
-        //configFile << "    \"Limit Distance\": " << (bEnableESPCulling ? "true" : "false") << ",\n";
+        // configFile << "    \"Limit Distance\": " << (bEnableESPCulling ? "true" : "false") << ",\n";
         configFile << "    \"Distance\": " << CullDistance << ",\n";
         configFile << "    \"Enable InteliAim Circle\": " << (bDrawFOVCircle ? "true" : "false") << ",\n";
         configFile << "    \"InteliAim Radius\": " << FOVRadius << ",\n";
@@ -778,16 +814,20 @@ void Configuration::Save() {
         configFile << "    \"Enable Legacy Aimbot\": " << (bEnableAimbot ? "true" : "false") << ",\n";
         configFile << "    \"Teleport to Targeted\": " << (bTeleportToTargeted ? "true" : "false") << ",\n";
         configFile << "    \"Teleport to Waypoint\": " << (bEnableWaypointTeleport ? "true" : "false") << ",\n";
-        configFile << "    \"Avoid Teleporting To Targeted Players\": " << (bAvoidTeleportingToPlayers ? "true" : "false") << ",\n";
+        configFile << "    \"Avoid Teleporting To Targeted Players\": "
+                   << (bAvoidTeleportingToPlayers ? "true" : "false") << ",\n";
         configFile << "    \"Avoidance Radius\": " << AvoidanceRadius << ",\n";
-        configFile << "    \"Teleport Dropped Loot to Player\": " << (bEnableLootbagTeleportation ? "true" : "false") << ",\n";
+        configFile << "    \"Teleport Dropped Loot to Player\": " << (bEnableLootbagTeleportation ? "true" : "false")
+                   << ",\n";
         configFile << "    \"No Fishing Rod Durability\": " << (bFishingNoDurability ? "true" : "false") << ",\n";
-        configFile << "    \"Enable Fishing Multiplayer Help\": " << (bFishingMultiplayerHelp ? "true" : "false") << ",\n";
+        configFile << "    \"Enable Fishing Multiplayer Help\": " << (bFishingMultiplayerHelp ? "true" : "false")
+                   << ",\n";
         configFile << "    \"Enable Fishing Perfect Catch\": " << (bFishingPerfectCatch ? "true" : "false") << ",\n";
         configFile << "    \"Enable Fishing Instant Catch\": " << (bFishingInstantCatch ? "true" : "false") << ",\n";
         configFile << "    \"Enable Sell All Fish\": " << (bFishingSell ? "true" : "false") << ",\n";
         configFile << "    \"Enable Discarding Fishing Junk\": " << (bFishingDiscard ? "true" : "false") << ",\n";
-        configFile << "    \"Fishing Open Store Waterlogged\": " << (bFishingOpenStoreWaterlogged ? "true" : "false") << ",\n";
+        configFile << "    \"Fishing Open Store Waterlogged\": " << (bFishingOpenStoreWaterlogged ? "true" : "false")
+                   << ",\n";
         configFile << "    \"Require Left Click Fishing\": " << (bRequireClickFishing ? "true" : "false") << ",\n";
         configFile << "    \"Custom Walk Speed\": " << CustomWalkSpeed << ",\n";
         configFile << "    \"Custom Sprint Speed Multiplier\": " << CustomSprintSpeedMultiplier << ",\n";

@@ -1,36 +1,34 @@
 #pragma once
 #include <Windows.h>
 #include "../BaseHook.h"
-class OpenGLHook : public BaseHook
-{
+class OpenGLHook : public BaseHook {
 public:
 #define OPENGL_DLL "opengl32.dll"
 
-    using wglSwapBuffers_t = BOOL(WINAPI*)(HDC);
+  using wglSwapBuffers_t = BOOL(WINAPI *)(HDC);
 
-    virtual ~OpenGLHook();
+  virtual ~OpenGLHook();
 
-    bool StartHook();
-    static OpenGLHook* Instance();
-    virtual const char* GetLibName() const;
-    void LoadFunctions(wglSwapBuffers_t pfnwglSwapBuffers);
-
-private:
-    OpenGLHook();
-
-    void ResetRenderState();
-    void PrepareForOverlay(HDC hDC);
-
-    // Hook to render functions
-    static BOOL WINAPI MywglSwapBuffers(HDC hDC);
-
-    wglSwapBuffers_t wglSwapBuffers;
+  bool StartHook();
+  static OpenGLHook *Instance();
+  virtual const char *GetLibName() const;
+  void LoadFunctions(wglSwapBuffers_t pfnwglSwapBuffers);
 
 private:
-    static OpenGLHook* _inst;
+  OpenGLHook();
 
-    // Variables
-    bool hooked;
-    bool initialized;
+  void ResetRenderState();
+  void PrepareForOverlay(HDC hDC);
+
+  // Hook to render functions
+  static BOOL WINAPI MywglSwapBuffers(HDC hDC);
+
+  wglSwapBuffers_t wglSwapBuffers;
+
+private:
+  static OpenGLHook *_inst;
+
+  // Variables
+  bool hooked;
+  bool initialized;
 };
-
