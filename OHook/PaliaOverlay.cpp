@@ -111,7 +111,7 @@ void PaliaOverlay::DrawHUD() {
     const float prevWindowRounding = style.WindowRounding;
     style.WindowRounding = 5.0f; // Temporary change of style.
 
-    std::string watermarkText = "OriginPalia By Wimberton, Void, & The UnknownCheats Community";
+    std::string watermarkText = "OriginPalia By Wimberton & The UnknownCheats Community";
     bool showWatermark = false;
     if ((CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) || Configuration::bShowWatermark) {
         if (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown") {
@@ -202,7 +202,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.7.1 - Game Version 0.180.1");
+    const auto WindowTitle = std::string("OriginPalia V2.7.2 - Game Version 0.180.1");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {
@@ -1879,7 +1879,7 @@ void PaliaOverlay::DrawOverlay() {
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Teleport directly to your targeted entity");
 
                     ImGui::SameLine();
-                    ImGui::Text("[ hotkey: X1 Mouse Button (Back) ]");
+                    ImGui::Text("[ hotkey: X1 Mouse Button ]");
 
                     if (ImGui::Checkbox("Avoid Teleporting To Targeted Players", &Configuration::bAvoidTeleportingToPlayers)) {
                         Configuration::Save();
@@ -2230,8 +2230,8 @@ void PaliaOverlay::DrawOverlay() {
                         });
 
                     if (ImGui::ListBoxHeader("##PickableTeleportList", ImVec2(-1, 150))) {
-                        for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : CachedActors) {
-                            if (shouldAdd && (ActorType == EType::Forage || ActorType == EType::Loot)) {
+                        for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : CachedActors) {
+                            if ((ActorType == EType::Forage || ActorType == EType::Loot)) {
                                 // Enabled ESP options only
                                 if (ActorType == EType::Forage && !Forageables[Type][Quality])
                                     continue;
@@ -2245,6 +2245,37 @@ void PaliaOverlay::DrawOverlay() {
 
                                             FHitResult PickableHitResult;
                                             ValeriaCharacter->K2_SetActorLocation(PickableLocation, false, &PickableHitResult, true);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ImGui::ListBoxFooter();
+                    }
+                }
+                else {
+                    ImGui::Text("Waiting for character initialization...");
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Player List##PlayerListHeader")) {
+                if (ValeriaCharacter) {
+                    ImGui::Text("Player List. Double-click a pickable to teleport.");
+                    ImGui::Text("Players cannot display if they're more than 150m away.");
+
+                    std::ranges::sort(CachedActors, [](const FEntry& a, const FEntry& b) {
+                        return a.DisplayName < b.DisplayName;
+                    });
+
+                    if (ImGui::ListBoxHeader("##PlayerTeleportList", ImVec2(-1, 150))) {
+                        for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : CachedActors) {
+                            if (ActorType == EType::Players) {
+                                if (Actor && IsActorValid(Actor)) {
+                                    FVector PickableLocation = Actor->K2_GetActorLocation();
+
+                                    if (ImGui::Selectable(DisplayName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick)) {
+                                        if (ImGui::IsMouseDoubleClicked(0)) {
+                                            TeleportPlayer(PickableLocation);
                                         }
                                     }
                                 }
@@ -2617,8 +2648,12 @@ void PaliaOverlay::ProcessActors(int step) {
         }
     }
 
+    APlayerController* PlayerController = GetPlayerController();
+    if (!PlayerController)
+        return;
+
     for (AActor* Actor : Actors) {
-        if (!IsActorValid(Actor))
+        if (!IsActorValid(Actor) || !PlayerController->IsValidLowLevel())
             continue;
 
         auto ClassName = Actor->Class->GetName();
@@ -2749,7 +2784,10 @@ void PaliaOverlay::ProcessActors(int step) {
         if (!shouldAdd && !Configuration::bEnableOthers)
             continue;
 
+        FVector PawnLocation = PlayerController->K2_GetPawn()->K2_GetActorLocation();
+        double Distance = PawnLocation.GetDistanceTo(ActorPosition);
+
         const std::string Name = CLASS_NAME_ALIAS.contains(ClassName) ? CLASS_NAME_ALIAS[ClassName] : ClassName;
-        CachedActors.push_back({ Actor, ActorPosition, Name, ActorType, Type, Quality, Variant, shouldAdd });
+        CachedActors.push_back({ Actor, ActorPosition, Name, ActorType, Type, Quality, Variant, Distance });
     }
 }

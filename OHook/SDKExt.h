@@ -53,7 +53,7 @@ namespace SDK {
         for (int i = 0; i < WorldActors.Num(); ++i) {
             AActor* Actor = WorldActors[i];
 
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+            if (!Actor || !Actor->IsValidLowLevel()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                 continue;
 
             if (Actor->IsA(Class))
@@ -73,7 +73,7 @@ namespace SDK {
         for (int i = 0; i < WorldActors.Num(); ++i) {
             AActor* Actor = WorldActors[i];
 
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+            if (!Actor || !Actor->IsValidLowLevel()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                 continue;
 
             if (Actor->IsA(Class))
@@ -93,7 +93,7 @@ namespace SDK {
         for (int i = 0; i < WorldActors.Num(); ++i) {
             AActor* Actor = WorldActors[i];
 
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+            if (!Actor || !Actor->IsValidLowLevel() ) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                 continue;
 
             for (UClass* Class : Classes) {
@@ -118,7 +118,7 @@ namespace SDK {
         for (int i = 0; i < WorldActors.Num(); ++i) {
             AActor* Actor = WorldActors[i];
 
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+            if (!Actor || !Actor->IsValidLowLevel()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                 continue;
 
             if (Actor->IsA(Class))
@@ -139,7 +139,7 @@ namespace SDK {
         for (int i = 0; i < WorldActors.Num(); ++i) {
             AActor* Actor = WorldActors[i];
 
-            if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+            if (!Actor || !Actor->IsValidLowLevel()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                 continue;
 
             if (Actor->IsA(Class))
@@ -161,7 +161,7 @@ namespace SDK {
             for (int i = 0; i < WorldActors.Num(); ++i) {
                 AActor* Actor = WorldActors[i];
 
-                if (!Actor || !Actor->IsValidLowLevel() || Actor->IsDefaultObject()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
+                if (!Actor || !Actor->IsValidLowLevel()) // TODO: Figure out why sometimes we get 0xffffffffffffffff
                     continue;
 
                 if (Actor->IsA(Class))

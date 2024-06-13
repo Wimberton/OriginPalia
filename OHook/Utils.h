@@ -15,6 +15,7 @@
 #endif
 
 #define IsKeyHeld(key) (GetAsyncKeyState(key) & 0x8000)
+
 #define StrPrinter ::_StrPrinter()
 
 class _StrPrinter : public std::string {
@@ -151,7 +152,7 @@ SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::
 }
 
 template <size_t size_x>
-bool AnyTrue(bool (&arr)[size_x]) {
+bool AnyTrue(bool(&arr)[size_x]) {
     for (int x = 0; x < size_x; x++) {
         if (arr[x])
             return true;
@@ -160,7 +161,7 @@ bool AnyTrue(bool (&arr)[size_x]) {
 }
 
 template <size_t size_x, size_t size_y>
-bool AnyTrue2D(bool (&arr)[size_x][size_y]) {
+bool AnyTrue2D(bool(&arr)[size_x][size_y]) {
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             if (arr[x][y])
@@ -171,7 +172,7 @@ bool AnyTrue2D(bool (&arr)[size_x][size_y]) {
 }
 
 template <size_t size_x, size_t size_y, size_t size_z>
-bool AnyTrue3D(bool (&arr)[size_x][size_y][size_z]) {
+bool AnyTrue3D(bool(&arr)[size_x][size_y][size_z]) {
     for (int x = 0; x < size_x; x++) {
         for (int y = 0; y < size_y; y++) {
             for (int z = 0; z < size_z; z++) {
@@ -206,16 +207,16 @@ union FunctionPointerUnion {
     void (*ProcessEventFunction)(const UObject*, UFunction*, void*);
 };
 
-#define STATIC_CLASS(CName, SearchContainer)   \
-{                                              \
-    static class UClass* Clss = nullptr;       \
-    if (!Clss || !Clss->IsValidLowLevel())     \
-        Clss = UObject::FindClassFast(CName);  \
-    SearchContainer.push_back(Clss);           \
+#define STATIC_CLASS(CName, SearchContainer)                          \
+{                                                                     \
+    static class UClass* Clss = nullptr;                              \
+    if (!Clss || !Clss->IsValidLowLevel() || Clss->IsDefaultObject()) \
+        Clss = UObject::FindClassFast(CName);                         \
+    SearchContainer.push_back(Clss);                                  \
 }
 
 inline bool IsActorValid(const AActor* Actor) {
-    if (!Actor || Actor->IsDefaultObject() || !Actor->IsValidLowLevel() || !Actor->RootComponent->IsValidLowLevel() || Actor->IsActorBeingDestroyed()) {
+    if (!Actor || !Actor->IsValidLowLevel() || !Actor->RootComponent->IsValidLowLevel() || Actor->IsActorBeingDestroyed()) {
         return false;
     }
     return true;
@@ -251,6 +252,44 @@ inline AValeriaCharacter* GetValeriaCharacter() {
         return ValeriaController->GetValeriaCharacter();
     }
     return nullptr;
+}
+
+inline bool IsKeyUp(const int key) {
+    static bool wasKeyDown = false;
+    bool isKeyDown = GetAsyncKeyState(key) & 0x8000;
+
+    if (wasKeyDown && !isKeyDown) {
+        // Key was released
+        wasKeyDown = false; // Update the state
+        return true;
+    }
+
+    // Update the state for the next call
+    wasKeyDown = isKeyDown;
+    return false;
+}
+
+inline int teleportingFlushCounter = 0;
+inline void TeleportPlayer(FVector& Dest) {
+    const auto PlayerController = GetPlayerController();
+    if (!PlayerController)
+        return;
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
+        return;
+
+    FHitResult WaypointHitResult;
+    Dest.Z += 222.2f;
+    ValeriaCharacter->K2_SetActorLocation(Dest, false, &WaypointHitResult, true);
+    ValeriaCharacter->TeleportToLocationWithGroundCheck(Dest, ValeriaCharacter->LastGoodPersistRotation, 200.f, 200.f, false, false);
+
+    teleportingFlushCounter++;
+    if (teleportingFlushCounter >= 3) {
+        PlayerController->ClientFlushLevelStreaming();
+        PlayerController->ClientForceGarbageCollection();
+        teleportingFlushCounter = 0;
+    }
 }
 
 // Vector math utilities

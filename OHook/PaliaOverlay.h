@@ -152,7 +152,7 @@ struct FEntry {
     int Type;
     int Quality;
     int Variant;
-    bool shouldAdd;
+    double Distance;
 };
 
 enum class ETools {
@@ -260,6 +260,7 @@ public:
     // Last time ESPs were cached
     double LastCachedTime;
     int ActorStep;
+    double BestScore;
 
     AActor* BestTargetActorAnimal = nullptr;
     AActor* BestTargetActor = nullptr;

@@ -1,4 +1,7 @@
 ﻿#include "DetourManager.h"
+
+#include <algorithm>
+
 #include "PaliaOverlay.h"
 #include <SDK/Palia_parameters.hpp>
 
@@ -7,6 +10,9 @@
 #include "format"
 #include "functional"
 #include "Configuration.h"
+
+#include <sstream>
+#include <fstream>
 
 using namespace SDK;
 
@@ -47,93 +53,91 @@ void ManageActorCache(PaliaOverlay* Overlay) {
 
 // [Fun]
 
-inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay, const double BestScore) {
-    if (Configuration::bTeleportToTargeted) {
-        const auto now = std::chrono::steady_clock::now();
-        if (IsKeyHeld(VK_XBUTTON2) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
-            if (duration_cast<std::chrono::seconds>(now - Overlay->LastTeleportToTargetTime).count() >= 1) {
-                const auto ValeriaCharacter = GetValeriaCharacter();
+inline void Func_DoTeleportToTargeted(PaliaOverlay* Overlay) {
+    if (!Configuration::bTeleportToTargeted)
+        return;
 
-                if (!ValeriaCharacter)
-                    return;
+    bool isKeyUp = IsKeyUp(VK_XBUTTON2);
+    bool isScoreValid = std::abs(Overlay->BestScore - FLT_MAX) > 0.0001f;
 
-                bool shouldTeleport = true;
+    // Avoid teleporting if the Hotkey / Score is not valid
+    if (!isKeyUp || !isScoreValid)
+        return;
 
-                // Avoid teleporting to players
-                if (Configuration::bAvoidTeleportingToPlayers && Overlay->BestTargetActorType == EType::Players) {
-                    shouldTeleport = false;
-                }
+    // Avoid teleporting to players
+    if (Configuration::bAvoidTeleportingToPlayers && Overlay->BestTargetActorType == EType::Players)
+        return;
 
-                // Avoid teleporting to targeted if there are nearby players
-                if (Configuration::bDoRadiusPlayersAvoidance && shouldTeleport) {
-                    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-                        if (ActorType == EType::Players) {
-                            if (!IsActorValid(Actor) || !IsActorValid(Overlay->BestTargetActor) || WorldPosition.IsZero())
-                                continue;
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
+        return;
 
-                            // Don't count itself or us
-                            if (Actor == Overlay->BestTargetActor || Actor == ValeriaCharacter)
-                                continue;
+    // Avoid teleporting to targeted if there are nearby players
+    if (Configuration::bDoRadiusPlayersAvoidance) {
+        for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+            if (!Actor || ActorType != EType::Players)
+                continue;
 
-                            // Check for actors within X meters of this actor
-                            if (WorldPosition.GetDistanceToInMeters(Overlay->BestTargetActor->K2_GetActorLocation()) < Configuration::AvoidanceRadius) {
-                                shouldTeleport = false;
-                                break;
-                            }
-                        }
-                    }
-                }
+            if (!IsActorValid(Actor) || !IsActorValid(Overlay->BestTargetActor) || WorldPosition.IsZero())
+                continue;
 
-                // Teleportation logic
-                if (shouldTeleport) {
-                    FVector TargetLocation = Overlay->BestTargetLocation;
-                    TargetLocation.Z += 150.0f;
+            // Don't count itself or us
+            if (Actor == Overlay->BestTargetActor || Actor == ValeriaCharacter)
+                continue;
 
-                    // Apply horizontal offset for animal targets
-                    if (Overlay->BestTargetActorType == EType::Animal) {
-                        FVector RightVector = ValeriaCharacter->GetActorRightVector();
-                        TargetLocation += RightVector * 160.0f;
-                    }
-
-                    FHitResult HitResult;
-                    ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
-                    Overlay->LastTeleportToTargetTime = now;
-                }
+            // Check for actors within X meters of this actor
+            if (WorldPosition.GetDistanceToInMeters(Overlay->BestTargetLocation) < Configuration::AvoidanceRadius) {
+                return;
             }
         }
     }
+
+    // Teleportation logic
+    FVector TargetLocation = Overlay->BestTargetLocation;
+
+    // Apply horizontal offset for animal targets
+    if (Overlay->BestTargetActorType == EType::Animal || Overlay->BestTargetActorType == EType::Tree) {
+        FVector RightVector = ValeriaCharacter->GetActorRightVector();
+        TargetLocation += RightVector * 160.0f;
+    }
+
+    TeleportPlayer(TargetLocation);
+    // FHitResult HitResult;
+    // ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &HitResult, true);
 }
 
-inline void Func_DoTeleportToWaypoint(const PaliaOverlay* Overlay, const Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap* SetUserMarkerViaWorldMap) {
-    if (Configuration::bEnableWaypointTeleport) {
-        const auto ValeriaCharacter = GetValeriaCharacter();
-        if (ValeriaCharacter) {
-            FVector TargetLocation = SetUserMarkerViaWorldMap->MarkerLocation;
-            if (!TargetLocation.IsZero()) {
-                FHitResult WaypointHitResult;
-                TargetLocation.Z += 300.0f;
-                ValeriaCharacter->K2_SetActorLocation(TargetLocation, false, &WaypointHitResult, true);
-            }
-        }
+inline void Func_DoTeleportToWaypoint(const Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap* SetUserMarkerViaWorldMap) {
+    if (!Configuration::bEnableWaypointTeleport)
+        return;
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
+        return;
+
+    FVector TargetLocation = SetUserMarkerViaWorldMap->MarkerLocation;
+    if (!TargetLocation.IsZero()) {
+        TeleportPlayer(TargetLocation);
     }
 }
 
-std::chrono::steady_clock::time_point lastExecutionTime = std::chrono::steady_clock::now();
-inline void Func_DoAntiAfk(const PaliaOverlay* Overlay) {
-    if (Configuration::bEnableAntiAfk) {
-        auto currentTime = std::chrono::steady_clock::now();
-        auto elapsedTime = std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastExecutionTime);
+std::chrono::steady_clock::time_point lastAFKPing = std::chrono::steady_clock::now();
+inline void Func_DoAntiAfk() {
+    if (!Configuration::bEnableAntiAfk)
+        return;
 
-        if (elapsedTime.count() >= 1) {
-            const auto ValeriaController = GetValeriaController();
-            if (ValeriaController) {
-                ValeriaController->Client_InactivityHeartbeat();
-                ValeriaController->RpcServer_NotifyInactivityInterrupted();
+    const auto ValeriaController = GetValeriaController();
+    if (!ValeriaController)
+        return;
 
-                // Update the last execution time
-                lastExecutionTime = currentTime;
-            }
-        }
+    auto currentTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::minutes>(currentTime - lastAFKPing);
+
+    if (elapsedTime.count() >= 3) {
+        ValeriaController->Client_InactivityHeartbeat();
+        ValeriaController->RpcServer_NotifyInactivityInterrupted();
+
+        // Update the last execution time
+        lastAFKPing = currentTime;
     }
 }
 
@@ -155,23 +159,28 @@ inline void DrawCircle(UCanvas* Canvas, const float Radius, const int32 NumSegme
 }
 
 inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
-    if (!Configuration::bEnableAimbot && !Configuration::bDrawFOVCircle)
+    if (!Configuration::bDrawFOVCircle)
         return;
 
     UWorld* World = GetWorld();
-    const auto PlayerController = GetPlayerController();
-    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!World)
+        return;
 
-    if (!PlayerController || !ValeriaCharacter)
+    const auto PlayerController = GetPlayerController();
+    if (!PlayerController)
+        return;
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
         return;
 
     FVector CharacterLocation = ValeriaCharacter->K2_GetActorLocation();
     FRotator CharacterRotation = PlayerController->GetControlRotation();
     FVector ForwardVector = UKismetMathLibrary::GetForwardVector(CharacterRotation);
-    double BestScore = FLT_MAX; // Using a scoring system based on various factors such as distance, area fov, prediction
+    double BestScore = FLT_MAX;
 
-    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-        if (!IsActorValid(Actor) || WorldPosition.IsZero())
+    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+        if (!Actor || !IsActorValid(Actor) || WorldPosition.IsZero())
             continue;
 
         bool bShouldConsider = false;
@@ -190,7 +199,9 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
             bShouldConsider = Overlay->Forageables[Type][Quality]; // Toggle for forageable items
             break;
         case EType::Players:
-            bShouldConsider = Overlay->Singles[static_cast<int>(EOneOffs::Player)]; // Toggle for player visibility
+            if (!Configuration::bAvoidTeleportingToPlayers) {
+                bShouldConsider = Overlay->Singles[static_cast<int>(EOneOffs::Player)]; // Toggle for player visibility
+            }
             break;
         case EType::NPCs:
             bShouldConsider = Overlay->Singles[static_cast<int>(EOneOffs::NPC)]; // Toggle for NPCs
@@ -203,16 +214,12 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
             break;
         case EType::RummagePiles:
             if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-                if (Configuration::bEnableOthers) {
-                    bShouldConsider = true;
+                auto Pile = static_cast<ATimedLootPile*>(Actor);
+                if (!Pile || !IsActorValid(Pile))
                     break;
-                }
 
-                if (auto Pile = static_cast<ATimedLootPile*>(Actor)) {
-                    if (ValeriaCharacter && Pile->CanGather(ValeriaCharacter) && Pile->bActivated) {
-                        bShouldConsider = true;
-                        break;
-                    }
+                if (Configuration::bEnableOthers || (Pile->CanGather(ValeriaCharacter) && Pile->bActivated)) {
+                    bShouldConsider = true;
                 }
             }
             break;
@@ -239,14 +246,18 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
         FVector RelativeVelocity = TargetVelocity - ValeriaCharacter->GetVelocity();
         FVector RelativeDirection = RelativeVelocity.GetNormalized();
 
-        double Distance = CharacterLocation.GetDistanceToInMeters(ActorLocation);
+        Distance = CharacterLocation.GetDistanceToInMeters(ActorLocation);
         float Angle = CustomMath::RadiansToDegrees(acosf(static_cast<float>(ForwardVector.Dot(DirectionToActor))));
 
         if (ActorLocation.IsZero())
             continue;
 
+        // if (!(ActorType == EType::Animal || ActorType == EType::Bug) && Distance < 2.0)
+        //     continue;
+
         if (Distance < 2.0)
             continue;
+
         if (Configuration::bEnableESPCulling && Distance > Configuration::CullDistance)
             continue;
 
@@ -281,41 +292,11 @@ inline void Func_DoInteliAim(PaliaOverlay* Overlay) {
         if (double Score = AngleWeight * Angle + DistanceWeight * Distance + MovementWeight * RelativeDirection.Magnitude(); Angle <= Configuration::FOVRadius / 2.0 && Score < Overlay->SelectionThreshold) {
             if (Score < BestScore) {
                 BestScore = Score;
+                Overlay->BestScore = Score;
                 Overlay->BestTargetActor = Actor;
                 Overlay->BestTargetActorType = ActorType;
                 Overlay->BestTargetLocation = ActorLocation;
                 Overlay->BestTargetRotation = UKismetMathLibrary::FindLookAtRotation(CharacterLocation, ActorLocation);
-            }
-        }
-    }
-
-    Func_DoTeleportToTargeted(Overlay, BestScore);
-
-    // Don't aimbot while the overlay is showing
-    if (Configuration::bEnableAimbot && !Overlay->ShowOverlay()) {
-        if (IsKeyHeld(VK_LBUTTON) && std::abs(BestScore - FLT_MAX) > 0.0001f) {
-            // Only aimbot when a bow is equipped
-            if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") != std::string::npos) {
-                bool IsAnimal = false;
-                for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-                    if (shouldAdd && ActorType == EType::Animal && IsActorValid(Actor)) {
-                        if (FVector ActorLocation = Actor->K2_GetActorLocation(); ActorLocation == Overlay->BestTargetLocation) {
-                            IsAnimal = true;
-                            break;
-                        }
-                    }
-                }
-                // Adjust the aim rotation only if the selected best target is an animal
-                if (IsAnimal) {
-                    // Apply offset to pitch and yaw directly
-                    FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(CharacterLocation, Overlay->BestTargetLocation);
-                    TargetRotation.Pitch += Overlay->AimOffset.X;
-                    TargetRotation.Yaw += Overlay->AimOffset.Y;
-
-                    // Smooth rotation adjustment
-                    FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
-                    PlayerController->SetControlRotation(NewRotation);
-                }
             }
         }
     }
@@ -331,33 +312,58 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
     ClearActorCache(Overlay);
     ManageActorCache(Overlay);
 
-    AValeriaCharacter* VC = GetValeriaCharacter();
-    if (!VC)
+    AValeriaCharacter* ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
         return;
 
     APlayerController* PlayerController = GetPlayerController();
     if (!PlayerController)
         return;
 
+    auto PawnPlayer = PlayerController->K2_GetPawn();
+    if (!PawnPlayer || !IsActorValid(PawnPlayer))
+        return;
+
     FVector PawnLocation = PlayerController->K2_GetPawn()->K2_GetActorLocation();
 
+    // Calculate distance - actor
+    for (auto& Actor : Overlay->CachedActors) {
+        if (!Actor.Actor || !IsActorValid(Actor.Actor))
+            continue;
+
+        FVector ActorLocation = Actor.WorldPosition.IsZero() ? Actor.Actor->K2_GetActorLocation() : Actor.WorldPosition;
+        Actor.Distance = PawnLocation.GetDistanceTo(ActorLocation);
+    }
+
+    // Sort actors based on distance - prioritizing BestTargetActor
+    std::ranges::sort(Overlay->CachedActors, [&](const auto& a, const auto& b) {
+        if (a.Actor == Overlay->BestTargetActor)
+            return false;
+        if (b.Actor == Overlay->BestTargetActor)
+            return true;
+
+        return a.Distance > b.Distance;
+        });
+
     // Draw ESP Names Entities
-    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, shouldAdd] : Overlay->CachedActors) {
-        FVector ActorLocation = WorldPosition;
-        if (ActorType == EType::Animal || ActorType == EType::Bug || ActorType == EType::Players || ActorType == EType::Loot) {
-            if (!IsActorValid(Actor))
-                continue;
-            if (ActorLocation = Actor->K2_GetActorLocation(); ActorLocation.IsZero())
-                continue;
-            if (Actor == VC)
+    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+        if (!Actor || !IsActorValid(Actor) || WorldPosition.IsZero())
+            continue;
+
+        if (ActorType == EType::Players) {
+            if (Actor == ValeriaCharacter)
                 continue;
         }
+
+        FVector ActorLocation = WorldPosition;
+        if (ActorLocation = Actor->K2_GetActorLocation(); ActorLocation.IsZero())
+            continue;
 
         // Adjust Z coordinate for head-level display
         float HeightAdjustment = 100.0f; // Adjust this value based on typical actor height
         ActorLocation.Z += HeightAdjustment;
 
-        double Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
+        Distance = PawnLocation.GetDistanceToInMeters(ActorLocation);
 
         if (Distance < 2.0)
             continue;
@@ -378,9 +384,9 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::Ore:
                 if (Overlay->Ores[Type][Variant]) {
-                    if (auto Ore = static_cast<ABP_ValeriaGatherableLoot_C*>(Actor)) {
-                        Color = Overlay->OreColors[Type];
-                        if (Ore->IAmAlive) { //Show Ore only if it has not been gathered by localPlayer
+                    auto Ore = static_cast<ABP_ValeriaGatherableLoot_C*>(Actor);
+                    if (Ore && IsActorValid(Ore)) {
+                        if (Ore->IAmAlive) {
                             bShouldDraw = true;
                             Color = Overlay->OreColors[Type];
                         }
@@ -431,16 +437,19 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
                 break;
             case EType::RummagePiles:
                 if (Overlay->Singles[static_cast<int>(EOneOffs::RummagePiles)]) {
-                    if (auto Pile = static_cast<ATimedLootPile*>(Actor)) {
-                        const auto ValeriaCharacter = GetValeriaCharacter();
-                        if (ValeriaCharacter && Pile->CanGather(ValeriaCharacter) && Pile->bActivated) {
-                            bShouldDraw = true;
-                            Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
-                        }
-                        else if (Configuration::bEnableOthers) {
-                            bShouldDraw = true;
-                            Color = Pile->bActivated ? IM_COL32(0xFF, 0xFF, 0xFF, 0xFF) : IM_COL32(0xFF, 0x00, 0x00, 0xFF);
-                        }
+                    auto Pile = static_cast<ATimedLootPile*>(Actor);
+                    if (!Pile || !IsActorValid(Pile)) {
+                        bShouldDraw = false;
+                        break;
+                    }
+
+                    if (Configuration::bEnableOthers) {
+                        bShouldDraw = true;
+                        Color = Pile->bActivated ? IM_COL32(0xFF, 0xFF, 0xFF, 0xFF) : IM_COL32(0xFF, 0x00, 0x00, 0xFF);
+                    }
+                    else if (Pile->CanGather(ValeriaCharacter) && Pile->bActivated) {
+                        bShouldDraw = true;
+                        Color = Overlay->SingleColors[static_cast<int>(EOneOffs::RummagePiles)];
                     }
                 }
                 break;
@@ -483,33 +492,28 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             }
             text += std::format(" [{:.2f}m]", Distance);
 
-			std::string despawnText = "";
-			if (ActorType == EType::Ore && shouldAdd) {
-				if (auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor); IsActorValid(GatherableLoot)) {
-                    if (!GatherableLoot || !GatherableLoot->IsValidLowLevel()) continue;
+            if (Configuration::bEnableDespawnTimer) {
+                double seconds = 0;
 
-					double seconds = 0;
-
-					GatherableLoot->GetSecondsUntilDespawn(&seconds);
-
-					if (seconds > 0)
-						despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
+                if (ActorType == EType::Ore) {
+                    auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
+                    if (GatherableLoot && IsActorValid(GatherableLoot)) {
+                        GatherableLoot->GetSecondsUntilDespawn(&seconds);
+                    }
                 }
-			}
+                else if (ActorType == EType::Forage) {
+                    auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
+                    if (ForageableLoot && IsActorValid(ForageableLoot)) {
+                        seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
+                    }
+                }
 
-			else if (ActorType == EType::Forage && shouldAdd) {
-				if (auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor); IsActorValid(ForageableLoot)) {
-                    if (!ForageableLoot || !ForageableLoot->IsValidLowLevel()) continue;
-					float seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
-
-					if (seconds > 0)
-						despawnText += "Despawning in " + std::to_string(static_cast<int>(seconds)) + "s";
-				}
-			}
-
+                if (seconds > 0) {
+                    text += " (" + std::to_string(static_cast<int>(seconds)) + "s)";
+                }
+            }
 
             std::wstring wideText(text.begin(), text.end());
-            std::wstring wideDespawnText(despawnText.begin(), despawnText.end());
 
             double BaseScale = 1.0; // Default scale at a reference distance
             double ReferenceDistance = 100.0; // Distance at which no scaling is applied
@@ -531,21 +535,10 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             FVector2D TextPosition = ScreenLocation;
             FVector2D ShadowPosition = { TextPosition.X + 1.0, TextPosition.Y + 1.0 };
 
-            // Despawn text positions
-            FVector2D DespawnTextPosition = { TextPosition.X, TextPosition.Y + 13 };
-            FVector2D DespawnShadowPosition = { DespawnTextPosition.X + 1.0, DespawnTextPosition.Y + 1.0 };
-
             // Draw shadow text
             HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), ShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
             // Draw main text
             HUD->Canvas->K2_DrawText(Roboto, FString(wideText.data()), TextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
-
-            if (Configuration::bEnableDespawnTimer) {
-                // Draw despawn shadow text
-                HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnShadowPosition, TextScale, TextColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
-                // Draw despawn main text
-                HUD->Canvas->K2_DrawText(Roboto, FString(wideDespawnText.data()), DespawnTextPosition, TextScale, ShadowColor, 0, { 0, 0, 0, 1 }, { 1.0f, 1.0f }, true, true, true, { 0, 0, 0, 1 });
-            }
         }
     }
 
@@ -582,7 +575,7 @@ inline void Func_DoNoClip(PaliaOverlay* Overlay) {
         return;
 
     UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-    if (!ValeriaMovementComponent || ValeriaMovementComponent->IsDefaultObject() || !ValeriaMovementComponent->IsValidLowLevel())
+    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
         return;
 
     if (Overlay->bEnableNoclip != Overlay->bPreviousNoclipState) {
@@ -664,7 +657,7 @@ inline void Func_DoPersistentMovement(const PaliaOverlay* Overlay) {
         return;
 
     UValeriaCharacterMoveComponent* ValeriaMovementComponent = ValeriaCharacter->GetValeriaCharacterMovementComponent();
-    if (!ValeriaMovementComponent)
+    if (!ValeriaMovementComponent || !ValeriaMovementComponent->IsValidLowLevel() || ValeriaMovementComponent->IsDefaultObject())
         return;
 
     ValeriaMovementComponent->MaxWalkSpeed = Configuration::CustomWalkSpeed;
@@ -687,10 +680,11 @@ inline void Func_DoPlaceAnywhere(const PaliaOverlay* Overlay) {
         return;
 
     UPlacementComponent* PlacementComponent = ValeriaCharacter->GetPlacement();
-    if (PlacementComponent) {
-        PlacementComponent->CanPlaceHere = true;
-        PlacementComponent->MaxPlacementUpAngle = Configuration::fMaxUpAngle;
-    }
+    if (!PlacementComponent || !PlacementComponent->IsValidLowLevel() || PlacementComponent->IsDefaultObject())
+        return;
+
+    PlacementComponent->CanPlaceHere = true;
+    PlacementComponent->MaxPlacementUpAngle = Configuration::fMaxUpAngle;
 }
 
 // [Fishing]
@@ -700,8 +694,9 @@ inline void ToggleFishingDelays(const bool RemoveDelays) {
     if (!ValeriaController) {
         return;
     }
+
     UValeriaGameInstance* ValeriaGameInstance = ValeriaController->GameInst;
-    if (!ValeriaGameInstance || ValeriaGameInstance->IsDefaultObject() || !ValeriaGameInstance->IsValidLowLevel() ) {
+    if (!ValeriaGameInstance || !ValeriaGameInstance->IsValidLowLevel() || ValeriaGameInstance->IsDefaultObject()) {
         return;
     }
 
@@ -746,7 +741,7 @@ inline void Func_DoFastAutoFishing(const PaliaOverlay* Overlay) {
         return;
     }
 
-    if (Configuration::bRequireClickFishing ? (!Overlay->ShowOverlay() && IsGameWindowActive() && IsKeyHeld(VK_LBUTTON)) : true) {
+    if (Configuration::bRequireClickFishing ? !Overlay->ShowOverlay() && IsGameWindowActive() && IsKeyHeld(VK_LBUTTON) : true) {
         // Instant Catch
         auto FishingComponent = ValeriaCharacter->GetFishing();
         if (FishingComponent) {
@@ -763,7 +758,7 @@ inline void Func_DoFastAutoFishing(const PaliaOverlay* Overlay) {
     }
 }
 
-inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
+inline void Func_DoInstantCatch() {
     if (!Configuration::bFishingInstantCatch)
         return;
 
@@ -781,8 +776,10 @@ inline void Func_DoInstantCatch(const PaliaOverlay* Overlay) {
         FishingComponent->SetFishingState(EFishingState_OLD::None);
     }
 }
+
 int fishingFlushCounter = 0;
-inline void Func_DoFishingCleanup(const PaliaOverlay* Overlay) {
+
+inline void Func_DoFishingCleanup() {
     const auto ValeriaController = GetValeriaController();
     const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaController || !ValeriaCharacter) {
@@ -832,6 +829,7 @@ inline void Func_DoFishingCleanup(const PaliaOverlay* Overlay) {
             }
         }
     }
+
     fishingFlushCounter++;
     if (fishingFlushCounter >= 30) {
         if (APlayerController* PlayerController = GetPlayerController()) {
@@ -875,62 +873,120 @@ Params::FishingComponent_RpcServer_EndFishing* EndFishingDetoured(const PaliaOve
 // [Firing]
 
 inline void Func_DoSilentAim(const PaliaOverlay* Overlay, void* Params) {
-    auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
-    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!Configuration::bEnableSilentAimbot || !Overlay->BestTargetActor)
+        return;
 
+    const auto ValeriaCharacter = GetValeriaCharacter();
     if (!ValeriaCharacter)
         return;
 
     auto FiringComponent = ValeriaCharacter->GetFiringComponent();
-    if (!FiringComponent)
+    if (!FiringComponent || !FiringComponent->IsValidLowLevel() || FiringComponent->IsDefaultObject())
         return;
 
-    if (Configuration::bEnableSilentAimbot) {
-        // Initial Target Check
-        if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
-            return;
+    auto FireProjectile = static_cast<Params::ProjectileFiringComponent_RpcServer_FireProjectile*>(Params);
 
-        FVector TargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
-        FVector HitLocation = TargetLocation;
+    // Initial Target Check
+    if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
+        return;
 
-        for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
-            if (ProjectileId == FireProjectile->ProjectileId) {
+    AActor* TargetActor = Overlay->BestTargetActor;
+    FVector TargetLocation = TargetActor->K2_GetActorLocation();
+    FVector HitLocation = TargetLocation;
 
-                // Projectile Check
-                if (!ProjectileActor || !IsActorValid(ProjectileActor))
-                    continue;
+    for (auto& [ProjectileId, Pad_22C8, ProjectileActor, HasHit, Pad_22C9] : FiringComponent->FiredProjectiles) {
+        // Projectile Check
+        if (!ProjectileActor || !IsActorValid(ProjectileActor))
+            continue;
 
-                FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
+        if (ProjectileId != FireProjectile->ProjectileId)
+            continue;
 
-                // Checks Before FiringTargetLocation
-                if (!Overlay->BestTargetActor || !IsActorValid(Overlay->BestTargetActor))
-                    continue;
 
-                FVector FiringTargetLocation = Overlay->BestTargetActor->K2_GetActorLocation();
+        FVector ProjectileLocation = ProjectileActor->K2_GetActorLocation();
 
-                FVector DirectionToTarget = (FiringTargetLocation - ProjectileLocation).GetNormalized();
-                float DistanceBeforeTarget = 50.0f;
-                FVector NewProjectileLocation = FiringTargetLocation - (DirectionToTarget * DistanceBeforeTarget);
+        // Extra check ~ just in case
+        if (!IsActorValid(TargetActor))
+            continue;
 
-                HasHit = true;
-                FHitResult HitResult;
-                ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
-                HitResult.Location = { NewProjectileLocation };
-
-                FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
-            }
-        }
+        FVector FiringTargetLocation = TargetActor->K2_GetActorLocation();
+        FVector DirectionToTarget = (FiringTargetLocation - ProjectileLocation).GetNormalized();
+        float DistanceBeforeTarget = 50.0f;
+        FVector NewProjectileLocation = FiringTargetLocation - (DirectionToTarget * DistanceBeforeTarget);
+        HasHit = true;
+        FHitResult HitResult;
+        ProjectileActor->K2_SetActorLocation(NewProjectileLocation, false, &HitResult, false);
+        HitResult.Location = { NewProjectileLocation };
+        FiringComponent->RpcServer_NotifyProjectileHit(FireProjectile->ProjectileId, Overlay->BestTargetActor, HitLocation);
     }
 }
 
-inline void Func_DoCompleteMinigame(const PaliaOverlay* Overlay) {
-    if (!Configuration::bEnableMinigameSkip) return;
+inline void Func_DoLegacyAim(const PaliaOverlay* Overlay) {
+    if (!Configuration::bEnableAimbot || !Overlay->BestTargetActor || Overlay->ShowOverlay())
+        return;
+
+    bool isKeyHeld = IsKeyHeld(VK_LBUTTON);
+    bool isScoreValid = std::abs(Overlay->BestScore - FLT_MAX) > 0.0001f;
+
+    // Avoid teleporting if the Hotkey / Score is not valid
+    if (!isKeyHeld || !isScoreValid)
+        return;
 
     const auto ValeriaCharacter = GetValeriaCharacter();
-    if (!ValeriaCharacter) return;
+    if (!ValeriaCharacter)
+        return;
+
+    // Only aimbot when a bow is equipped
+    if (ValeriaCharacter->GetEquippedItem().ItemType->Name.ToString().find("Tool_Bow_") == std::string::npos)
+        return;
+
+    bool IsAnimal = false;
+    for (auto& [Actor, WorldPosition, DisplayName, ActorType, Type, Quality, Variant, Distance] : Overlay->CachedActors) {
+        if (ActorType != EType::Animal || !IsActorValid(Actor))
+            continue;
+
+        if (Actor == Overlay->BestTargetActor) {
+            IsAnimal = true;
+            break;
+        }
+    }
+
+    if (IsAnimal) {
+        auto World = GetWorld();
+        if (!World)
+            return;
+
+        const auto PlayerController = GetPlayerController();
+        if (!PlayerController)
+            return;
+
+        FVector CharacterLocation = ValeriaCharacter->K2_GetActorLocation();
+        FRotator CharacterRotation = PlayerController->GetControlRotation();
+
+        // Apply offset to pitch and yaw directly
+        FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(CharacterLocation, Overlay->BestTargetLocation);
+        TargetRotation.Pitch += Overlay->AimOffset.X;
+        TargetRotation.Yaw += Overlay->AimOffset.Y;
+
+        // Smooth rotation adjustment
+        FRotator NewRotation = CustomMath::RInterpTo(CharacterRotation, TargetRotation, UGameplayStatics::GetTimeSeconds(World), Overlay->SmoothingFactor);
+        PlayerController->SetControlRotation(NewRotation);
+    }
+}
+
+// [Minigames]
+
+inline void Func_DoCompleteMinigame() {
+    if (!Configuration::bEnableMinigameSkip)
+        return;
+
+    const auto ValeriaCharacter = GetValeriaCharacter();
+    if (!ValeriaCharacter)
+        return;
 
     const auto MinigameComponent = ValeriaCharacter->MinigameQTE;
-    if (!MinigameComponent) return;
+    if (!MinigameComponent || !MinigameComponent->IsValidLowLevel() || MinigameComponent->IsDefaultObject())
+        return;
 
     if (MinigameComponent->IsPlaying()) {
         MinigameComponent->RpcServer_ChangeState(EMinigameState::Success);
@@ -949,14 +1005,16 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
         Func_DoFastAutoFishing(Overlay);
         Func_DoPersistentMovement(Overlay);
         Func_DoNoClip(Overlay);
-        Func_DoAntiAfk(Overlay);
+        Func_DoAntiAfk();
     }
     // HUD
     else if (fn == "Function Engine.HUD.ReceiveDrawHUD") {
         Func_DoESP(Overlay, reinterpret_cast<const AHUD*>(Class));
         Func_DoInteliAim(Overlay);
+        Func_DoLegacyAim(Overlay);
+        Func_DoTeleportToTargeted(Overlay);
         Func_DoPlaceAnywhere(Overlay);
-        Func_DoCompleteMinigame(Overlay);
+        Func_DoCompleteMinigame();
     }
     // Fishing Capture/Override
     else if (fn == "Function Palia.FishingComponent.RpcServer_SelectLoot") {
@@ -964,7 +1022,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // Fishing Instant Catch
     else if (fn == "Function Palia.FishingComponent.RpcClient_StartFishingAt_Deprecated") {
-        Func_DoInstantCatch(Overlay);
+        Func_DoInstantCatch();
     }
     // Fishing End (Perfect/Durability/PlayerHelp)
     else if (fn == "Function Palia.FishingComponent.RpcServer_EndFishing") {
@@ -972,11 +1030,11 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // Fishing Cleanup (Sell/Discard/Move)
     else if (fn == "Function Palia.FishingComponent.RpcClient_FishCaught") {
-        Func_DoFishingCleanup(Overlay);
+        Func_DoFishingCleanup();
     }
     // Teleport To Waypoint
     else if (fn == "Function Palia.TrackingComponent.RpcClient_SetUserMarkerViaWorldMap") {
-        Func_DoTeleportToWaypoint(Overlay, static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params));
+        Func_DoTeleportToWaypoint(static_cast<Params::TrackingComponent_RpcClient_SetUserMarkerViaWorldMap*>(Params));
     }
     // Silent Aim
     else if (fn == "Function Palia.ProjectileFiringComponent.RpcServer_FireProjectile") {
@@ -984,13 +1042,7 @@ void DetourManager::ProcessEventDetour(const UObject* Class, const UFunction* Fu
     }
     // ??
     else if (fn == "Function Palia.ValeriaClientPriMovementComponent.RpcServer_SendMovement") {
-        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = {0, 0, 0};
-    }
-    else if (fn == "Function Engine.WorldPartitionBlueprintLibrary.UnloadActors") {
-        ClearActorCache(Overlay);
-    }
-    else if (fn == "Function Engine.WorldPartitionBlueprintLibrary.LoadActors") {
-        ManageActorCache(Overlay);
+        static_cast<Params::ValeriaClientPriMovementComponent_RpcServer_SendMovement*>(Params)->MoveInfo.TargetVelocity = { 0, 0, 0 };
     }
 
     if (OriginalProcessEvent) {
