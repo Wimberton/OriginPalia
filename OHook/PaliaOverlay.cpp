@@ -111,7 +111,7 @@ void PaliaOverlay::DrawHUD() {
     const float prevWindowRounding = style.WindowRounding;
     style.WindowRounding = 5.0f; // Temporary change of style.
 
-    std::string watermarkText = "OriginPalia By Wimberton & The UnknownCheats Community";
+    std::string watermarkText = "OriginPalia - discord.gg/OriginSoftware - Game V0.180.1";
     bool showWatermark = false;
     if ((CurrentLevel && (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown")) || Configuration::bShowWatermark) {
         if (CurrentMap == "MAP_PreGame" || CurrentMap == "Unknown") {
@@ -202,7 +202,7 @@ void PaliaOverlay::DrawOverlay() {
     ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowBgAlpha(0.98f);
 
-    const auto WindowTitle = std::string("OriginPalia V2.7.2 - Game Version 0.180.1");
+    const auto WindowTitle = std::string("OriginPalia V2.7.2");
     PaliaOverlay* Overlay = static_cast<PaliaOverlay*>(OverlayBase::Instance);
 
     if (ImGui::Begin(WindowTitle.data(), &show, window_flags)) {

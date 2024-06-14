@@ -495,21 +495,24 @@ inline void Func_DoESP(PaliaOverlay* Overlay, const AHUD* HUD) {
             if (Configuration::bEnableDespawnTimer) {
                 double seconds = 0;
 
-                if (ActorType == EType::Ore) {
-                    auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
-                    if (GatherableLoot && IsActorValid(GatherableLoot)) {
-                        GatherableLoot->GetSecondsUntilDespawn(&seconds);
+                if (Actor) {
+                    if (ActorType == EType::Ore) {
+                        auto GatherableLoot = static_cast<ABP_ValeriaGatherableLoot_Mining_MultiHarvest_C*>(Actor);
+                        if (GatherableLoot && IsActorValid(GatherableLoot)) {
+                            GatherableLoot->GetSecondsUntilDespawn(&seconds);
+                        }
                     }
-                }
-                else if (ActorType == EType::Forage) {
-                    auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
-                    if (ForageableLoot && IsActorValid(ForageableLoot)) {
-                        seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
+                    else if (ActorType == EType::Forage) {
+                        auto ForageableLoot = static_cast<ABP_ValeriaGatherable_C*>(Actor);
+                        if (ForageableLoot && IsActorValid(ForageableLoot)) {
+                            if (ForageableLoot->Gatherable) {
+                                seconds = ForageableLoot->Gatherable->GetSecondsUntilDespawn();
+                            }
+                        }
                     }
-                }
-
-                if (seconds > 0) {
-                    text += " (" + std::to_string(static_cast<int>(seconds)) + "s)";
+                    if (seconds > 0) {
+                        text += " (" + std::to_string(static_cast<int>(seconds)) + "s)";
+                    }
                 }
             }
 
