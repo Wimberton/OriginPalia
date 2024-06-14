@@ -1349,15 +1349,15 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::TableNextColumn();
                     ImGui::Text("Bahari Glowbug");
                     ImGui::TableNextColumn();
-                    if (ImGui::Checkbox("##GlowbugU", &Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)][0])) {
+                    if (ImGui::Checkbox("##GlowbugR", &Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Rare)][0])) {
                         Configuration::Save();
                     }
                     ImGui::TableNextColumn();
-                    if (ImGui::Checkbox("##GlowbugUP", &Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)][1])) {
+                    if (ImGui::Checkbox("##GlowbugRP", &Bugs[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Rare)][1])) {
                         Configuration::Save();
                     }
                     ImGui::TableNextColumn();
-                    ImGui::ColorPicker("##GlowbugU", &BugColors[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Uncommon)]);
+                    ImGui::ColorPicker("##GlowbugR", &BugColors[static_cast<int>(EBugKind::Glowbug)][static_cast<int>(EBugQuality::Rare)]);
                     ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                     ImGui::TableNextColumn();
                     ImGui::Text("Ladybug");
@@ -1371,19 +1371,6 @@ void PaliaOverlay::DrawOverlay() {
                     ImGui::TableNextColumn();
                     ImGui::Text("Garden Ladybug");
                     ImGui::TableNextColumn();
-                    if (ImGui::Checkbox("##LadybugC", &Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Common)][0])) {
-                        Configuration::Save();
-                    }
-                    ImGui::TableNextColumn();
-                    if (ImGui::Checkbox("##LadybugCP", &Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Common)][1])) {
-                        Configuration::Save();
-                    }
-                    ImGui::TableNextColumn();
-                    ImGui::ColorPicker("##LadybugC", &BugColors[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Common)]);
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    ImGui::Text("Princess Ladybug");
-                    ImGui::TableNextColumn();
                     if (ImGui::Checkbox("##LadybugU", &Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Uncommon)][0])) {
                         Configuration::Save();
                     }
@@ -1393,6 +1380,19 @@ void PaliaOverlay::DrawOverlay() {
                     }
                     ImGui::TableNextColumn();
                     ImGui::ColorPicker("##LadybugU", &BugColors[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Uncommon)]);
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("Princess Ladybug");
+                    ImGui::TableNextColumn();
+                    if (ImGui::Checkbox("##LadybugR", &Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Rare)][0])) {
+                        Configuration::Save();
+                    }
+                    ImGui::TableNextColumn();
+                    if (ImGui::Checkbox("##LadybugRP", &Bugs[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Rare)][1])) {
+                        Configuration::Save();
+                    }
+                    ImGui::TableNextColumn();
+                    ImGui::ColorPicker("##LadybugR", &BugColors[static_cast<int>(EBugKind::Ladybug)][static_cast<int>(EBugQuality::Rare)]);
                     ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                     ImGui::TableNextColumn();
                     ImGui::Text("Mantis");
