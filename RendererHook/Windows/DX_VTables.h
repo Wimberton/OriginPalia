@@ -2,8 +2,7 @@
 
 #include <DXGI.h>
 
-enum class IDXGISwapChainVTable
-{
+enum class IDXGISwapChainVTable {
     // IUnknown
     QueryInterface,
     AddRef,
@@ -44,8 +43,7 @@ enum class IDXGISwapChainVTable
     GetRotation,
 };
 
-enum class ID3D12CommandQueueVTable
-{
+enum class ID3D12CommandQueueVTable {
     // IUnknown
     QueryInterface,
     AddRef,
@@ -76,8 +74,7 @@ enum class ID3D12CommandQueueVTable
     GetDesc,
 };
 
-enum class ID3D12GraphicsCommandListVTable
-{
+enum class ID3D12GraphicsCommandListVTable {
     // IUnknown
     QueryInterface,
     AddRef,
@@ -149,8 +146,7 @@ enum class ID3D12GraphicsCommandListVTable
     ExecuteIndirect,
 };
 
-enum class ID3D11DeviceVTable
-{
+enum class ID3D11DeviceVTable {
     // IUnknown
     QueryInterface,
     AddRef,
@@ -199,8 +195,7 @@ enum class ID3D11DeviceVTable
     GetExceptionMode,
 };
 
-enum class ID3D10DeviceVTable
-{
+enum class ID3D10DeviceVTable {
     // IUnknown
     QueryInterface,
     AddRef,
@@ -304,8 +299,7 @@ enum class ID3D10DeviceVTable
     GetTextFilterSize,
 };
 
-enum class IDirect3DDevice9VTable
-{
+enum class IDirect3DDevice9VTable {
     // IUnknown
     QueryInterface,
     AddRef,
