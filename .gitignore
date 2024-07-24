@@ -12,6 +12,7 @@ PaliaSDK/NameCollisions.inl
 PaliaSDK/PropertyFixup.hpp
 PaliaSDK/SDK.hpp
 PaliaSDK/UnrealContainers.hpp
+PaliaSDK/UnrealContainers.cpp
 PaliaSDK/SDK/*
 out/
 build/
