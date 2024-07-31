@@ -104,13 +104,6 @@ Thanks to [VoidPollo](https://github.com/VoidPollo), [Rambolo](https://github.co
 You will need to dump the SDK of the game yourself for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
 More information can be found in the [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK).
 
-## Dependencies (included)
-- ImGUI
-- GLEW
-- Detours
-
-All OriginPalia features are listed in the UnknownCheats thread below. We keep this list up-to-date. [View features](https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html)
-
 <img align="center" src="https://i.gyazo.com/3a89405c73b7c5b1eed730ad8cc95e47.png" width="auto" height="auto">
 
 | [![Video 1](https://img.youtube.com/vi/5OQ5uGaM0kE/0.jpg)](https://www.youtube.com/watch?v=5OQ5uGaM0kE) | [![Video 2](https://img.youtube.com/vi/ALkbSGdtE4k/0.jpg)](https://www.youtube.com/watch?v=ALkbSGdtE4k) |
