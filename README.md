@@ -36,9 +36,19 @@ More information can be found in the [PaliaSDK README](https://github.com/Wimber
 
 All OriginPalia features are listed in the UnknownCheats thread below. We keep this list up-to-date. [View features](https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html)
 
-<img align="center" src="https://i.gyazo.com/5054c7286fd254ebd39a52f196b05a20.png" width="auto" height="auto">
+<img align="center" src="https://i.gyazo.com/3a89405c73b7c5b1eed730ad8cc95e47.png" width="auto" height="auto">
 
-<p align="center">
-  <img src="https://i.gyazo.com/c8ae73a455e9047cf11b14996c345249.jpg" width="350" title="OriginPalia ESP Example">
-  <img src="https://i.gyazo.com/6ee8348d80d3d3260de686bef860e4f7.gif" width="350" alt="OriginPalia Menu Example">
-</p>
+<div style="display: flex; flex-wrap: wrap; justify-content: center;">
+  <div style="margin: 10px;">
+    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=5OQ5uGaM0kE" frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div style="margin: 10px;">
+    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=ALkbSGdtE4k" frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div style="margin: 10px;">
+    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=WECXNUJx1ME" frameborder="0" allowfullscreen></iframe>
+  </div>
+  <div style="margin: 10px;">
+    <iframe width="350" height="197" src="https://youtu.be/vso_yAm8RCE" frameborder="0" allowfullscreen></iframe>
+  </div>
+</div>
