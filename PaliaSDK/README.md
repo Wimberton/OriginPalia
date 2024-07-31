@@ -5,7 +5,7 @@ Simply place the SDK folder and files into this folder, build, and enjoy!
 Void from the OriginSoftware community has released a Dumper DLL to use for easy dumping!
 If you'd like to use this edition, please download Dumper 7 from the link below
 
-🖥️ [Download Dumper 7 - OriginSoftware (Void Edition)](https://github.com/Wimberton/OriginPalia/raw/main/PaliaSDK/Dumper7_Origin.dll)
+🖥️ [Download Dumper 7](https://github.com/Wimberton/OriginPalia/blob/main/PaliaSDK/Dumper7_V3.dll)
 
 ## Step 1. Dump Palia
 Dump the PaliaClient by injecting this DLL into the game when in the character-selection screen
