@@ -38,17 +38,8 @@ All OriginPalia features are listed in the UnknownCheats thread below. We keep t
 
 <img align="center" src="https://i.gyazo.com/3a89405c73b7c5b1eed730ad8cc95e47.png" width="auto" height="auto">
 
-<div style="display: flex; flex-wrap: wrap; justify-content: center;">
-  <div style="margin: 10px;">
-    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=5OQ5uGaM0kE" frameborder="0" allowfullscreen></iframe>
-  </div>
-  <div style="margin: 10px;">
-    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=ALkbSGdtE4k" frameborder="0" allowfullscreen></iframe>
-  </div>
-  <div style="margin: 10px;">
-    <iframe width="350" height="197" src="https://www.youtube.com/watch?v=WECXNUJx1ME" frameborder="0" allowfullscreen></iframe>
-  </div>
-  <div style="margin: 10px;">
-    <iframe width="350" height="197" src="https://youtu.be/vso_yAm8RCE" frameborder="0" allowfullscreen></iframe>
-  </div>
-</div>
+| [![Video 1](https://img.youtube.com/vi/5OQ5uGaM0kE/0.jpg)](https://www.youtube.com/watch?v=5OQ5uGaM0kE) | [![Video 2](https://img.youtube.com/vi/ALkbSGdtE4k/0.jpg)](https://www.youtube.com/watch?v=ALkbSGdtE4k) |
+|:------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
+| [Video Title 1](https://www.youtube.com/watch?v=5OQ5uGaM0kE)                                          | [Video Title 2](https://www.youtube.com/watch?v=ALkbSGdtE4k)                                          |
+| [![Video 3](https://img.youtube.com/vi/WECXNUJx1ME/0.jpg)](https://www.youtube.com/watch?v=WECXNUJx1ME) | [![Video 4](https://img.youtube.com/vi/vso_yAm8RCE/0.jpg)](https://www.youtube.com/watch?v=vso_yAm8RCE) |
+| [Video Title 3](https://www.youtube.com/watch?v=WECXNUJx1ME)                                          | [Video Title 4](https://www.youtube.com/watch?v=vso_yAm8RCE)                                          |
