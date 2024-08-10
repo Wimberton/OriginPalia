@@ -13,6 +13,11 @@
 
 Thanks to [VoidPollo](https://github.com/VoidPollo), [Rambolo](https://github.com/Rambolo), and [enigmaquip](https://github.com/enigmaquip) for the continued work, restructuring, and maintenance! Couldn't do this without them!
 
+<img align="center" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
+
+You will need to dump the SDK of the game yourself for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
+More information can be found in the [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK).
+
 ## Compatibility
 - Standalone Client Support
 - Steam Palia Support
@@ -94,11 +99,6 @@ Thanks to [VoidPollo](https://github.com/VoidPollo), [Rambolo](https://github.co
 
 ## Housing Features
 - **Place Housing Objects Anywhere**: Decorate your house any way you'd like.
-
-<img align="center" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
-
-You will need to dump the SDK of the game yourself for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
-More information can be found in the [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK).
 
 <img align="center" src="https://i.gyazo.com/3a89405c73b7c5b1eed730ad8cc95e47.png" width="auto" height="auto">
 
