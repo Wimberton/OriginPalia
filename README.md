@@ -1,9 +1,8 @@
 # OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="32" height="32"></a>
-<img align="center" src="https://i.gyazo.com/5254871e345d926e03be4757590b6eac.png" width="auto" height="auto">
 
 A multi-purpose tool for Palia, written in C++. Open source for non-commercial usage, looking for contributors.
 
-<img align="center" src="https://i.gyazo.com/8e5ef36981ca158fb7fd52c29db50b39.png" width="auto" height="auto">
+<img align="center" src="https://i.imgur.com/d10S9Aa.jpg" width="auto" height="auto">
 
 ## Quick Links
 - ♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
