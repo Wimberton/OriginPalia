@@ -7,9 +7,9 @@
 ## Quick Links
 - ♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
 - ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
-- ♥ [Changelogs](https://github.com/Wimberton/OriginPalia/wiki/Changelogs-%E2%80%90-DLL)
-- ♥ [Wiki](https://github.com/Wimberton/OriginPalia/wiki)
-- ♥ [Discord Server](https://discord.gg/originsoftware)
+- ♥ [Read All Changes](https://github.com/Wimberton/OriginPalia/wiki/Changelogs-%E2%80%90-DLL)
+- ♥ [View Our Wiki](https://github.com/Wimberton/OriginPalia/wiki)
+- ♥ [Join Discord Server](https://discord.gg/originsoftware)
 
 Thanks to [VoidPollo](https://github.com/VoidPollo), [Rambolo](https://github.com/Rambolo), and [enigmaquip](https://github.com/enigmaquip) for the continued work, restructuring, and maintenance! Couldn't do this without them!
 
