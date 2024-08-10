@@ -3,6 +3,8 @@
 
 A multi-purpose tool for Palia, written in C++. Open source for non-commercial usage, looking for contributors.
 
+<img align="center" src="https://i.gyazo.com/8e5ef36981ca158fb7fd52c29db50b39.png" width="auto" height="auto">
+
 ## Quick Links
 - ♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
 - ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
