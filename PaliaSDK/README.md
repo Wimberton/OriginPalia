@@ -8,7 +8,13 @@ If you'd like to use this edition, please download Dumper 7 from the link below
 🖥️ [Download Dumper 7](https://github.com/Wimberton/OriginPalia/blob/main/PaliaSDK/Dumper7_V3.dll)
 
 ## Step 1. Dump Palia
-Dump the PaliaClient by injecting this DLL into the game when in the character-selection screen
+Dump the PaliaClient by injecting this DLL into the game when you've done the following actions:
+```
+Get Any Loot (animal, ore, tree, bug)
+Open Anvil (need repair widget)
+Open Collections Screen (need collections widget)
+Open Map (need PMenu and Map widgets)
+```
 
 ## Step 2. Move Palia Dump Files
 Move the dumped files into our OriginPalia `PaliaSDK`folder.
