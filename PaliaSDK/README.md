@@ -15,6 +15,7 @@ Open Anvil (need repair widget)
 Open Collections Screen (need collections widget)
 Open Map (need PMenu and Map widgets)
 ```
+P.S: Changing zones will clear the game's available information, so do NOT change zones when doing the actions.
 
 ## Step 2. Move Palia Dump Files
 Move the dumped files into our OriginPalia `PaliaSDK`folder.
