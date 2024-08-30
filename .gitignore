@@ -372,3 +372,16 @@ MigrationBackup/
 FodyWeavers.xsd
 /CMakeBuild.Bat
 /ImGui.7z
+/PaliaSDK/Dumper-7-OriginSoftware(Void).dll
+/PaliaSDK/README.md
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# vs code cache/options directory
+.vscode/

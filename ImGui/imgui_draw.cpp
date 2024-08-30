@@ -301,7 +301,7 @@ void ImGui::StyleColorsDark(ImGuiStyle* dst)
     colors[ImGuiCol_SliderGrabActive] = ImVec4(0.5372549295425415f, 0.5529412031173706f, 1.0f, 1.0f);
 
     // Button color
-    colors[ImGuiCol_Button] = ImVec4(0.376, 0.356, 0.706, 1.0);
+    colors[ImGuiCol_Button] = ImVec4(0.376f, 0.356f, 0.706f, 1.0f);
     // Button color when hovered
     colors[ImGuiCol_ButtonHovered] = ImVec4(0.3765f, 0.3412f, 0.8471f, 1.0f);
     // Button color when active

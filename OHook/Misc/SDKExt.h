@@ -259,13 +259,13 @@ namespace SDKExt {
         uint8_t* Code;
         uint8_t* Locals;
 
-        UProperty* MostRecentProperty;
+        FProperty* MostRecentProperty;
         uint8_t* MostRecentPropertyAddress;
         uint8* MostRecentPropertyContainer;
         FlowStackType FlowStack;
         FFrame* PreviousFrame;
         FOutParmRec* OutParms;
-        UField* PropertyChainForCompiledIn;
+        FField* PropertyChainForCompiledIn;
         UFunction* CurrentNativeFunction;
         bool bArrayContextFailed;
     };

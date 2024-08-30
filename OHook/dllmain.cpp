@@ -1,16 +1,15 @@
+#include "Core/Main.h"
+#include "Core/HotkeysManager.h"
+#include "Overlay/PaliaOverlay.h"
+
+#include "console/console.hpp"
+#include "hooks/hooks.hpp"
+
 #include <Windows.h>
-#include <iostream>
 #include <thread>
 #include <bit>
 
 #include "MinHook.h"
-#include "Configuration.h"
-#include "PaliaOverlay.h"
-
-#include "console/console.hpp"
-#include "hooks/hooks.hpp"
-#include "utils/utils.hpp"
-#include "backend.hpp"
 
 #include "../PaliaSDK/SDK.hpp"
 
@@ -19,49 +18,48 @@ DWORD WINAPI OnProcessAttach(LPVOID lpParam);
 DWORD WINAPI OnProcessDetach(LPVOID lpParam);
 
 BOOL WINAPI DllMain(const HMODULE hModule, const DWORD fdwReason, const LPVOID lpReserved) {
-	if (fdwReason == DLL_PROCESS_ATTACH) {
-		DisableThreadLibraryCalls(hModule);
+    if (fdwReason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(hModule);
 
-		HANDLE hHandle = CreateThread(nullptr, 0, OnProcessAttach, hModule, 0, nullptr);
-		if (hHandle != nullptr) {
-			CloseHandle(hHandle);
-		}
-	} else if ( fdwReason == DLL_PROCESS_DETACH && !lpReserved) {
-		OnProcessDetach(nullptr);
-	}
-	
-	return TRUE;
+        HANDLE hHandle = CreateThread(nullptr, 0, OnProcessAttach, hModule, 0, nullptr);
+        if (hHandle != nullptr) {
+            CloseHandle(hHandle);
+        }
+    } else if (fdwReason == DLL_PROCESS_DETACH && !lpReserved) {
+        OnProcessDetach(nullptr);
+    }
+
+    return TRUE;
 }
 
 DWORD WINAPI OnProcessAttach(const LPVOID lpParam) {
-	HMODULE hModule = static_cast<HMODULE>(lpParam);
-
-	int32_t GMallocOffset = 0x089603A0;
+    auto hModule = static_cast<HMODULE>(lpParam);
+	int32_t GMallocOffset = 0x089F16E0; // 0.183.0
 
 	// Steam Support
 	char fileName[MAX_PATH];
 	GetModuleFileName(nullptr, fileName, MAX_PATH);
 	if (const std::string filePath(fileName); filePath.find("PaliaClientSteam-Win64-Shipping.exe") != std::string::npos) {
-		Offsets::GObjects		 = 0x08AAC680; // 1.181.0
-		Offsets::AppendString	 = 0x00CFFDD0; // 1.181.0
-		Offsets::GNames			 = 0x08A05CC0; // 1.181.0
-		Offsets::GWorld			 = 0x08C1D0B8; // 1.181.0
-		Offsets::ProcessEvent	 = 0x00ED9950; // 1.181.0
-		Offsets::ProcessEventIdx = 0x0000004D; // 1.181.0
-		GMallocOffset			 = 0x089CB620;
+		Offsets::GObjects			= 0x08B419C0; // 0.183.0
+		Offsets::AppendString		= 0x00D03FC0; // 0.183.0
+		Offsets::GNames				= 0x08A9B000; // 0.183.0
+		Offsets::GWorld				= 0x08CB2408; // 0.183.0
+		Offsets::ProcessEvent		= 0x00EDDD10; // 0.183.0
+		Offsets::ProcessEventIdx	= 0x0000004D; // 0.183.0
+		GMallocOffset				= 0x08A60960; // 0.183.0
 	}
+    
+    const auto Overlay = new PaliaOverlay();
+    MenuBase::Instance = Overlay;
 
-	// Opens a console window (if enabled in console.hpp)
-	Console::Alloc();
-
-	const auto Overlay = new PaliaOverlay();
-	MenuBase::Instance = Overlay;
-
-	// Initialize MinHook
-	if (MH_Initialize() != MH_OK) {
-		LOG("[!] MinHook initialization failed.\n");
-		FreeLibraryAndExitThread(hModule, 0);
-	}
+    // Opens a console window (if enabled in console.hpp)
+    Console::Alloc();
+    
+    // Initialize MinHook
+    if (MH_Initialize() != MH_OK) {
+        LOG("[!] MinHook initialization failed.\n");
+        FreeLibraryAndExitThread(hModule, 0);
+    }
 
 #ifdef FORCE_BACKEND
 	static HMODULE d3d12 = GetModuleHandle("D3D12.dll");
@@ -78,38 +76,31 @@ DWORD WINAPI OnProcessAttach(const LPVOID lpParam) {
 	LOG("[!] Manually forcing DX12.\n");
 	U::SetRenderingBackend(DIRECTX12);
 #else
-	std::thread findRenderer([&]() {
-		H::FindRenderer();
-		});
+    std::thread findRenderer(H::FindRenderer);
+    findRenderer.join();
 
-	findRenderer.join();
-
-	if (!H::FoundRenderer()) {
-		LOG("[!] Failed to find backend renderer. Exiting.\n");
-		FreeLibraryAndExitThread(hModule, 1);
-	}
+    if (!H::FoundRenderer()) {
+        LOG("[!] Failed to find backend renderer. Exiting.\n");
+        FreeLibraryAndExitThread(hModule, 1);
+    }
 #endif
 
-	// Initialize FMemory
-	FMemory::FMalloc::UnrealStaticGMalloc = std::bit_cast<FMemory::FMalloc**>(InSDKUtils::GetImageBase() + GMallocOffset);
-	FMemory::GMalloc = *FMemory::FMalloc::UnrealStaticGMalloc;
+    // Initialize FMemory
+    FMemory::FMalloc::UnrealStaticGMalloc = std::bit_cast<FMemory::FMalloc**>(InSDKUtils::GetImageBase() + GMallocOffset);
+    FMemory::GMalloc = *FMemory::FMalloc::UnrealStaticGMalloc;
 
-	H::Init();
+    H::Init();
 
-	// Load Settings Before Hooks
-	Configuration::Load(Overlay);
-
-	// Hook Setups
-	DetourManager::SetupHooks();
-	
-	return 0;
+    Main::Start();
+    
+    return 0;
 }
 
 DWORD WINAPI OnProcessDetach(const LPVOID lpParam) {
-	H::Free();
-	MH_Uninitialize();
-	
-	Console::Free();
-	
-	return 0;
+    Main::Stop();
+    H::Free();
+    MH_Uninitialize();
+
+    Console::Free();
+    return 0;
 }

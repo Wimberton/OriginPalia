@@ -12,10 +12,10 @@ namespace Hooks {
 
 	inline std::mutex FoundMutex;
 	inline bool bShuttingDown;
-#ifndef FORCE_BACKEND
-	inline bool bFoundRenderer = false;
-#else
+#ifdef FORCE_BACKEND
 	inline bool bFoundRenderer = true;
+#else
+	inline bool bFoundRenderer = false;
 #endif
 }
 

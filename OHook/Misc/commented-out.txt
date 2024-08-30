@@ -1,0 +1,221 @@
+﻿// // CanGather
+// inline bool IsFree(const UGatherableComponent* comp) {
+//     auto isFree = [](EVitalType type) {
+//         return type != EVitalType::Coins &&
+//             type != EVitalType::CommunityPoints &&
+//             type != EVitalType::Health &&
+//             type != EVitalType::MedalFishing &&
+//             type != EVitalType::PremiumCurrency;
+//     };
+//     return isFree(comp->VitalRequired) && isFree(comp->Vital2Required);
+// }
+
+// #ifndef M_PI
+// #define M_PI 3.14159265358979323846
+// #endif
+
+// inline FString CharToWide(const char* NarrowString) {
+//     wchar_t WideString[1024];
+//     MultiByteToWideChar(CP_ACP, 0, NarrowString, -1, WideString, 1024);
+//     return {WideString};
+// }
+
+// template <size_t size_x>
+// bool AnyTrue(bool(&arr)[size_x]) {
+//     for (int x = 0; x < size_x; x++) {
+//         if (arr[x])
+//             return true;
+//     }
+//     return false;
+// }
+//
+// template <size_t size_x, size_t size_y>
+// bool AnyTrue2D(bool(&arr)[size_x][size_y]) {
+//     for (int x = 0; x < size_x; x++) {
+//         for (int y = 0; y < size_y; y++) {
+//             if (arr[x][y])
+//                 return true;
+//         }
+//     }
+//     return false;
+// }
+//
+// template <size_t size_x, size_t size_y, size_t size_z>
+// bool AnyTrue3D(bool(&arr)[size_x][size_y][size_z]) {
+//     for (int x = 0; x < size_x; x++) {
+//         for (int y = 0; y < size_y; y++) {
+//             for (int z = 0; z < size_z; z++) {
+//                 if (arr[x][y][z])
+//                     return true;
+//             }
+//         }
+//     }
+//     return false;
+// }
+
+
+
+// // Vector math utilities
+// namespace VectorMath {
+//     static FVector GetVectorForward(const FRotator& Rotation) {
+//         const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+//         const float PitchRadians = Rotation.Pitch * M_PI / 180.0f;
+//
+//         const float CP = std::cos(PitchRadians);
+//         const float SP = std::sin(PitchRadians);
+//         const float CY = std::cos(YawRadians);
+//         const float SY = std::sin(YawRadians);
+//
+//         return {CP * CY, CP * SY, SP};
+//     }
+//
+//     static FVector GetVectorRight(const FRotator& Rotation) {
+//         const float YawRadians = Rotation.Yaw * M_PI / 180.0f;
+//
+//         const float CY = std::cos(YawRadians - M_PI / 2); // Subtract 90 degrees to get the right vector
+//         const float SY = std::sin(YawRadians - M_PI / 2);
+//
+//         return {CY, SY, 0.0f}; // Right vector is on the horizontal plane, so Z component is 0
+//     }
+// }
+
+// void TeleportDetours::Func_DoTeleportLoot(PaliaOverlay* Overlay) {
+//     if (!Configuration::bEnableLootbagTeleportation)
+//         return;
+//
+//     auto* ValeriaCharacter = GetValeriaCharacter();
+//     if (!ValeriaCharacter)
+//         return;
+//
+//     FVector PawnLocation = ValeriaCharacter->K2_GetActorLocation();
+//
+//     for (auto& Entry : ActorHandler::GetActors()) {
+//         if (Entry.ActorType == EType::Loot && Entry.Actor) {
+//             FHitResult HitResult;
+//             Entry.Actor->K2_SetActorLocation(PawnLocation, true, &HitResult, true);
+//         }
+//     }
+// }
+
+//
+// Unused stuff, left it down here for easier retrieval if ever needed.
+//
+
+// #define StrPrinter ::_StrPrinter()
+//
+// class _StrPrinter : public std::string {
+// public:
+//     _StrPrinter() = default;
+//
+//     template <typename T>
+//     _StrPrinter& operator<<(T&& data) {
+//         _stream << std::forward<T>(data);
+//         this->std::string::operator=(_stream.str());
+//         return *this;
+//     }
+//
+//     std::string operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::string>(*this); }
+//
+// private:
+//     std::stringstream _stream;
+// };
+//
+// #define WStrPrinter ::_WStrPrinter()
+//
+// class _WStrPrinter : public std::wstring {
+// public:
+//     _WStrPrinter() = default;
+//
+//     template <typename T>
+//     _WStrPrinter& operator<<(T&& data) {
+//         _stream << std::forward<T>(data);
+//         this->std::wstring::operator=(_stream.str());
+//         return *this;
+//     }
+//
+//     std::wstring operator<<(std::ostream& (*f)(std::ostream&)) const { return static_cast<std::wstring>(*this); }
+//
+// private:
+//     std::wstringstream _stream;
+// };
+
+// struct vec3 {
+//     float x, y, z;
+//
+//     explicit vec3(const float x = 0.0f, const float y = 0.0f, const float z = 0.0f) : x(x), y(y), z(z) {}
+//
+//     FVector ToFVector() const { return FVector(x, y, z); }
+//
+//     // Vector addition
+//     vec3 operator+(const vec3& other) const { return vec3(x + other.x, y + other.y, z + other.z); }
+//
+//     // Vector subtraction
+//     vec3 operator-(const vec3& other) const { return vec3(x - other.x, y - other.y, z - other.z); }
+//
+//     // Scalar multiplication
+//     vec3 operator*(const float scalar) const { return vec3(x * scalar, y * scalar, z * scalar); }
+//
+//     // Dot product
+//     float Dot(const vec3& other) const { return x * other.x + y * other.y + z * other.z; }
+//
+//     // Cross product
+//     vec3 Cross(const vec3& other) const {
+//         return vec3(
+//             y * other.z - z * other.y,
+//             z * other.x - x * other.z,
+//             x * other.y - y * other.x
+//         );
+//     }
+//
+//     // Size of the vector
+//     float Size() const { return std::sqrt(x * x + y * y + z * z); }
+//
+//     // Distance between two vectors
+//     float Distance(const vec3& other) const { return (*this - other).Size(); }
+//
+//     // Convert to string (for debugging)
+//     std::string ToString() const {
+//         std::stringstream ss;
+//         ss << "vec3(" << x << ", " << y << ", " << z << ")";
+//         return ss.str();
+//     }
+// };
+
+// template <typename SearchType>
+// SearchType GetFlagMulti(std::string Text, std::map<SearchType, std::vector<std::string>>& map) {
+//     SearchType T = static_cast<SearchType>(0);
+//     for (auto& Entry : map) {
+//         for (auto& Str : Entry.second) {
+//             if (Text.find(Str) != std::string::npos) {
+//                 T |= Entry.first;
+//             }
+//         }
+//     }
+//     return T;
+// }
+
+// Function to convert std::vector<FEntry> to TArray<FEntry>
+// inline TArray<FEntry> ConvertToTArray(const std::vector<FEntry>& VectorEntries) {
+//     TArray<FEntry> TArrayEntries;
+//     for (const auto& Entry : VectorEntries) { TArrayEntries.Add(Entry); }
+//     return TArrayEntries;
+// }
+
+// inline bool SortByName(const FEntry& a, const FEntry& b) {
+//     return a.DisplayName < b.DisplayName;
+// }
+
+// union FunctionPointerUnion {
+//     const void* ProcessEventPointer;
+//     void (*ProcessEventFunction)(const UObject*, UFunction*, void*);
+// };
+
+
+// OLD, ACCURATE SEARCHCONTAINER (GATES REAPPEAR, SPECIFIC ESP NOT DETECTED IN CURRENT WORLD SOMETIMES)
+/*#define STATIC_CLASS(CName, SearchContainer)                          \
+{                                                                     \
+    static class UClass* Clss = nullptr;                              \
+    if (!Clss || !Clss->IsValidLowLevel() || Clss->IsDefaultObject()) \
+        Clss = UObject::FindClassFast(CName);                         \
+    SearchContainer.push_back(Clss);                                  \
+}*/

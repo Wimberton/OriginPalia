@@ -394,7 +394,8 @@ static void RenderImGui_DX12(IDXGISwapChain3* pSwapChain) {
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
 
-            Menu::Render();
+            if(MenuBase::Instance)
+                Menu::Render();
 
             ImGui::Render();
 

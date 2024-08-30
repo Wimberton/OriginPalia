@@ -100,12 +100,16 @@ static LRESULT WINAPI WndProc( const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         case WM_SYSCHAR:
         case WM_LBUTTONDOWN:
         case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
         case WM_RBUTTONDOWN:
         case WM_RBUTTONUP:
+        case WM_RBUTTONDBLCLK:
         case WM_MBUTTONDOWN:
         case WM_MBUTTONUP:
+        case WM_MBUTTONDBLCLK:
         case WM_XBUTTONDOWN:
         case WM_XBUTTONUP:
+        case WM_XBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
         case WM_INPUT:
@@ -137,11 +141,11 @@ enum DetectionState {
 
 namespace Hooks {
     void FindRenderer() {
-        const int max_retries = 10;
+        constexpr int max_retries = 10;
         static int retries = 0;
         static DetectionState state = DetectingDX12; // Set default to DX12.
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 
         while (!bFoundRenderer && retries < max_retries + 1) {
             std::lock_guard<std::mutex> lock(FoundMutex);
@@ -194,7 +198,7 @@ namespace Hooks {
                     d3d11 ? "[X]" : "[ ]");
 
                 retries++;
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
                 if (retries >= max_retries && state == DetectingDX12) {
                     state = DetectingDX11;

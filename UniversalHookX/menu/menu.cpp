@@ -28,7 +28,7 @@ void MenuBase::OverlayProc() {
 
 namespace Menu {
 
-    void InitializeContext(HWND hwnd) {
+    void InitializeContext(const HWND hwnd) {
         if (ig::GetCurrentContext( ))
             return;
 
@@ -45,7 +45,7 @@ namespace Menu {
 		ImGuiIO& io = ImGui::GetIO();
 
 		//define icon ranges
-		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 
 		// Inter Medium (Default)
 		ImFontConfig inter_medium_config;
@@ -152,7 +152,7 @@ namespace Menu {
     }
 
     void Render( ) {
-        ImGui::Begin("Overlay", 0,
+        ImGui::Begin("Overlay", nullptr,
             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -167,8 +167,5 @@ namespace Menu {
             Overlay::Draw();
         }
         ImGui::End();
-
-        if (!bShowMenu)
-            return;
     }
 } // namespace Menu
