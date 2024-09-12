@@ -11,7 +11,7 @@
 - ♥ [View Our Wiki](https://github.com/Wimberton/OriginPalia/wiki)
 - ♥ [Join Discord Server](https://discord.gg/originsoftware)
 
-Thanks to [VoidPollo](https://github.com/OS-Void), [Rambolo](https://github.com/Rambolo), and [enigmaquip](https://github.com/enigmaquip) for the continued work, restructuring, and maintenance! Couldn't do this without them!
+Thanks to [Void](https://github.com/OS-Void), [Rambolo](https://github.com/Rambolo), and [enigmaquip](https://github.com/enigmaquip) for the continued work, restructuring, and maintenance! Couldn't do this without them!
 
 <img align="center" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
 
