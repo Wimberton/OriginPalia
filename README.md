@@ -23,7 +23,7 @@ More information can be found in the [PaliaSDK README](https://github.com/Wimber
 - Steam Palia Support
 
 ## Usage
-- Toggle the menu using `INSERT`
+- Toggle the menu using `INSERT` or `TILDE ` `
 
 <img align="center" src="https://i.gyazo.com/a31227e25a080e65054a4737a4baa6e1.png" width="auto" height="auto">
 
