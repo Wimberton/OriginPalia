@@ -7,7 +7,7 @@
 ## Quick Links
 - ♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
 - ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
-- ♥ [Read All Changes](https://github.com/Wimberton/OriginPalia/wiki/Changelogs-%E2%80%90-DLL)
+- ♥ [Read All Changes](https://github.com/Wimberton/OriginPalia/wiki/Changelogs)
 - ♥ [View Our Wiki](https://github.com/Wimberton/OriginPalia/wiki)
 - ♥ [Join Discord Server](https://discord.gg/originsoftware)
 
