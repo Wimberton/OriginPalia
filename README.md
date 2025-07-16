@@ -1,22 +1,22 @@
-# Download the Best Free Palia Cheat, OriginPalia <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="32" height="32"></a>
+# Download the Best Free Palia Cheat, Palia FENTRY <a href="https://www.unknowncheats.me/forum/palia/636934-originpalia-feature-packed-multitool-imagine.html"><img align="right" src="https://i.gyazo.com/7e7b0b3f8bd20565233fe2f3fb08d250.png" width="32" height="32"></a>
 
-[OriginPalia is the most powerful cheat available for Palia](https://getos.me/). It's completely free, and comes with tons of overpowered features like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more! OriginPalia is still in active development, so there may be a few bugs.
+[Palia FENTRY is the most powerful cheat available for Palia](https://www.fentry.org/). It's completely free, and comes with tons of overpowered features like Instant Fishing, ESPs, Silent Aim, Teleport to entities, and more! Palia FENTRY is still in active development, so there may be a few bugs.
 
 <img align="center" src="https://i.imgur.com/d10S9Aa.jpg" width="auto" height="auto">
 
 ## Quick Links
-- ♥ [Download Latest Injector](https://github.com/Wimberton/OriginPalia/releases/tag/Injector)
-- ♥ [Download Latest DLL](https://github.com/Wimberton/OriginPalia/releases/tag/release)
-- ♥ [Read All Changes](https://github.com/Wimberton/OriginPalia/wiki/Changelogs)
-- ♥ [View Our Wiki](https://github.com/Wimberton/OriginPalia/wiki)
-- ♥ [Join Discord Server](https://discord.gg/originsoftware)
+- ♥ [Download Latest Injector](https://github.com/Wimberton/Palia-FENTRY/releases/tag/Injector)
+- ♥ [Download Latest DLL](https://github.com/Wimberton/Palia-FENTRY/releases/tag/release)
+- ♥ [Read All Changes](https://github.com/Wimberton/Palia-FENTRY/wiki/Changelogs)
+- ♥ [View Our Wiki](https://github.com/Wimberton/Palia-FENTRY/wiki)
+- ♥ [Join Discord Server](https://discord.gg/fentry)
 
 Thanks to [Rambolo](https://github.com/Rambolo) and [enigmaquip](https://github.com/enigmaquip) for the continued support and maintenance! Couldn't do this without them!
 
 <img align="center" src="https://i.gyazo.com/c12d0c130c168678cfe9ab9dbc946c2a.png" width="auto" height="auto">
 
 You will need to dump the SDK of the game yourself for this to work. Simply add the latest game SDK files into the `PaliaSDK` folder to reallocate the required SDK files.
-More information can be found in the [PaliaSDK README](https://github.com/Wimberton/OriginPalia/tree/main/PaliaSDK).
+More information can be found in the [PaliaSDK README](https://github.com/Wimberton/Palia-FENTRY/tree/main/PaliaSDK).
 
 ## Compatibility
 - Standalone Client Support
@@ -106,6 +106,6 @@ More information can be found in the [PaliaSDK README](https://github.com/Wimber
 
 | [![Video 1](https://img.youtube.com/vi/5OQ5uGaM0kE/0.jpg)](https://www.youtube.com/watch?v=5OQ5uGaM0kE) |  |
 |:------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
-| [OriginPalia Full Walkthrough](https://www.youtube.com/watch?v=5OQ5uGaM0kE)                                          |                                           |
+| [Palia-FENTRY Full Walkthrough](https://www.youtube.com/watch?v=5OQ5uGaM0kE)                                          |                                           |
 | [![Video 3](https://img.youtube.com/vi/WECXNUJx1ME/0.jpg)](https://www.youtube.com/watch?v=WECXNUJx1ME) | [![Video 4](https://img.youtube.com/vi/vso_yAm8RCE/0.jpg)](https://www.youtube.com/watch?v=vso_yAm8RCE) |
 | [Palia Instant Flow Tree Chopping Exploits](https://www.youtube.com/watch?v=WECXNUJx1ME)                                          | [Palia Auto Bug Catching Exploits](https://www.youtube.com/watch?v=vso_yAm8RCE)                                          |
